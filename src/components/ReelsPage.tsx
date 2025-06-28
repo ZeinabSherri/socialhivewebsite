@@ -20,6 +20,7 @@ const ReelsPage = () => {
       shares: 89,
       user: 'socialhive.agency',
       isLiked: false,
+      videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
     },
     {
       id: 2,
@@ -30,6 +31,7 @@ const ReelsPage = () => {
       shares: 56,
       user: 'socialhive.agency',
       isLiked: true,
+      videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
     },
     {
       id: 3,
@@ -40,6 +42,7 @@ const ReelsPage = () => {
       shares: 145,
       user: 'socialhive.agency',
       isLiked: false,
+      videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
     }
   ];
 
@@ -81,11 +84,30 @@ const ReelsPage = () => {
 
   const toggleMute = () => {
     setIsMuted(!isMuted);
+    const currentVideo = videoRefs.current[currentReel];
+    if (currentVideo) {
+      currentVideo.muted = !isMuted;
+    }
   };
 
   const toggleLike = (index: number) => {
     console.log('Liked reel:', index);
   };
+
+  // Handle video playback and autoplay
+  useEffect(() => {
+    videoRefs.current.forEach((video, index) => {
+      if (video) {
+        if (index === currentReel) {
+          video.currentTime = 0;
+          video.play().catch(console.error);
+          video.muted = isMuted;
+        } else {
+          video.pause();
+        }
+      }
+    });
+  }, [currentReel, isMuted]);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -111,14 +133,42 @@ const ReelsPage = () => {
       >
         {reels.map((reel, index) => (
           <div key={reel.id} className="h-screen w-full relative bg-black">
-            {/* Video Background - Using gradient placeholder since we don't have real videos */}
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-yellow-400/20 to-black">
-              <div className="text-center">
-                <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center mb-4 mx-auto">
-                  <span className="text-black text-3xl">🐝</span>
+            {/* Video Background */}
+            <div className="absolute inset-0">
+              <video
+                ref={(el) => (videoRefs.current[index] = el)}
+                className="w-full h-full object-cover"
+                loop
+                muted={isMuted}
+                playsInline
+                preload="metadata"
+                poster={`data:image/svg+xml;base64,${btoa(`
+                  <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="100%" height="100%" fill="#000"/>
+                    <circle cx="50" cy="50" r="20" fill="#FCD34D"/>
+                    <text x="50" y="58" text-anchor="middle" fill="#000" font-size="24">🐝</text>
+                  </svg>
+                `)}`}
+                onLoadedData={() => {
+                  const video = videoRefs.current[index];
+                  if (video && index === currentReel) {
+                    video.play().catch(console.error);
+                  }
+                }}
+              >
+                <source src={reel.videoUrl} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+              
+              {/* Fallback content when video doesn't load */}
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-yellow-400/20 to-black">
+                <div className="text-center">
+                  <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center mb-4 mx-auto">
+                    <span className="text-black text-3xl">🐝</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-2">{reel.title}</h3>
+                  <p className="text-gray-300 max-w-xs">{reel.description}</p>
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-2">{reel.title}</h3>
-                <p className="text-gray-300 max-w-xs">{reel.description}</p>
               </div>
             </div>
 
