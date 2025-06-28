@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
@@ -141,18 +140,6 @@ const PostCard = ({ post, onLike }: PostCardProps) => {
         <button className="text-gray-400 text-sm mt-2 hover:text-gray-300">
           View all {post.comments} comments
         </button>
-
-        {/* Add Comment */}
-        <div className="mt-3 flex items-center space-x-3">
-          <input
-            type="text"
-            placeholder="Add a comment..."
-            className="flex-1 bg-transparent text-sm text-gray-100 placeholder-gray-500 outline-none"
-          />
-          <button className="text-yellow-400 text-sm font-semibold hover:text-yellow-300">
-            Post
-          </button>
-        </div>
       </div>
     </div>
   );
