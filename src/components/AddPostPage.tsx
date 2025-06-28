@@ -1,198 +1,136 @@
 
 import { useState } from 'react';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Camera, Image, Video } from 'lucide-react';
 
 interface AddPostPageProps {
   onBack: () => void;
 }
 
 const AddPostPage = ({ onBack }: AddPostPageProps) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    company: '',
-    service: '',
-    message: '',
-    budget: ''
-  });
+  const [selectedType, setSelectedType] = useState<'photo' | 'video' | 'story'>('photo');
+  const [caption, setCaption] = useState('');
+  const [location, setLocation] = useState('');
+  const [tagPeople, setTagPeople] = useState('');
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-
-  const services = [
-    'Social Media Management',
-    'Content Creation',
-    'Paid Advertising',
-    'Brand Strategy',
-    'Influencer Marketing',
-    'Analytics & Reporting'
-  ];
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    
-    // Go back after success message
-    setTimeout(() => {
-      onBack();
-    }, 3000);
+  const handleShare = () => {
+    // Handle post sharing
+    console.log('Sharing post...');
+    onBack();
   };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  if (isSubmitted) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <div className="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-black text-2xl">🐝</span>
-          </div>
-          <h3 className="text-xl font-semibold text-white mb-2">Thank You!</h3>
-          <p className="text-gray-300 mb-4">
-            Your project inquiry has been received. Our team will get back to you within 24 hours.
-          </p>
-          <div className="text-yellow-400 text-sm">Going back automatically...</div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-black border-b border-gray-800 px-4 py-3">
-        <div className="max-w-md mx-auto flex items-center justify-between">
-          <button
-            onClick={onBack}
-            className="text-gray-400 hover:text-white"
-          >
-            <ArrowLeft size={24} />
-          </button>
-          <h1 className="text-xl font-bold text-yellow-400">Social Hive</h1>
-          <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-            <span className="text-black text-sm">🐝</span>
-          </div>
-        </div>
+      <header className="flex items-center justify-between p-4 border-b border-gray-800">
+        <button
+          onClick={onBack}
+          className="text-white hover:opacity-70"
+        >
+          <ArrowLeft size={24} />
+        </button>
+        <h1 className="text-lg font-semibold">New post</h1>
+        <button
+          onClick={handleShare}
+          className="text-blue-400 font-semibold hover:text-blue-300"
+        >
+          Share
+        </button>
       </header>
 
-      {/* Main Content */}
-      <div className="max-w-md mx-auto p-4">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-yellow-400 mb-2">Start Your Project</h2>
-          <p className="text-gray-300">Ready to create some buzz? Let's discuss your project!</p>
+      {/* Content Selection Area */}
+      <div className="aspect-square bg-gray-900 flex items-center justify-center border-b border-gray-800">
+        <div className="text-center">
+          <div className="w-24 h-24 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Camera size={32} className="text-gray-400" />
+          </div>
+          <p className="text-gray-400 mb-4">Select photos and videos</p>
+          <div className="flex gap-4 justify-center">
+            <button className="flex items-center gap-2 bg-blue-500 px-4 py-2 rounded-lg hover:bg-blue-600">
+              <Image size={20} />
+              <span>Photo</span>
+            </button>
+            <button className="flex items-center gap-2 bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-600">
+              <Video size={20} />
+              <span>Video</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Post Options */}
+      <div className="p-4 space-y-4">
+        {/* Caption */}
+        <div>
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-sm">🐝</span>
+            </div>
+            <div className="flex-1">
+              <textarea
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+                placeholder="Write a caption..."
+                className="w-full bg-transparent text-white resize-none outline-none placeholder-gray-400 text-sm"
+                rows={3}
+              />
+            </div>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <input
-              type="text"
-              name="name"
-              required
-              value={formData.name}
-              onChange={handleInputChange}
-              className="w-full bg-gray-800 text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-yellow-400"
-              placeholder="Your Name"
-            />
+        {/* Location */}
+        <div className="flex items-center justify-between py-3 border-b border-gray-800">
+          <span className="text-white">Add location</span>
+          <input
+            type="text"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            placeholder="Search locations..."
+            className="bg-transparent text-right text-gray-400 outline-none placeholder-gray-500 text-sm"
+          />
+        </div>
+
+        {/* Tag People */}
+        <div className="flex items-center justify-between py-3 border-b border-gray-800">
+          <span className="text-white">Tag people</span>
+          <input
+            type="text"
+            value={tagPeople}
+            onChange={(e) => setTagPeople(e.target.value)}
+            placeholder="Search people..."
+            className="bg-transparent text-right text-gray-400 outline-none placeholder-gray-500 text-sm"
+          />
+        </div>
+
+        {/* Advanced Settings */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between py-3">
+            <span className="text-white">Also post to Facebook</span>
+            <div className="w-12 h-6 bg-gray-700 rounded-full p-1">
+              <div className="w-4 h-4 bg-white rounded-full"></div>
+            </div>
           </div>
 
-          <div>
-            <input
-              type="email"
-              name="email"
-              required
-              value={formData.email}
-              onChange={handleInputChange}
-              className="w-full bg-gray-800 text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-yellow-400"
-              placeholder="Email Address"
-            />
+          <div className="flex items-center justify-between py-3">
+            <span className="text-white">Turn off commenting</span>
+            <div className="w-12 h-6 bg-gray-700 rounded-full p-1">
+              <div className="w-4 h-4 bg-white rounded-full"></div>
+            </div>
           </div>
 
-          <div>
-            <input
-              type="text"
-              name="company"
-              value={formData.company}
-              onChange={handleInputChange}
-              className="w-full bg-gray-800 text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-yellow-400"
-              placeholder="Business Name"
-            />
+          <div className="flex items-center justify-between py-3">
+            <span className="text-white">Hide like and view counts</span>
+            <div className="w-12 h-6 bg-gray-700 rounded-full p-1">
+              <div className="w-4 h-4 bg-white rounded-full"></div>
+            </div>
           </div>
+        </div>
 
-          <div>
-            <select
-              name="service"
-              required
-              value={formData.service}
-              onChange={handleInputChange}
-              className="w-full bg-gray-800 text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-yellow-400"
-            >
-              <option value="">Select a service</option>
-              {services.map(service => (
-                <option key={service} value={service}>{service}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <select
-              name="budget"
-              value={formData.budget}
-              onChange={handleInputChange}
-              className="w-full bg-gray-800 text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-yellow-400"
-            >
-              <option value="">Select budget range</option>
-              <option value="$1,000 - $5,000">$1,000 - $5,000</option>
-              <option value="$5,000 - $10,000">$5,000 - $10,000</option>
-              <option value="$10,000 - $25,000">$10,000 - $25,000</option>
-              <option value="$25,000+">$25,000+</option>
-            </select>
-          </div>
-
-          <div>
-            <textarea
-              name="message"
-              required
-              rows={4}
-              value={formData.message}
-              onChange={handleInputChange}
-              className="w-full bg-gray-800 text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-yellow-400 resize-none"
-              placeholder="Tell us about your project..."
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-yellow-400 text-black font-semibold py-3 rounded-lg hover:bg-yellow-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-          >
-            {isSubmitting ? (
-              <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black"></div>
-                <span>Sending...</span>
-              </>
-            ) : (
-              <>
-                <Send size={20} />
-                <span>Send Message</span>
-              </>
-            )}
+        {/* Accessibility */}
+        <div className="pt-4">
+          <button className="text-blue-400 text-sm hover:text-blue-300">
+            Advanced settings
           </button>
-
-          <p className="text-xs text-gray-400 text-center mt-4">
-            By submitting this form, you agree to our Terms of Service and Privacy Policy.
-          </p>
-        </form>
+        </div>
       </div>
     </div>
   );
