@@ -1,6 +1,6 @@
-
 import { useState } from 'react';
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 
 interface Post {
   id: number;
@@ -32,9 +32,12 @@ const PostCard = ({ post, onLike }: PostCardProps) => {
       {/* Post Header */}
       <div className="flex items-center justify-between p-3">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-full bg-yellow-400 flex items-center justify-center">
-            <span className="text-black text-sm">🐝</span>
-          </div>
+          <Avatar className="w-8 h-8">
+            <AvatarImage src={post.userAvatar} alt={post.username} />
+            <AvatarFallback className="bg-yellow-400 text-black text-sm">
+              🐝
+            </AvatarFallback>
+          </Avatar>
           <div>
             <p className="font-semibold text-sm">{post.username}</p>
             <p className="text-gray-400 text-xs">{post.timestamp}</p>
