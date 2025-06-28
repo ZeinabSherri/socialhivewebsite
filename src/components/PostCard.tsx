@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
@@ -21,10 +22,30 @@ interface PostCardProps {
 
 const PostCard = ({ post, onLike }: PostCardProps) => {
   const [showFullCaption, setShowFullCaption] = useState(false);
+  const [showLoveIcon, setShowLoveIcon] = useState(false);
+  const [lastTap, setLastTap] = useState(0);
 
   const truncateCaption = (text: string, maxLength: number = 100) => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
+  };
+
+  const handleDoubleTap = () => {
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 300;
+
+    if (now - lastTap < DOUBLE_TAP_DELAY) {
+      // Double tap detected
+      if (!post.isLiked) {
+        onLike();
+      }
+      
+      // Show love icon animation
+      setShowLoveIcon(true);
+      setTimeout(() => setShowLoveIcon(false), 1000);
+    }
+    
+    setLastTap(now);
   };
 
   return (
@@ -49,13 +70,26 @@ const PostCard = ({ post, onLike }: PostCardProps) => {
       </div>
 
       {/* Post Image */}
-      <div className="aspect-square bg-gray-900">
+      <div className="aspect-square bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
         <img
           src={post.image}
           alt="Post content"
           className="w-full h-full object-cover"
           loading="lazy"
         />
+        
+        {/* Love Icon Animation */}
+        {showLoveIcon && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <Heart 
+              size={80} 
+              className="text-white fill-red-500 animate-scale-in"
+              style={{
+                animation: 'scale-in 0.6s ease-out, fade-out 0.3s ease-out 0.7s forwards'
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/* Post Actions */}
