@@ -48,69 +48,76 @@ const Index = () => {
     </svg>
   );
 
-  // Don't show header and bottom nav when on add page
-  if (showAddPage) {
-    return (
-      <div className="min-h-screen bg-black text-white">
-        {renderContent()}
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-black border-b border-gray-800 px-4 py-3">
-        <div className="max-w-md mx-auto flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-yellow-400">Social Hive</h1>
-          <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-            <span className="text-black text-sm">🐝</span>
+      {/* Header - only show when not on add page */}
+      {!showAddPage && (
+        <header className="sticky top-0 z-50 bg-black border-b border-gray-800 px-4 py-3">
+          <div className="max-w-md mx-auto flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-yellow-400">Social Hive</h1>
+            <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
+              <span className="text-black text-sm">🐝</span>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* Main Content */}
       <main className="pb-16">
         {renderContent()}
       </main>
 
-      {/* Bottom Navigation */}
+      {/* Bottom Navigation - always visible */}
       <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-800 px-4 py-2">
         <div className="max-w-md mx-auto flex justify-around">
           <button
-            onClick={() => setActiveTab('home')}
+            onClick={() => {
+              setActiveTab('home');
+              setShowAddPage(false);
+            }}
             className={`p-3 rounded-lg transition-colors ${
-              activeTab === 'home' ? 'text-yellow-400' : 'text-gray-400 hover:text-white'
+              activeTab === 'home' && !showAddPage ? 'text-yellow-400' : 'text-gray-400 hover:text-white'
             }`}
           >
             <Home size={24} />
           </button>
           <button
-            onClick={() => setActiveTab('explore')}
+            onClick={() => {
+              setActiveTab('explore');
+              setShowAddPage(false);
+            }}
             className={`p-3 rounded-lg transition-colors ${
-              activeTab === 'explore' ? 'text-yellow-400' : 'text-gray-400 hover:text-white'
+              activeTab === 'explore' && !showAddPage ? 'text-yellow-400' : 'text-gray-400 hover:text-white'
             }`}
           >
             <Search size={24} />
           </button>
           <button
             onClick={handleAddClick}
-            className="p-3 rounded-lg text-gray-400 hover:text-yellow-400 transition-colors"
+            className={`p-3 rounded-lg transition-colors ${
+              showAddPage ? 'text-yellow-400' : 'text-gray-400 hover:text-yellow-400'
+            }`}
           >
             <Plus size={24} />
           </button>
           <button
-            onClick={() => setActiveTab('reels')}
+            onClick={() => {
+              setActiveTab('reels');
+              setShowAddPage(false);
+            }}
             className={`p-3 rounded-lg transition-colors ${
-              activeTab === 'reels' ? 'text-yellow-400' : 'text-gray-400 hover:text-white'
+              activeTab === 'reels' && !showAddPage ? 'text-yellow-400' : 'text-gray-400 hover:text-white'
             }`}
           >
             <ReelsIcon size={24} />
           </button>
           <button
-            onClick={() => setActiveTab('profile')}
+            onClick={() => {
+              setActiveTab('profile');
+              setShowAddPage(false);
+            }}
             className={`p-3 rounded-lg transition-colors ${
-              activeTab === 'profile' ? 'text-yellow-400' : 'text-gray-400 hover:text-white'
+              activeTab === 'profile' && !showAddPage ? 'text-yellow-400' : 'text-gray-400 hover:text-white'
             }`}
           >
             <User size={24} />
