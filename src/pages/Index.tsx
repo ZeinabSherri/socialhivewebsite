@@ -5,13 +5,17 @@ import HomeFeed from '../components/HomeFeed';
 import ExplorePage from '../components/ExplorePage';
 import ReelsPage from '../components/ReelsPage';
 import ProfilePage from '../components/ProfilePage';
-import AddPostModal from '../components/AddPostModal';
+import AddPostPage from '../components/AddPostPage';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('home');
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddPage, setShowAddPage] = useState(false);
 
   const renderContent = () => {
+    if (showAddPage) {
+      return <AddPostPage onBack={() => setShowAddPage(false)} />;
+    }
+
     switch (activeTab) {
       case 'home':
         return <HomeFeed />;
@@ -27,7 +31,7 @@ const Index = () => {
   };
 
   const handleAddClick = () => {
-    setShowAddModal(true);
+    setShowAddPage(true);
   };
 
   // Official Instagram-style Reels icon component
@@ -43,6 +47,15 @@ const Index = () => {
       <polygon points="10,8 16,12 10,16" fill="currentColor"/>
     </svg>
   );
+
+  // Don't show header and bottom nav when on add page
+  if (showAddPage) {
+    return (
+      <div className="min-h-screen bg-black text-white">
+        {renderContent()}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -104,11 +117,6 @@ const Index = () => {
           </button>
         </div>
       </nav>
-
-      {/* Add Post Modal */}
-      {showAddModal && (
-        <AddPostModal onClose={() => setShowAddModal(false)} />
-      )}
     </div>
   );
 };
