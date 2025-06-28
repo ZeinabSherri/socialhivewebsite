@@ -20,7 +20,6 @@ const ReelsPage = () => {
       shares: 89,
       user: 'socialhive.agency',
       isLiked: false,
-      videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4' // Placeholder
     },
     {
       id: 2,
@@ -31,7 +30,6 @@ const ReelsPage = () => {
       shares: 56,
       user: 'socialhive.agency',
       isLiked: true,
-      videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4' // Placeholder
     },
     {
       id: 3,
@@ -42,7 +40,6 @@ const ReelsPage = () => {
       shares: 145,
       user: 'socialhive.agency',
       isLiked: false,
-      videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_5mb.mp4' // Placeholder
     }
   ];
 
@@ -84,29 +81,11 @@ const ReelsPage = () => {
 
   const toggleMute = () => {
     setIsMuted(!isMuted);
-    const currentVideo = videoRefs.current[currentReel];
-    if (currentVideo) {
-      currentVideo.muted = !isMuted;
-    }
   };
 
   const toggleLike = (index: number) => {
     console.log('Liked reel:', index);
   };
-
-  // Handle video playback
-  useEffect(() => {
-    videoRefs.current.forEach((video, index) => {
-      if (video) {
-        if (index === currentReel) {
-          video.play();
-          video.muted = isMuted;
-        } else {
-          video.pause();
-        }
-      }
-    });
-  }, [currentReel, isMuted]);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -132,34 +111,15 @@ const ReelsPage = () => {
       >
         {reels.map((reel, index) => (
           <div key={reel.id} className="h-screen w-full relative bg-black">
-            {/* Video Background */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <video
-                ref={(el) => (videoRefs.current[index] = el)}
-                className="w-full h-full object-cover"
-                loop
-                muted={isMuted}
-                playsInline
-                preload="metadata"
-                poster={`data:image/svg+xml;base64,${btoa(`
-                  <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="100%" height="100%" fill="#000"/>
-                    <circle cx="50" cy="50" r="20" fill="#FCD34D"/>
-                    <text x="50" y="58" text-anchor="middle" fill="#000" font-size="24">🐝</text>
-                  </svg>
-                `)}`}
-              >
-                {/* Fallback content when video doesn't load */}
-                <div className="w-full h-full bg-gradient-to-br from-yellow-400/20 to-black flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center mb-4 mx-auto">
-                      <span className="text-black text-3xl">🐝</span>
-                    </div>
-                    <h3 className="text-2xl font-bold text-white mb-2">{reel.title}</h3>
-                    <p className="text-gray-300 max-w-xs">{reel.description}</p>
-                  </div>
+            {/* Video Background - Using gradient placeholder since we don't have real videos */}
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-yellow-400/20 to-black">
+              <div className="text-center">
+                <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center mb-4 mx-auto">
+                  <span className="text-black text-3xl">🐝</span>
                 </div>
-              </video>
+                <h3 className="text-2xl font-bold text-white mb-2">{reel.title}</h3>
+                <p className="text-gray-300 max-w-xs">{reel.description}</p>
+              </div>
             </div>
 
             {/* Mute/Unmute Button */}

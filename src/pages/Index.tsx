@@ -30,7 +30,7 @@ const Index = () => {
     setShowAddModal(true);
   };
 
-  // Instagram-style Reels icon component
+  // Official Instagram-style Reels icon component
   const ReelsIcon = ({ size = 24, className = "" }) => (
     <svg
       width={size}
@@ -39,8 +39,8 @@ const Index = () => {
       fill="none"
       className={className}
     >
-      <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="2" fill="none"/>
-      <path d="M7 8l5-3 5 3v8l-5 3-5-3V8z" stroke="currentColor" strokeWidth="2" fill="none"/>
+      <rect x="3" y="3" width="18" height="18" rx="6" stroke="currentColor" strokeWidth="2"/>
+      <polygon points="10,8 16,12 10,16" fill="currentColor"/>
     </svg>
   );
 
