@@ -1,6 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import PostCard from './PostCard';
+import Stories from './Stories';
 
 const HomeFeed = () => {
   const [posts, setPosts] = useState([
@@ -76,26 +76,7 @@ const HomeFeed = () => {
   return (
     <div className="max-w-md mx-auto">
       {/* Stories Section */}
-      <div className="px-4 py-3 border-b border-gray-800">
-        <div className="flex space-x-4 overflow-x-auto">
-          <div className="flex-shrink-0 text-center">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-400 to-yellow-600 p-0.5">
-              <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
-                <span className="text-2xl">🐝</span>
-              </div>
-            </div>
-            <p className="text-xs mt-1 text-gray-300">Your story</p>
-          </div>
-          {['Team', 'Projects', 'Results', 'Clients'].map((story, index) => (
-            <div key={index} className="flex-shrink-0 text-center">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-400 to-yellow-600 p-0.5">
-                <div className="w-full h-full rounded-full bg-gray-800"></div>
-              </div>
-              <p className="text-xs mt-1 text-gray-300">{story}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+      <Stories />
 
       {/* Posts Feed */}
       <div className="space-y-0">
