@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Heart, MessageCircle, Send, Bookmark, VolumeX, Volume2 } from 'lucide-react';
 
@@ -146,7 +145,7 @@ const ReelsPage = () => {
                   <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
                     <rect width="100%" height="100%" fill="#000"/>
                     <circle cx="50" cy="50" r="20" fill="#FCD34D"/>
-                    <text x="50" y="58" text-anchor="middle" fill="#000" font-size="24">🐝</text>
+                    <text x="50" y="58" text-anchor="middle" fill="#000" font-size="16">SH</text>
                   </svg>
                 `)}`}
                 onLoadedData={() => {
