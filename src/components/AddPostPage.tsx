@@ -1,20 +1,32 @@
 
 import { useState } from 'react';
-import { ArrowLeft, Camera, Image, Video } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, MessageSquare } from 'lucide-react';
 
 interface AddPostPageProps {
   onBack: () => void;
 }
 
 const AddPostPage = ({ onBack }: AddPostPageProps) => {
-  const [selectedType, setSelectedType] = useState<'photo' | 'video' | 'story'>('photo');
-  const [caption, setCaption] = useState('');
-  const [location, setLocation] = useState('');
-  const [tagPeople, setTagPeople] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    subject: '',
+    message: ''
+  });
 
-  const handleShare = () => {
-    // Handle post sharing
-    console.log('Sharing post...');
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Contact form submitted:', formData);
+    // Handle form submission
     onBack();
   };
 
@@ -28,109 +40,149 @@ const AddPostPage = ({ onBack }: AddPostPageProps) => {
         >
           <ArrowLeft size={24} />
         </button>
-        <h1 className="text-lg font-semibold">New post</h1>
+        <h1 className="text-lg font-semibold">Contact Us</h1>
         <button
-          onClick={handleShare}
+          onClick={handleSubmit}
           className="text-blue-400 font-semibold hover:text-blue-300"
         >
-          Share
+          Send
         </button>
       </header>
 
-      {/* Content Selection Area */}
-      <div className="aspect-square bg-gray-900 flex items-center justify-center border-b border-gray-800">
-        <div className="text-center">
-          <div className="w-24 h-24 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Camera size={32} className="text-gray-400" />
-          </div>
-          <p className="text-gray-400 mb-4">Select photos and videos</p>
-          <div className="flex gap-4 justify-center">
-            <button className="flex items-center gap-2 bg-blue-500 px-4 py-2 rounded-lg hover:bg-blue-600">
-              <Image size={20} />
-              <span>Photo</span>
-            </button>
-            <button className="flex items-center gap-2 bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-600">
-              <Video size={20} />
-              <span>Video</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Post Options */}
-      <div className="p-4 space-y-4">
-        {/* Caption */}
-        <div>
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm">🐝</span>
+      {/* Contact Form */}
+      <div className="p-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Header Section */}
+          <div className="text-center py-6">
+            <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-black text-2xl">🐝</span>
             </div>
-            <div className="flex-1">
-              <textarea
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
-                placeholder="Write a caption..."
-                className="w-full bg-transparent text-white resize-none outline-none placeholder-gray-400 text-sm"
-                rows={3}
+            <h2 className="text-xl font-semibold text-white mb-2">Get in Touch</h2>
+            <p className="text-gray-400 text-sm">We'd love to hear from you. Send us a message!</p>
+          </div>
+
+          {/* Form Fields */}
+          <div className="space-y-4">
+            {/* Name Field */}
+            <div>
+              <label htmlFor="name" className="block text-white text-sm font-medium mb-2">
+                Full Name
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="Enter your full name"
+                className="w-full bg-gray-900 border border-gray-800 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400"
+                required
               />
             </div>
-          </div>
-        </div>
 
-        {/* Location */}
-        <div className="flex items-center justify-between py-3 border-b border-gray-800">
-          <span className="text-white">Add location</span>
-          <input
-            type="text"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="Search locations..."
-            className="bg-transparent text-right text-gray-400 outline-none placeholder-gray-500 text-sm"
-          />
-        </div>
+            {/* Email Field */}
+            <div>
+              <label htmlFor="email" className="block text-white text-sm font-medium mb-2">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="your.email@example.com"
+                  className="w-full bg-gray-900 border border-gray-800 rounded-lg pl-12 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400"
+                  required
+                />
+              </div>
+            </div>
 
-        {/* Tag People */}
-        <div className="flex items-center justify-between py-3 border-b border-gray-800">
-          <span className="text-white">Tag people</span>
-          <input
-            type="text"
-            value={tagPeople}
-            onChange={(e) => setTagPeople(e.target.value)}
-            placeholder="Search people..."
-            className="bg-transparent text-right text-gray-400 outline-none placeholder-gray-500 text-sm"
-          />
-        </div>
+            {/* Phone Field */}
+            <div>
+              <label htmlFor="phone" className="block text-white text-sm font-medium mb-2">
+                Phone Number
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  placeholder="+1 (555) 123-4567"
+                  className="w-full bg-gray-900 border border-gray-800 rounded-lg pl-12 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400"
+                />
+              </div>
+            </div>
 
-        {/* Advanced Settings */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between py-3">
-            <span className="text-white">Also post to Facebook</span>
-            <div className="w-12 h-6 bg-gray-700 rounded-full p-1">
-              <div className="w-4 h-4 bg-white rounded-full"></div>
+            {/* Subject Field */}
+            <div>
+              <label htmlFor="subject" className="block text-white text-sm font-medium mb-2">
+                Subject
+              </label>
+              <input
+                type="text"
+                id="subject"
+                name="subject"
+                value={formData.subject}
+                onChange={handleInputChange}
+                placeholder="What is this about?"
+                className="w-full bg-gray-900 border border-gray-800 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400"
+                required
+              />
+            </div>
+
+            {/* Message Field */}
+            <div>
+              <label htmlFor="message" className="block text-white text-sm font-medium mb-2">
+                Message
+              </label>
+              <div className="relative">
+                <MessageSquare className="absolute left-3 top-4 text-gray-400" size={20} />
+                <textarea
+                  id="message"
+                  name="message"
+                  value={formData.message}
+                  onChange={handleInputChange}
+                  placeholder="Tell us more about your inquiry..."
+                  rows={6}
+                  className="w-full bg-gray-900 border border-gray-800 rounded-lg pl-12 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 resize-none"
+                  required
+                />
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between py-3">
-            <span className="text-white">Turn off commenting</span>
-            <div className="w-12 h-6 bg-gray-700 rounded-full p-1">
-              <div className="w-4 h-4 bg-white rounded-full"></div>
-            </div>
+          {/* Submit Button */}
+          <div className="pt-4">
+            <button
+              type="submit"
+              className="w-full bg-yellow-400 text-black font-semibold py-3 px-4 rounded-lg hover:bg-yellow-500 transition-colors duration-200 flex items-center justify-center gap-2"
+            >
+              <Mail size={20} />
+              Send Message
+            </button>
           </div>
 
-          <div className="flex items-center justify-between py-3">
-            <span className="text-white">Hide like and view counts</span>
-            <div className="w-12 h-6 bg-gray-700 rounded-full p-1">
-              <div className="w-4 h-4 bg-white rounded-full"></div>
+          {/* Contact Info */}
+          <div className="pt-6 border-t border-gray-800">
+            <h3 className="text-white font-medium mb-4">Other ways to reach us</h3>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 text-gray-400">
+                <Mail size={16} />
+                <span className="text-sm">support@socialhive.com</span>
+              </div>
+              <div className="flex items-center gap-3 text-gray-400">
+                <Phone size={16} />
+                <span className="text-sm">+1 (555) 123-4567</span>
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Accessibility */}
-        <div className="pt-4">
-          <button className="text-blue-400 text-sm hover:text-blue-300">
-            Advanced settings
-          </button>
-        </div>
+        </form>
       </div>
     </div>
   );
