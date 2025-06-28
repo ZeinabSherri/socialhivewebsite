@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import PostCard from './PostCard';
 import Stories from './Stories';
@@ -14,50 +13,6 @@ const HomeFeed = () => {
       caption: '🐝 Crafting digital experiences that create buzz! Our latest campaign for a beauty brand generated 2M+ impressions in just 30 days. #DigitalMarketing #SocialHive',
       likes: 1247,
       comments: 89,
-      isLiked: false
-    },
-    {
-      id: 2,
-      username: 'sarah.johnson',
-      userAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-      timestamp: '3h',
-      image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face',
-      caption: '👋 Meet Sarah Johnson, our Creative Director! With 8+ years in digital design, Sarah leads our creative vision and ensures every project tells a compelling story. When she\'s not designing, you\'ll find her exploring art galleries or hiking with her golden retriever. #MeetTheTeam #CreativeDirector',
-      likes: 892,
-      comments: 45,
-      isLiked: true
-    },
-    {
-      id: 3,
-      username: 'mike.rodriguez',
-      userAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      timestamp: '4h',
-      image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face',
-      caption: '🚀 Say hello to Mike Rodriguez, our Head of Strategy! Mike turns complex data into actionable insights that drive real results. With a background in analytics and consumer psychology, he\'s the brain behind our most successful campaigns. Coffee enthusiast ☕ #MeetTheTeam #Strategy',
-      likes: 1156,
-      comments: 78,
-      isLiked: false
-    },
-    {
-      id: 4,
-      username: 'emma.chen',
-      userAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-      timestamp: '5h',
-      image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face',
-      caption: '💻 Meet Emma Chen, our Lead Developer! Emma brings our digital visions to life with clean, efficient code. Specializing in React and modern web technologies, she ensures our clients\' websites are fast, beautiful, and user-friendly. Tech geek by day, gamer by night 🎮 #MeetTheTeam #Developer',
-      likes: 743,
-      comments: 52,
-      isLiked: true
-    },
-    {
-      id: 5,
-      username: 'alex.turner',
-      userAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-      timestamp: '6h',
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
-      caption: '📊 Meet Alex Turner, our Social Media Manager! Alex keeps our clients\' social presence buzzing with engaging content and community management. With a keen eye for trends and genuine passion for storytelling, he turns followers into loyal brand advocates. Marathon runner 🏃‍♂️ #MeetTheTeam #SocialMedia',
-      likes: 987,
-      comments: 67,
       isLiked: false
     },
     {
@@ -102,6 +57,50 @@ const HomeFeed = () => {
       caption: '🎯 Targeting the right audience is everything! Our precision marketing strategies ensure your message reaches exactly who needs to hear it. #TargetedMarketing #Precision',
       likes: 1089,
       comments: 78,
+      isLiked: false
+    },
+    {
+      id: 2,
+      username: 'sarah.johnson',
+      userAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
+      timestamp: '3h',
+      image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face',
+      caption: '👋 Meet Sarah Johnson, our Creative Director! With 8+ years in digital design, Sarah leads our creative vision and ensures every project tells a compelling story. When she\'s not designing, you\'ll find her exploring art galleries or hiking with her golden retriever. #MeetTheTeam #CreativeDirector',
+      likes: 892,
+      comments: 45,
+      isLiked: true
+    },
+    {
+      id: 3,
+      username: 'mike.rodriguez',
+      userAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+      timestamp: '4h',
+      image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face',
+      caption: '🚀 Say hello to Mike Rodriguez, our Head of Strategy! Mike turns complex data into actionable insights that drive real results. With a background in analytics and consumer psychology, he\'s the brain behind our most successful campaigns. Coffee enthusiast ☕ #MeetTheTeam #Strategy',
+      likes: 1156,
+      comments: 78,
+      isLiked: false
+    },
+    {
+      id: 4,
+      username: 'emma.chen',
+      userAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
+      timestamp: '5h',
+      image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face',
+      caption: '💻 Meet Emma Chen, our Lead Developer! Emma brings our digital visions to life with clean, efficient code. Specializing in React and modern web technologies, she ensures our clients\' websites are fast, beautiful, and user-friendly. Tech geek by day, gamer by night 🎮 #MeetTheTeam #Developer',
+      likes: 743,
+      comments: 52,
+      isLiked: true
+    },
+    {
+      id: 5,
+      username: 'alex.turner',
+      userAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+      timestamp: '6h',
+      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
+      caption: '📊 Meet Alex Turner, our Social Media Manager! Alex keeps our clients\' social presence buzzing with engaging content and community management. With a keen eye for trends and genuine passion for storytelling, he turns followers into loyal brand advocates. Marathon runner 🏃‍♂️ #MeetTheTeam #SocialMedia',
+      likes: 987,
+      comments: 67,
       isLiked: false
     }
   ]);
