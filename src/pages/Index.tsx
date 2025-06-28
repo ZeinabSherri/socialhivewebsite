@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Home, Search, Plus, Play, User } from 'lucide-react';
+import { Home, Search, Plus, User } from 'lucide-react';
 import HomeFeed from '../components/HomeFeed';
 import ExplorePage from '../components/ExplorePage';
 import ReelsPage from '../components/ReelsPage';
@@ -29,6 +29,20 @@ const Index = () => {
   const handleAddClick = () => {
     setShowAddModal(true);
   };
+
+  // Instagram-style Reels icon component
+  const ReelsIcon = ({ size = 24, className = "" }) => (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+    >
+      <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="2" fill="none"/>
+      <path d="M7 8l5-3 5 3v8l-5 3-5-3V8z" stroke="currentColor" strokeWidth="2" fill="none"/>
+    </svg>
+  );
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -78,7 +92,7 @@ const Index = () => {
               activeTab === 'reels' ? 'text-yellow-400' : 'text-gray-400 hover:text-white'
             }`}
           >
-            <Play size={24} />
+            <ReelsIcon size={24} />
           </button>
           <button
             onClick={() => setActiveTab('profile')}
