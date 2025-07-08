@@ -5,7 +5,81 @@
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
+.carousel-container {
+  position: relative;
+  max-width: 600px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 12px;
+}
 
+.carousel-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+/* Carousel arrows */
+.react-multi-carousel-arrow {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  width: 40px !important;
+  height: 40px !important;
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 10;
+  transition: background 0.3s ease;
+  cursor: pointer;
+}
+
+.react-multi-carousel-arrow:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.react-multi-carousel-arrow--left {
+  left: 10px !important;
+}
+
+.react-multi-carousel-arrow--right {
+  right: 10px !important;
+}
+
+/* Carousel dots */
+.react-multi-carousel-dot-list {
+  bottom: 12px !important;
+}
+
+.react-multi-carousel-dot button {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  border: none;
+  margin: 0 4px;
+  transition: background 0.3s ease;
+  cursor: pointer;
+}
+
+.react-multi-carousel-dot--active button {
+  background: white;
+}
+
+/* Comments styling */
+.text-left p {
+  word-break: break-word;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.hover\:underline:hover {
+  text-decoration: underline;
+}
 @layer base {
   :root {
     --background: 0 0% 100%;
