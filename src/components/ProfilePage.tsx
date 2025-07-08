@@ -1,8 +1,11 @@
-
 import { useState } from 'react';
 import { Grid, Play, Tag, Settings, ChevronDown } from 'lucide-react';
 
-const ProfilePage = () => {
+interface ProfilePageProps {
+  onNavigateToContact?: () => void;
+}
+
+const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
   const [activeTab, setActiveTab] = useState('posts');
   const [selectedProfile, setSelectedProfile] = useState('Agency');
   const [showProfileSelector, setShowProfileSelector] = useState(false);
@@ -41,6 +44,12 @@ const ProfilePage = () => {
         return '📚 Educational marketing experts • Boosting enrollment & engagement • Learning made visible 🐝';
       default:
         return '🐝 Crafting Buzz. Driving Growth. • Digital Marketing Agency • Managed over 200 brands • Results that speak louder than words ✨';
+    }
+  };
+
+  const handleContactClick = () => {
+    if (onNavigateToContact) {
+      onNavigateToContact();
     }
   };
 
@@ -117,7 +126,10 @@ const ProfilePage = () => {
           <button className="flex-1 bg-yellow-400 text-black font-semibold py-2 rounded-md">
             Get Quote
           </button>
-          <button className="flex-1 bg-gray-800 text-white font-semibold py-2 rounded-md">
+          <button 
+            onClick={handleContactClick}
+            className="flex-1 bg-gray-800 text-white font-semibold py-2 rounded-md"
+          >
             Message
           </button>
           <button className="bg-gray-800 text-white p-2 rounded-md">

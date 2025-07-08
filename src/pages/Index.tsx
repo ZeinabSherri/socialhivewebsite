@@ -24,7 +24,7 @@ const Index = () => {
       case 'reels':
         return <ReelsPage />;
       case 'profile':
-        return <ProfilePage />;
+        return <ProfilePage onNavigateToContact={() => setShowAddPage(true)} />;
       default:
         return <HomeFeed />;
     }
