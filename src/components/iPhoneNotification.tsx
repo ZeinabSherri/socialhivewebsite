@@ -24,33 +24,33 @@ export const IPhoneNotification = ({ message, onDismiss }: IPhoneNotificationPro
     <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none px-4">
       <div 
         className={`
-          bg-white/95 backdrop-blur-md border border-black/10 
-          rounded-2xl px-4 py-3 shadow-lg shadow-black/20
-          max-w-sm w-full mx-4 pointer-events-auto
-          flex items-center justify-between gap-3
+          bg-white/95 backdrop-blur-md
+          rounded-2xl shadow-2xl shadow-black/30
+          w-72 mx-4 pointer-events-auto
           transition-all duration-300 ease-out
-          ${isAnimating ? 'opacity-0 transform translate-y-[-20px]' : 'opacity-100 transform translate-y-0'}
+          ${isAnimating ? 'opacity-0 transform scale-95' : 'opacity-100 transform scale-100'}
         `}
         style={{
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segmented UI", Roboto, Helvetica, Arial, sans-serif',
         }}
       >
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-            <div className="w-4 h-4 bg-white rounded-sm"></div>
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-black leading-tight">
-              {message}
-            </p>
-          </div>
+        <div className="px-6 pt-6 pb-4 text-center">
+          <h2 className="text-lg font-semibold text-black mb-2">
+            Notification
+          </h2>
+          <p className="text-sm text-gray-600 leading-relaxed">
+            {message}
+          </p>
         </div>
-        <button
-          onClick={handleDismiss}
-          className="w-6 h-6 rounded-full bg-black/10 hover:bg-black/20 flex items-center justify-center transition-colors duration-200"
-        >
-          <X className="w-3 h-3 text-black/60" />
-        </button>
+        
+        <div className="border-t border-gray-200">
+          <button
+            onClick={handleDismiss}
+            className="w-full py-4 text-blue-500 font-medium text-base hover:bg-gray-50 transition-colors duration-200"
+          >
+            OK
+          </button>
+        </div>
       </div>
     </div>
   );
