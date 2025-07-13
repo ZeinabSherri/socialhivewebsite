@@ -41,7 +41,7 @@ const Index = () => {
       {/* Header - only show when not on add page */}
       {!showAddPage && <header className="sticky top-0 z-50 bg-black border-b border-gray-800 px-4 py-3">
           <div className="max-w-md mx-auto flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-yellow-400">Social Hive</h1>
+            <h1 className="text-2xl font-bold text-yellow-400"><span className="font-semibold text-deep-white">Social </span>Hive</h1>
             
           </div>
         </header>}
