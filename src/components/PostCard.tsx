@@ -78,8 +78,12 @@ const PostCard = ({
         <div className="flex items-center space-x-3">
           <Avatar className="w-8 h-8">
             <AvatarImage src={post.userAvatar} alt={post.username} />
-            <AvatarFallback className="bg-yellow-400 text-black text-sm">
-              🐝
+            <AvatarFallback className="bg-yellow-400 text-black text-sm flex items-center justify-center">
+              <img 
+                src="/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png" 
+                alt="Social Hive Logo" 
+                className="w-5 h-5 object-contain"
+              />
             </AvatarFallback>
           </Avatar>
           <div>
