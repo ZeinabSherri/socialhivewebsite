@@ -123,8 +123,11 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
 
         {/* Action Buttons */}
         <div className="flex space-x-2 mb-6">
-          <button className="flex-1 bg-yellow-400 text-black font-semibold py-2 rounded-md">
-            Get Quote
+          <button 
+            onClick={() => setShowProfileSelector(!showProfileSelector)}
+            className="flex-1 bg-yellow-400 text-black font-semibold py-2 rounded-md"
+          >
+            Switch Accounts
           </button>
           <button 
             onClick={handleContactClick}
