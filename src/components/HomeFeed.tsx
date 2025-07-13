@@ -29,7 +29,7 @@ const HomeFeed = () => {
       username: 'socialhive.agency',
       userAvatar: '/lovable-uploads/social-hive-logo.png',
       timestamp: 'Now',
-      image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80',
+      image: 'public/socialhive.png',
       caption: '🐝 Crafting Buzz. Driving Growth. Your partner in digital success.',
       likes: 1200,
       comments: 2,
