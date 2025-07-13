@@ -10,6 +10,15 @@ export const IPhoneNotification = ({
 }: IPhoneNotificationProps) => {
   const [isVisible, setIsVisible] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isEntering, setIsEntering] = useState(true);
+  
+  useEffect(() => {
+    // Start entrance animation
+    const timer = setTimeout(() => {
+      setIsEntering(false);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
   const handleDismiss = () => {
     setIsAnimating(true);
     setTimeout(() => {
@@ -24,7 +33,8 @@ export const IPhoneNotification = ({
           rounded-2xl shadow-2xl shadow-black/30
           w-72 mx-4 pointer-events-auto
           transition-all duration-300 ease-out
-          ${isAnimating ? 'opacity-0 transform scale-95' : 'opacity-100 transform scale-100'}
+          ${isEntering ? 'opacity-0 transform scale-95 translate-y-[-20px]' : 'opacity-100 transform scale-100 translate-y-0'}
+          ${isAnimating ? 'opacity-0 transform scale-95' : ''}
         `} style={{
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segmented UI", Roboto, Helvetica, Arial, sans-serif'
     }}>
