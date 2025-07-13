@@ -230,7 +230,7 @@ const ExplorePage = () => {
                   : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
               }`}
             >
-              {filter}
+              {filter === 'All' ? 'All best results' : filter}
             </button>
           ))}
         </div>
