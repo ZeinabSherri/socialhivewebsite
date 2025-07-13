@@ -147,11 +147,7 @@ const PostCard = ({
         {/* Static Comments */}
         <div className="mt-2 space-y-1">
           {post.staticComments.map(comment => <div key={comment.id} className="flex items-start space-x-3 text-left group">
-              <Avatar className="w-8 h-8 flex-shrink-0">
-                {comment.userAvatar ? <AvatarImage src={comment.userAvatar} alt={comment.username} /> : <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-xs font-medium">
-                    {comment.username.charAt(0).toUpperCase()}
-                  </AvatarFallback>}
-              </Avatar>
+              
               <div className="flex-1 min-w-0">
                 <p className="text-white text-sm leading-5 break-words">
                   <span className="font-semibold mr-2 cursor-pointer hover:underline text-white">
