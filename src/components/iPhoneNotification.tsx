@@ -28,7 +28,7 @@ export const IPhoneNotification = ({
         `} style={{
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segmented UI", Roboto, Helvetica, Arial, sans-serif'
     }}>
-        <div className="px-6 pt-6 pb-4 text-center bg-black">
+        <div className="px-6 pt-6 pb-4 text-center bg-black rounded-t-2xl">
           <h2 className="text-lg font-semibold mb-2 text-white">
             Notification
           </h2>
@@ -38,7 +38,7 @@ export const IPhoneNotification = ({
         </div>
         
         <div className="border-t border-gray-200">
-          <button onClick={handleDismiss} className="w-full py-4 transition-colors duration-200 bg-black text-[ebde01] font-normal text-[#ebde01]">
+          <button onClick={handleDismiss} className="w-full py-4 transition-colors duration-200 bg-black text-[ebde01] font-normal text-[#ebde01] rounded-b-2xl">
             OK
           </button>
         </div>
