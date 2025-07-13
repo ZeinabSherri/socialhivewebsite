@@ -40,20 +40,6 @@ const Stories = () => {
       image: 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7',
       content: '🚀 Our latest projects showcase innovative digital marketing strategies across various industries.',
       timestamp: '6h'
-    },
-    {
-      id: 4,
-      title: 'Results',
-      image: 'https://images.unsplash.com/photo-1517022812141-23620dba5c23',
-      content: '📈 Results that speak louder than words! See how we drive growth for our clients.',
-      timestamp: '8h'
-    },
-    {
-      id: 5,
-      title: 'Clients',
-      image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085',
-      content: '🎯 Proud to work with amazing brands across restaurants, beauty, clinics, and more!',
-      timestamp: '12h'
     }
   ];
 
