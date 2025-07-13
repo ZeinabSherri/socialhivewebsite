@@ -92,8 +92,12 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
         </div>
 
         <div className="flex items-start space-x-4 mb-4">
-          <div className="w-20 h-20 rounded-full bg-yellow-400 flex items-center justify-center">
-            <span className="text-black text-3xl">🐝</span>
+          <div className="w-20 h-20 rounded-full overflow-hidden">
+            <img 
+              src="/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png" 
+              alt="Social Hive Logo" 
+              className="w-full h-full object-cover"
+            />
           </div>
           
           <div className="flex-1">
