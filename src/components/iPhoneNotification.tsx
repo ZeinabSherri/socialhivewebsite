@@ -21,7 +21,7 @@ export const IPhoneNotification = ({ message, onDismiss }: IPhoneNotificationPro
   if (!isVisible) return null;
 
   return (
-    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
+    <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none px-4">
       <div 
         className={`
           bg-white/95 backdrop-blur-md border border-black/10 
