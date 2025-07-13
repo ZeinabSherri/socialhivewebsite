@@ -201,30 +201,45 @@ const PostCard = ({ post, onLike }: PostCardProps) => {
         </div>
 
         {/* Static Comments */}
-        <div className="mt-2 space-y-2">
+        <div className="mt-2 space-y-1">
           {post.staticComments.map((comment) => (
             <div
               key={comment.id}
-              className="flex items-start space-x-2 text-left"
+              className="flex items-start space-x-3 text-left group"
             >
-              <Avatar className="w-6 h-6 flex-shrink-0">
+              <Avatar className="w-8 h-8 flex-shrink-0">
                 {comment.userAvatar ? (
                   <AvatarImage
                     src={comment.userAvatar}
                     alt={comment.username}
                   />
                 ) : (
-                  <AvatarFallback className="bg-gray-600 text-white text-xs uppercase">
-                    {comment.username.charAt(0)}
+                  <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-xs font-medium">
+                    {comment.username.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 )}
               </Avatar>
-              <p className="text-gray-400 text-sm break-words">
-                <span className="font-semibold mr-1 cursor-pointer hover:underline">
-                  {comment.username}
-                </span>
-                {comment.text}
-              </p>
+              <div className="flex-1 min-w-0">
+                <p className="text-white text-sm leading-5 break-words">
+                  <span className="font-semibold mr-2 cursor-pointer hover:underline text-white">
+                    {comment.username}
+                  </span>
+                  <span className="text-gray-200 font-normal">
+                    {comment.text}
+                  </span>
+                </p>
+                <div className="flex items-center space-x-4 mt-1">
+                  <button className="text-gray-400 text-xs font-medium hover:text-gray-300 transition-colors">
+                    2h
+                  </button>
+                  <button className="text-gray-400 text-xs font-medium hover:text-gray-300 transition-colors">
+                    Reply
+                  </button>
+                  <button className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Heart size={12} className="text-gray-400 hover:text-red-500 transition-colors" />
+                  </button>
+                </div>
+              </div>
             </div>
           ))}
         </div>
