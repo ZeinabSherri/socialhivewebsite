@@ -55,8 +55,12 @@ const Index = () => {
         <header className="sticky top-0 z-50 bg-black border-b border-gray-800 px-4 py-3">
           <div className="max-w-md mx-auto flex items-center justify-between">
             <h1 className="text-2xl font-bold text-yellow-400">Social Hive</h1>
-            <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-              <span className="text-black text-sm">🐝</span>
+            <div className="w-8 h-8 flex items-center justify-center">
+              <img 
+                src="/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png" 
+                alt="Social Hive Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
           </div>
         </header>
