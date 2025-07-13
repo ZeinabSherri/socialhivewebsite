@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Story {
@@ -13,6 +13,11 @@ interface Story {
 const Stories = () => {
   const [selectedStory, setSelectedStory] = useState<number | null>(null);
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const progressRef = useRef<NodeJS.Timeout | null>(null);
+  const storyDuration = 5000; // 5 seconds per story
 
   const stories: Story[] = [
     {
@@ -52,13 +57,65 @@ const Stories = () => {
     }
   ];
 
+  const startTimer = () => {
+    setProgress(0);
+    
+    progressRef.current = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) {
+          nextStory();
+          return 0;
+        }
+        return prev + (100 / (storyDuration / 100));
+      });
+    }, 100);
+  };
+
+  const pauseTimer = () => {
+    if (progressRef.current) {
+      clearInterval(progressRef.current);
+    }
+  };
+
+  const resumeTimer = () => {
+    if (!isPaused) {
+      progressRef.current = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 100) {
+            nextStory();
+            return 0;
+          }
+          return prev + (100 / (storyDuration / 100));
+        });
+      }, 100);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedStory && !isPaused) {
+      startTimer();
+    }
+
+    return () => {
+      if (progressRef.current) {
+        clearInterval(progressRef.current);
+      }
+    };
+  }, [selectedStory, currentStoryIndex, isPaused]);
+
   const openStory = (index: number) => {
     setSelectedStory(stories[index].id);
     setCurrentStoryIndex(index);
+    setProgress(0);
+    setIsPaused(false);
   };
 
   const closeStory = () => {
     setSelectedStory(null);
+    setProgress(0);
+    if (progressRef.current) {
+      clearInterval(progressRef.current);
+    }
   };
 
   const nextStory = () => {
@@ -66,6 +123,7 @@ const Stories = () => {
       const nextIndex = currentStoryIndex + 1;
       setCurrentStoryIndex(nextIndex);
       setSelectedStory(stories[nextIndex].id);
+      setProgress(0);
     } else {
       closeStory();
     }
@@ -76,7 +134,18 @@ const Stories = () => {
       const prevIndex = currentStoryIndex - 1;
       setCurrentStoryIndex(prevIndex);
       setSelectedStory(stories[prevIndex].id);
+      setProgress(0);
     }
+  };
+
+  const handleMouseDown = () => {
+    setIsPaused(true);
+    pauseTimer();
+  };
+
+  const handleMouseUp = () => {
+    setIsPaused(false);
+    resumeTimer();
   };
 
   const currentStory = stories[currentStoryIndex];
@@ -122,14 +191,23 @@ const Stories = () => {
               {stories.map((_, index) => (
                 <div 
                   key={index}
-                  className={`flex-1 h-0.5 rounded-full ${
-                    index < currentStoryIndex 
-                      ? 'bg-white' 
-                      : index === currentStoryIndex 
-                      ? 'bg-white animate-pulse' 
-                      : 'bg-gray-600'
-                  }`}
-                />
+                  className="flex-1 h-0.5 rounded-full bg-gray-600 overflow-hidden"
+                >
+                  <div 
+                    className={`h-full bg-white transition-all duration-75 ease-linear ${
+                      index < currentStoryIndex 
+                        ? 'w-full' 
+                        : index === currentStoryIndex 
+                        ? '' 
+                        : 'w-0'
+                    }`}
+                    style={
+                      index === currentStoryIndex 
+                        ? { width: `${progress}%` } 
+                        : {}
+                    }
+                  />
+                </div>
               ))}
             </div>
 
@@ -165,7 +243,13 @@ const Stories = () => {
             </div>
 
             {/* Story Content */}
-            <div className="w-full h-full flex items-center justify-center relative">
+            <div 
+              className="w-full h-full flex items-center justify-center relative"
+              onMouseDown={handleMouseDown}
+              onMouseUp={handleMouseUp}
+              onTouchStart={handleMouseDown}
+              onTouchEnd={handleMouseUp}
+            >
               <div 
                 className="w-full h-full bg-cover bg-center"
                 style={{ 
