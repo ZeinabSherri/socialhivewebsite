@@ -24,14 +24,14 @@ const Stories = () => {
     },
     {
       id: 2,
-      title: 'Team',
+      title: 'About Us',
       image: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81',
       content: '✨ Meet our creative team! These amazing minds work tirelessly to bring your brand vision to life.',
       timestamp: '4h'
     },
     {
       id: 3,
-      title: 'Projects',
+      title: 'Partners',
       image: 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7',
       content: '🚀 Our latest projects showcase innovative digital marketing strategies across various industries.',
       timestamp: '6h'
