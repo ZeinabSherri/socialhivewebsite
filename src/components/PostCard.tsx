@@ -1,22 +1,14 @@
 import React, { useState } from 'react';
 import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
-import {
-  Heart,
-  MessageCircle,
-  Send,
-  Bookmark,
-  MoreHorizontal,
-} from 'lucide-react';
+import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
-
 interface Comment {
   id: number;
   username: string;
   text: string;
   userAvatar?: string;
 }
-
 interface Post {
   id: number;
   username: string;
@@ -30,32 +22,47 @@ interface Post {
   isLiked: boolean;
   staticComments: Comment[];
 }
-
 interface PostCardProps {
   post: Post;
   onLike: () => void;
 }
-
 const responsive = {
-  desktop: { breakpoint: { max: 3000, min: 1024 }, items: 1 },
-  tablet: { breakpoint: { max: 1024, min: 464 }, items: 1 },
-  mobile: { breakpoint: { max: 464, min: 0 }, items: 1 },
+  desktop: {
+    breakpoint: {
+      max: 3000,
+      min: 1024
+    },
+    items: 1
+  },
+  tablet: {
+    breakpoint: {
+      max: 1024,
+      min: 464
+    },
+    items: 1
+  },
+  mobile: {
+    breakpoint: {
+      max: 464,
+      min: 0
+    },
+    items: 1
+  }
 };
-
-const PostCard = ({ post, onLike }: PostCardProps) => {
+const PostCard = ({
+  post,
+  onLike
+}: PostCardProps) => {
   const [showFullCaption, setShowFullCaption] = useState(false);
   const [showLoveIcon, setShowLoveIcon] = useState(false);
   const [lastTap, setLastTap] = useState(0);
-
   const truncateCaption = (text: string, maxLength: number = 100) => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
   };
-
   const handleDoubleTap = () => {
     const now = Date.now();
     const DOUBLE_TAP_DELAY = 300;
-
     if (now - lastTap < DOUBLE_TAP_DELAY) {
       if (!post.isLiked) {
         onLike();
@@ -65,9 +72,7 @@ const PostCard = ({ post, onLike }: PostCardProps) => {
     }
     setLastTap(now);
   };
-
-  return (
-    <div className="bg-black border-b border-gray-800 max-w-md mx-auto rounded-lg overflow-hidden">
+  return <div className="bg-black border-b border-gray-800 max-w-md mx-auto rounded-lg overflow-hidden">
       {/* Post Header */}
       <div className="flex items-center justify-between p-3">
         <div className="flex items-center space-x-3">
@@ -90,91 +95,35 @@ const PostCard = ({ post, onLike }: PostCardProps) => {
       </div>
 
       {/* Post Image or Carousel */}
-      {post.images && post.images.length > 0 ? (
-        <Carousel
-          responsive={responsive}
-          infinite
-          arrows
-          swipeable
-          draggable
-          showDots
-          containerClass="carousel-container"
-          itemClass="carousel-item"
-          renderDotsOutside={true}
-        >
-          {post.images.map((imgUrl, idx) => (
-            <div
-              key={idx}
-              className="aspect-square bg-gray-900 relative"
-              onTouchEnd={handleDoubleTap}
-              onClick={handleDoubleTap}
-            >
-              <img
-                src={imgUrl}
-                alt={`Post image ${idx + 1}`}
-                className="w-full h-full object-cover rounded-lg"
-                loading="lazy"
-              />
-            </div>
-          ))}
-        </Carousel>
-      ) : post.image ? (
-        <div
-          className="aspect-square bg-gray-900 relative"
-          onTouchEnd={handleDoubleTap}
-          onClick={handleDoubleTap}
-        >
-          <img
-            src={post.image}
-            alt="Post content"
-            className="w-full h-full object-cover rounded-lg"
-            loading="lazy"
-          />
-        </div>
-      ) : null}
+      {post.images && post.images.length > 0 ? <Carousel responsive={responsive} infinite arrows swipeable draggable showDots containerClass="carousel-container" itemClass="carousel-item" renderDotsOutside={true}>
+          {post.images.map((imgUrl, idx) => <div key={idx} className="aspect-square bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
+              <img src={imgUrl} alt={`Post image ${idx + 1}`} className="w-full h-full object-cover rounded-lg" loading="lazy" />
+            </div>)}
+        </Carousel> : post.image ? <div className="aspect-square bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
+          <img src={post.image} alt="Post content" className="w-full h-full object-cover rounded-lg" loading="lazy" />
+        </div> : null}
 
-      {showLoveIcon && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <Heart
-            size={80}
-            className="text-white fill-red-500 animate-scale-in"
-            style={{
-              animation: 'scale-in 0.6s ease-out, fade-out 0.3s ease-out 0.7s forwards',
-            }}
-          />
-        </div>
-      )}
+      {showLoveIcon && <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <Heart size={80} className="text-white fill-red-500 animate-scale-in" style={{
+        animation: 'scale-in 0.6s ease-out, fade-out 0.3s ease-out 0.7s forwards'
+      }} />
+        </div>}
 
       {/* Post Actions */}
       <div className="p-3">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-4">
-            <button
-              onClick={onLike}
-              className={`transition-colors ${
-                post.isLiked ? 'text-red-500' : 'text-white hover:text-gray-300'
-              }`}
-              aria-label="Like post"
-            >
+            <button onClick={onLike} className={`transition-colors ${post.isLiked ? 'text-red-500' : 'text-white hover:text-gray-300'}`} aria-label="Like post">
               <Heart size={24} fill={post.isLiked ? 'currentColor' : 'none'} />
             </button>
-            <button
-              className="text-white hover:text-gray-300"
-              aria-label="Comment on post"
-            >
+            <button className="text-white hover:text-gray-300" aria-label="Comment on post">
               <MessageCircle size={24} />
             </button>
-            <button
-              className="text-white hover:text-gray-300"
-              aria-label="Share post"
-            >
+            <button className="text-white hover:text-gray-300" aria-label="Share post">
               <Send size={24} />
             </button>
           </div>
-          <button
-            className="text-white hover:text-gray-300"
-            aria-label="Save post"
-          >
+          <button className="text-white hover:text-gray-300" aria-label="Save post">
             <Bookmark size={24} />
           </button>
         </div>
@@ -190,34 +139,18 @@ const PostCard = ({ post, onLike }: PostCardProps) => {
           <span className="text-gray-100">
             {showFullCaption ? post.caption : truncateCaption(post.caption)}
           </span>
-          {post.caption.length > 100 && (
-            <button
-              onClick={() => setShowFullCaption(!showFullCaption)}
-              className="text-gray-400 ml-1 hover:text-gray-300"
-            >
+          {post.caption.length > 100 && <button onClick={() => setShowFullCaption(!showFullCaption)} className="text-gray-400 ml-1 hover:text-gray-300">
               {showFullCaption ? 'less' : 'more'}
-            </button>
-          )}
+            </button>}
         </div>
 
         {/* Static Comments */}
         <div className="mt-2 space-y-1">
-          {post.staticComments.map((comment) => (
-            <div
-              key={comment.id}
-              className="flex items-start space-x-3 text-left group"
-            >
+          {post.staticComments.map(comment => <div key={comment.id} className="flex items-start space-x-3 text-left group">
               <Avatar className="w-8 h-8 flex-shrink-0">
-                {comment.userAvatar ? (
-                  <AvatarImage
-                    src={comment.userAvatar}
-                    alt={comment.username}
-                  />
-                ) : (
-                  <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-xs font-medium">
+                {comment.userAvatar ? <AvatarImage src={comment.userAvatar} alt={comment.username} /> : <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-xs font-medium">
                     {comment.username.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                )}
+                  </AvatarFallback>}
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-white text-sm leading-5 break-words">
@@ -240,21 +173,15 @@ const PostCard = ({ post, onLike }: PostCardProps) => {
                   </button>
                 </div>
               </div>
-            </div>
-          ))}
+            </div>)}
         </div>
 
         {/* Comments Link */}
-        <button className="text-gray-400 text-sm mt-2 hover:text-gray-300">
-          View all {post.comments} comments
-        </button>
+        
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default PostCard;
-
 
 // import { useState } from 'react';
 // import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-react';
@@ -296,12 +223,12 @@ export default PostCard;
 //       if (!post.isLiked) {
 //         onLike();
 //       }
-      
+
 //       // Show love icon animation
 //       setShowLoveIcon(true);
 //       setTimeout(() => setShowLoveIcon(false), 1000);
 //     }
-    
+
 //     setLastTap(now);
 //   };
 
@@ -334,7 +261,7 @@ export default PostCard;
 //           className="w-full h-full object-cover"
 //           loading="lazy"
 //         />
-        
+
 //         {/* Love Icon Animation */}
 //         {showLoveIcon && (
 //           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
