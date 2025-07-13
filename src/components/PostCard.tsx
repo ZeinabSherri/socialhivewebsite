@@ -79,11 +79,7 @@ const PostCard = ({
           <Avatar className="w-8 h-8">
             <AvatarImage src={post.userAvatar} alt={post.username} />
             <AvatarFallback className="p-0 overflow-hidden">
-              <img 
-                src="/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png" 
-                alt="Social Hive Logo" 
-                className="w-full h-full object-cover"
-              />
+              <img src="/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png" alt="Social Hive Logo" className="w-full h-full object-contain" />
             </AvatarFallback>
           </Avatar>
           <div>
