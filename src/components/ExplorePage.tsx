@@ -105,7 +105,7 @@ const ExplorePage = () => {
     }
   ];
 
-  const filters = ['All', 'Restaurants', 'Beauty', 'Clinics', 'E-Commerce', 'Real Estate', 'Education', 'Fashion', 'Technology', 'Fitness'];
+  const filters = ['Best Results', 'Restaurants', 'Beauty', 'Clinics', 'E-Commerce', 'Real Estate', 'Education', 'Fashion', 'Technology', 'Fitness'];
 
   const filteredProjects = activeFilter === 'All' 
     ? projects 
