@@ -42,29 +42,29 @@ export const IPhoneNotification = ({
   if (!isVisible) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
-      {/* Notification banner */}
-      <div className="flex justify-center pt-3 px-4">
+    <div className="fixed top-0 left-0 right-0 z-[9999] pointer-events-none">
+      {/* Notification banner - positioned as overlay */}
+      <div className="flex justify-center pt-2 px-4">
         <div 
           className={`
             relative pointer-events-auto
-            bg-gradient-to-b from-gray-100/95 via-gray-50/95 to-white/95
-            backdrop-blur-md
-            rounded-2xl shadow-lg
+            bg-gradient-to-b from-white/95 via-gray-50/95 to-gray-100/95
+            backdrop-blur-sm
+            rounded-full shadow-lg
             border border-gray-200/50
-            px-6 py-4
-            max-w-sm w-full mx-4
+            px-6 py-3
+            max-w-xs w-auto mx-4
             transition-all duration-300 ease-out
-            ${isEntering ? 'opacity-0 transform -translate-y-8' : 'opacity-100 transform translate-y-0'}
-            ${isAnimating ? 'opacity-0 transform -translate-y-8' : ''}
+            ${isEntering ? 'opacity-0 transform -translate-y-full' : 'opacity-100 transform translate-y-0'}
+            ${isAnimating ? 'opacity-0 transform -translate-y-full' : ''}
           `}
           style={{
-            boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05)'
+            boxShadow: '0 4px 12px -2px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
           }}
         >
           {/* Notification content */}
           <div className="flex items-center justify-center">
-            <p className="text-gray-800 text-sm font-medium text-center">
+            <p className="text-gray-800 text-sm font-medium text-center whitespace-nowrap">
               {message}
             </p>
           </div>
@@ -72,7 +72,7 @@ export const IPhoneNotification = ({
           {/* Dismiss button (invisible but clickable) */}
           <button
             onClick={handleDismiss}
-            className="absolute inset-0 w-full h-full bg-transparent rounded-2xl"
+            className="absolute inset-0 w-full h-full bg-transparent rounded-full"
             aria-label="Dismiss notification"
           />
         </div>

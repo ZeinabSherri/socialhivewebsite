@@ -46,7 +46,7 @@ const Index = () => {
     <div className="min-h-screen bg-black text-white">
       {/* Header - only show when not on add page */}
       {!showAddPage && (
-        <header className="sticky top-0 z-40 bg-black border-b border-gray-800 px-4 py-3 mt-16">
+        <header className="sticky top-0 z-40 bg-black border-b border-gray-800 px-4 py-3">
           <div className="max-w-md mx-auto flex items-center justify-between">
             <h1 className="text-[#edbe01] font-extrabold text-2xl">
               <span className="font-extrabold text-white">Social </span>Hive
