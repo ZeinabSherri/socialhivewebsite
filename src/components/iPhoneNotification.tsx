@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface IPhoneNotificationProps {
   message: string;
@@ -13,6 +13,9 @@ export const IPhoneNotification = ({
   const [isVisible, setIsVisible] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isEntering, setIsEntering] = useState(true);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     // Start entrance animation
@@ -39,6 +42,26 @@ export const IPhoneNotification = ({
     }, 300);
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientY);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isUpSwipe = distance > 50; // Minimum swipe distance
+    
+    if (isUpSwipe) {
+      handleDismiss();
+    }
+  };
+
   if (!isVisible) return null;
 
   return (
@@ -46,6 +69,7 @@ export const IPhoneNotification = ({
       {/* Notification banner */}
       <div className="flex justify-center pt-3 px-4">
         <div 
+          ref={notificationRef}
           className={`
             relative pointer-events-auto
             bg-gray-800/95 backdrop-blur-md
@@ -59,6 +83,9 @@ export const IPhoneNotification = ({
           style={{
             boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
           }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           {/* Notification content */}
           <div className="flex items-start space-x-3">
