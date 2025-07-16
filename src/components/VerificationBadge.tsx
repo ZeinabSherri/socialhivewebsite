@@ -13,8 +13,8 @@ const VerificationBadge = ({ username }: VerificationBadgeProps) => {
   }
 
   return (
-    <div className="inline-flex items-center justify-center w-4 h-4 bg-blue-500 rounded-full ml-1 flex-shrink-0">
-      <Check size={10} className="text-white" strokeWidth={3} />
+    <div className="inline-flex items-center justify-center px-2 py-1 ml-2 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 shadow-lg backdrop-blur-sm">
+      <Check size={12} className="text-white" strokeWidth={2.5} />
     </div>
   );
 };
