@@ -145,13 +145,10 @@ const PostCard = ({
 
         {/* Caption */}
         <div className="text-sm mb-2">
-          <div className="flex items-center">
-            <span className="font-semibold cursor-pointer hover:underline">
-              {post.username}
-            </span>
-            <VerificationBadge username={post.username} />
-          </div>
-          <span className="text-gray-100">
+          <span className="font-semibold cursor-pointer hover:underline">
+            {post.username}
+          </span>
+          <span className="text-gray-100 ml-1">
             {showFullCaption ? post.caption : truncateCaption(post.caption)}
           </span>
           {post.caption.length > 100 && <button onClick={() => setShowFullCaption(!showFullCaption)} className="text-gray-400 ml-1 hover:text-gray-300">
@@ -165,13 +162,10 @@ const PostCard = ({
               
               <div className="flex-1 min-w-0">
                 <p className="text-white text-sm leading-5 break-words">
-                  <div className="flex items-center">
-                    <span className="font-semibold cursor-pointer hover:underline text-white">
-                      {comment.username}
-                    </span>
-                    <VerificationBadge username={comment.username} />
-                  </div>
-                  <span className="text-gray-200 font-normal">
+                  <span className="font-semibold cursor-pointer hover:underline text-white">
+                    {comment.username}
+                  </span>
+                  <span className="text-gray-200 font-normal ml-1">
                     {comment.text}
                   </span>
                 </p>

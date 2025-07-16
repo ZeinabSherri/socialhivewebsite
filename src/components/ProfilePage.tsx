@@ -127,10 +127,7 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
 
         {/* Bio */}
         <div className="mb-4">
-          <div className="flex items-center mb-1">
-            <h2 className="font-semibold">Social Hive Agency</h2>
-            <VerificationBadge username="socialhive.agency" />
-          </div>
+          <h2 className="font-semibold mb-1">Social Hive Agency</h2>
           <p className="text-sm text-gray-300">{getBioText()}</p>
           <a href="#" className="text-yellow-400 text-sm">socialhive.agency</a>
         </div>
