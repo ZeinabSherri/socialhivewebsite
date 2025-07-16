@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Grid, Play, Tag, Settings, ChevronDown } from 'lucide-react';
+import VerificationBadge from './VerificationBadge';
 
 interface ProfilePageProps {
   onNavigateToContact?: () => void;
@@ -63,7 +64,10 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
               onClick={() => setShowProfileSelector(!showProfileSelector)}
               className="flex items-center space-x-2 text-lg font-semibold"
             >
-              <span>socialhive.{selectedProfile.toLowerCase()}</span>
+              <div className="flex items-center">
+                <span>socialhive.{selectedProfile.toLowerCase()}</span>
+                <VerificationBadge />
+              </div>
               <ChevronDown size={16} />
             </button>
             
@@ -79,7 +83,10 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
                     }}
                     className="w-full text-left px-4 py-3 hover:bg-gray-800 first:rounded-t-lg last:rounded-b-lg"
                   >
-                    <div className="font-medium">socialhive.{profile.name.toLowerCase()}</div>
+                    <div className="flex items-center">
+                      <div className="font-medium">socialhive.{profile.name.toLowerCase()}</div>
+                      <VerificationBadge />
+                    </div>
                     <div className="text-sm text-gray-400">{profile.followers} followers</div>
                   </button>
                 ))}
@@ -120,7 +127,10 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
 
         {/* Bio */}
         <div className="mb-4">
-          <h2 className="font-semibold mb-1">Social Hive Agency</h2>
+          <div className="flex items-center mb-1">
+            <h2 className="font-semibold">Social Hive Agency</h2>
+            <VerificationBadge />
+          </div>
           <p className="text-sm text-gray-300">{getBioText()}</p>
           <a href="#" className="text-yellow-400 text-sm">socialhive.agency</a>
         </div>
