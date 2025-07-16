@@ -20,10 +20,10 @@ export const IPhoneNotification = ({
       setIsEntering(false);
     }, 100);
     
-    // Auto dismiss after 3 seconds
+    // Auto dismiss after 10 seconds
     const autoDismissTimer = setTimeout(() => {
       handleDismiss();
-    }, 3000);
+    }, 10000);
     
     return () => {
       clearTimeout(timer);
