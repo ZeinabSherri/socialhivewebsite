@@ -48,36 +48,31 @@ export const IPhoneNotification = ({
         <div 
           className={`
             relative pointer-events-auto
-            bg-gradient-to-b from-gray-700/95 via-gray-800/95 to-gray-900/95
-            backdrop-blur-lg
-            rounded-full shadow-lg
-            border border-white/10
-            px-6 py-3
-            max-w-xs w-auto
+            bg-gradient-to-b from-gray-100/95 via-gray-50/95 to-white/95
+            backdrop-blur-md
+            rounded-2xl shadow-lg
+            border border-gray-200/50
+            px-6 py-4
+            max-w-sm w-full mx-4
             transition-all duration-300 ease-out
             ${isEntering ? 'opacity-0 transform -translate-y-8' : 'opacity-100 transform translate-y-0'}
             ${isAnimating ? 'opacity-0 transform -translate-y-8' : ''}
           `}
           style={{
-            boxShadow: '0 8px 25px -8px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08)'
+            boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05)'
           }}
         >
           {/* Notification content */}
           <div className="flex items-center justify-center">
-            <p className="text-white text-sm font-medium text-center whitespace-nowrap">
+            <p className="text-gray-800 text-sm font-medium text-center">
               {message}
             </p>
-          </div>
-          
-          {/* Bottom handle/indicator */}
-          <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
-            <div className="w-6 h-1 bg-white/30 rounded-full" />
           </div>
           
           {/* Dismiss button (invisible but clickable) */}
           <button
             onClick={handleDismiss}
-            className="absolute inset-0 w-full h-full bg-transparent rounded-full"
+            className="absolute inset-0 w-full h-full bg-transparent rounded-2xl"
             aria-label="Dismiss notification"
           />
         </div>
