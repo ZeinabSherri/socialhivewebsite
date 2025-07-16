@@ -44,14 +44,14 @@ export const IPhoneNotification = ({
   return (
     <div className="fixed top-0 left-0 right-0 z-[9999] pointer-events-none">
       {/* Notification banner */}
-      <div className="pt-3 px-4">
+      <div className="flex justify-center pt-3 px-4">
         <div 
           className={`
             relative pointer-events-auto
             bg-gray-800/95 backdrop-blur-md
             rounded-2xl shadow-2xl
             px-4 py-3
-            w-full
+            max-w-sm w-full mx-4
             transition-all duration-300 ease-out
             ${isEntering ? 'opacity-0 transform -translate-y-full' : 'opacity-100 transform translate-y-0'}
             ${isAnimating ? 'opacity-0 transform -translate-y-full' : ''}
