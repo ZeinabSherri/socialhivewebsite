@@ -42,9 +42,9 @@ export const IPhoneNotification = ({
   if (!isVisible) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[60] pointer-events-none">
+    <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
       {/* Notification banner */}
-      <div className="flex justify-center pt-4 pb-2 px-4">
+      <div className="flex justify-center pt-3 px-4">
         <div 
           className={`
             relative pointer-events-auto
@@ -55,8 +55,8 @@ export const IPhoneNotification = ({
             px-6 py-3
             max-w-xs w-auto
             transition-all duration-300 ease-out
-            ${isEntering ? 'opacity-0 transform -translate-y-12' : 'opacity-100 transform translate-y-0'}
-            ${isAnimating ? 'opacity-0 transform -translate-y-12' : ''}
+            ${isEntering ? 'opacity-0 transform -translate-y-8' : 'opacity-100 transform translate-y-0'}
+            ${isAnimating ? 'opacity-0 transform -translate-y-8' : ''}
           `}
           style={{
             boxShadow: '0 8px 25px -8px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08)'
