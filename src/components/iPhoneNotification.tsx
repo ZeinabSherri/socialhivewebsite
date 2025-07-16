@@ -43,7 +43,7 @@ export const IPhoneNotification = ({
 
   return (
     <div className="fixed top-0 left-0 right-0 z-[9999] pointer-events-none">
-      {/* Notification banner - positioned as overlay */}
+      {/* Notification banner */}
       <div className="flex justify-center pt-3 px-4">
         <div 
           className={`
@@ -62,9 +62,13 @@ export const IPhoneNotification = ({
         >
           {/* Notification content */}
           <div className="flex items-start space-x-3">
-            {/* App icon placeholder */}
-            <div className="flex-shrink-0 w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">SH</span>
+            {/* App logo */}
+            <div className="flex-shrink-0 w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
+              <img 
+                src="/images/socialhive.png" 
+                alt="Social Hive" 
+                className="w-full h-full object-cover"
+              />
             </div>
             
             {/* Content */}
