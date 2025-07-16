@@ -66,7 +66,7 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
             >
               <div className="flex items-center">
                 <span>socialhive.{selectedProfile.toLowerCase()}</span>
-                <VerificationBadge />
+                <VerificationBadge username={`socialhive.${selectedProfile.toLowerCase()}`} />
               </div>
               <ChevronDown size={16} />
             </button>
@@ -85,7 +85,7 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
                   >
                     <div className="flex items-center">
                       <div className="font-medium">socialhive.{profile.name.toLowerCase()}</div>
-                      <VerificationBadge />
+                      <VerificationBadge username={`socialhive.${profile.name.toLowerCase()}`} />
                     </div>
                     <div className="text-sm text-gray-400">{profile.followers} followers</div>
                   </button>
@@ -129,7 +129,7 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
         <div className="mb-4">
           <div className="flex items-center mb-1">
             <h2 className="font-semibold">Social Hive Agency</h2>
-            <VerificationBadge />
+            <VerificationBadge username="socialhive.agency" />
           </div>
           <p className="text-sm text-gray-300">{getBioText()}</p>
           <a href="#" className="text-yellow-400 text-sm">socialhive.agency</a>

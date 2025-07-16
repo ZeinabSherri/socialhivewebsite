@@ -96,7 +96,7 @@ const PostCard = ({
               <p className="font-semibold text-sm cursor-pointer hover:underline">
                 {post.username}
               </p>
-              <VerificationBadge />
+              <VerificationBadge username={post.username} />
             </div>
             <p className="text-gray-400 text-xs">{post.timestamp}</p>
           </div>
@@ -149,7 +149,7 @@ const PostCard = ({
             <span className="font-semibold cursor-pointer hover:underline">
               {post.username}
             </span>
-            <VerificationBadge />
+            <VerificationBadge username={post.username} />
           </div>
           <span className="text-gray-100">
             {showFullCaption ? post.caption : truncateCaption(post.caption)}
@@ -169,7 +169,7 @@ const PostCard = ({
                     <span className="font-semibold cursor-pointer hover:underline text-white">
                       {comment.username}
                     </span>
-                    <VerificationBadge />
+                    <VerificationBadge username={comment.username} />
                   </div>
                   <span className="text-gray-200 font-normal">
                     {comment.text}
