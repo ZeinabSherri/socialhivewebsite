@@ -29,6 +29,7 @@ interface Post {
 interface PostCardProps {
   post: Post;
   onLike: () => void;
+  onUsernameClick?: () => void;
 }
 
 const responsive = {
@@ -57,7 +58,8 @@ const responsive = {
 
 const PostCard = ({
   post,
-  onLike
+  onLike,
+  onUsernameClick
 }: PostCardProps) => {
   const [showFullCaption, setShowFullCaption] = useState(false);
   const [showLoveIcon, setShowLoveIcon] = useState(false);
@@ -93,7 +95,10 @@ const PostCard = ({
           </Avatar>
           <div>
             <div className="flex items-center">
-              <p className="font-semibold text-sm cursor-pointer hover:underline">
+              <p 
+                className="font-semibold text-sm cursor-pointer hover:underline"
+                onClick={onUsernameClick}
+              >
                 {post.username}
               </p>
               <VerificationBadge username={post.username} />
@@ -145,7 +150,10 @@ const PostCard = ({
 
         {/* Caption */}
         <div className="text-sm mb-2">
-          <span className="font-semibold cursor-pointer hover:underline">
+          <span 
+            className="font-semibold cursor-pointer hover:underline"
+            onClick={onUsernameClick}
+          >
             {post.username}
           </span>
           <span className="text-gray-100 ml-1">

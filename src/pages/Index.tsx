@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Home, Search, Plus, User } from 'lucide-react';
 import HomeFeed from '../components/HomeFeed';
@@ -11,13 +10,18 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [showAddPage, setShowAddPage] = useState(false);
 
+  const handleNavigateToProfile = () => {
+    setActiveTab('profile');
+    setShowAddPage(false);
+  };
+
   const renderContent = () => {
     if (showAddPage) {
       return <AddPostPage onBack={() => setShowAddPage(false)} />;
     }
     switch (activeTab) {
       case 'home':
-        return <HomeFeed />;
+        return <HomeFeed onNavigateToProfile={handleNavigateToProfile} />;
       case 'explore':
         return <ExplorePage />;
       case 'reels':
@@ -25,7 +29,7 @@ const Index = () => {
       case 'profile':
         return <ProfilePage onNavigateToContact={() => setShowAddPage(true)} />;
       default:
-        return <HomeFeed />;
+        return <HomeFeed onNavigateToProfile={handleNavigateToProfile} />;
     }
   };
 

@@ -23,7 +23,7 @@ interface Post {
   staticComments: Comment[];
 }
 
-const HomeFeed = () => {
+const HomeFeed = ({ onNavigateToProfile }: { onNavigateToProfile?: () => void }) => {
   const [posts, setPosts] = useState<Post[]>([
     {
       id: 1,
@@ -195,6 +195,7 @@ const HomeFeed = () => {
             key={post.id}
             post={post}
             onLike={() => handleLike(post.id)}
+            onUsernameClick={onNavigateToProfile}
           />
         ))}
       </div>
