@@ -12,6 +12,11 @@ interface Comment {
   userAvatar?: string;
 }
 
+interface MediaItem {
+  type: 'image' | 'video';
+  url: string;
+}
+
 interface Post {
   id: number;
   username: string;
@@ -19,6 +24,7 @@ interface Post {
   timestamp: string;
   image?: string;
   images?: string[];
+  media?: MediaItem[]; // new support for mixed media
   caption: string;
   likes: number;
   comments: number;
@@ -83,7 +89,8 @@ const PostCard = ({
     setLastTap(now);
   };
 
-  return <div className="bg-black border-b border-gray-800 max-w-md mx-auto rounded-lg overflow-hidden">
+  return (
+    <div className="bg-black border-b border-gray-800 max-w-md mx-auto rounded-lg overflow-hidden">
       {/* Post Header */}
       <div className="flex items-center justify-between p-3">
         <div className="flex items-center space-x-3">
@@ -95,10 +102,7 @@ const PostCard = ({
           </Avatar>
           <div>
             <div className="flex items-center">
-              <p 
-                className="font-semibold text-sm cursor-pointer hover:underline"
-                onClick={onUsernameClick}
-              >
+              <p className="font-semibold text-sm cursor-pointer hover:underline" onClick={onUsernameClick}>
                 {post.username}
               </p>
               <VerificationBadge username={post.username} />
@@ -111,26 +115,63 @@ const PostCard = ({
         </button>
       </div>
 
-      {/* Post Image or Carousel */}
-      {post.images && post.images.length > 0 ? <Carousel responsive={responsive} infinite arrows swipeable draggable showDots containerClass="carousel-container" itemClass="carousel-item" renderDotsOutside={true}>
-          {post.images.map((imgUrl, idx) => <div key={idx} className="aspect-square bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
+      {/* Media Carousel (images/videos) */}
+      {post.media && post.media.length > 0 ? (
+        <Carousel responsive={responsive} infinite arrows swipeable draggable showDots containerClass="carousel-container" itemClass="carousel-item" renderDotsOutside={true}>
+          {post.media.map((item, idx) => (
+            <div key={idx} className="aspect-square bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
+          {item.type === 'image' ? (
+  <img src={item.url} alt={`media-${idx}`} className="w-full h-full object-cover rounded-lg" loading="lazy" />
+) : (
+  <video
+    autoPlay
+    muted
+    loop
+    playsInline
+    className="w-full h-full object-cover rounded-lg"
+  >
+    <source src={item.url} type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+)}
+            </div>
+          ))}
+        </Carousel>
+      ) : post.images && post.images.length > 0 ? (
+        <Carousel responsive={responsive} infinite arrows swipeable draggable showDots containerClass="carousel-container" itemClass="carousel-item" renderDotsOutside={true}>
+          {post.images.map((imgUrl, idx) => (
+            <div key={idx} className="aspect-square bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
               <img src={imgUrl} alt={`Post image ${idx + 1}`} className="w-full h-full object-cover rounded-lg" loading="lazy" />
-            </div>)}
-        </Carousel> : post.image ? <div className="aspect-square bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
+            </div>
+          ))}
+        </Carousel>
+      ) : post.image ? (
+        <div className="aspect-square bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
           <img src={post.image} alt="Post content" className="w-full h-full object-cover rounded-lg" loading="lazy" />
-        </div> : null}
+        </div>
+      ) : null}
 
-      {showLoveIcon && <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <Heart size={80} className="text-white fill-red-500 animate-scale-in" style={{
-        animation: 'scale-in 0.6s ease-out, fade-out 0.3s ease-out 0.7s forwards'
-      }} />
-        </div>}
+      {showLoveIcon && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <Heart
+            size={80}
+            className="text-white fill-red-500 animate-scale-in"
+            style={{
+              animation: 'scale-in 0.6s ease-out, fade-out 0.3s ease-out 0.7s forwards'
+            }}
+          />
+        </div>
+      )}
 
       {/* Post Actions */}
       <div className="p-3">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-4">
-            <button onClick={onLike} className={`transition-colors ${post.isLiked ? 'text-red-500' : 'text-white hover:text-gray-300'}`} aria-label="Like post">
+            <button
+              onClick={onLike}
+              className={`transition-colors ${post.isLiked ? 'text-red-500' : 'text-white hover:text-gray-300'}`}
+              aria-label="Like post"
+            >
               <Heart size={24} fill={post.isLiked ? 'currentColor' : 'none'} />
             </button>
             <button className="text-white hover:text-gray-300" aria-label="Comment on post">
@@ -145,57 +186,49 @@ const PostCard = ({
           </button>
         </div>
 
-        {/* Likes Count */}
+        {/* Likes */}
         <p className="font-semibold text-sm mb-2">{post.likes.toLocaleString()} likes</p>
 
         {/* Caption */}
         <div className="text-sm mb-2">
-          <span 
-            className="font-semibold cursor-pointer hover:underline"
-            onClick={onUsernameClick}
-          >
+          <span className="font-semibold cursor-pointer hover:underline" onClick={onUsernameClick}>
             {post.username}
           </span>
           <span className="text-gray-100 ml-1">
             {showFullCaption ? post.caption : truncateCaption(post.caption)}
           </span>
-          {post.caption.length > 100 && <button onClick={() => setShowFullCaption(!showFullCaption)} className="text-gray-400 ml-1 hover:text-gray-300">
+          {post.caption.length > 100 && (
+            <button onClick={() => setShowFullCaption(!showFullCaption)} className="text-gray-400 ml-1 hover:text-gray-300">
               {showFullCaption ? 'less' : 'more'}
-            </button>}
+            </button>
+          )}
         </div>
 
         {/* Static Comments */}
         <div className="mt-2 space-y-1">
-          {post.staticComments.map(comment => <div key={comment.id} className="flex items-start space-x-3 text-left group">
-              
+          {post.staticComments.map(comment => (
+            <div key={comment.id} className="flex items-start space-x-3 text-left group">
               <div className="flex-1 min-w-0">
                 <p className="text-white text-sm leading-5 break-words">
                   <span className="font-semibold cursor-pointer hover:underline text-white">
                     {comment.username}
                   </span>
-                  <span className="text-gray-200 font-normal ml-1">
-                    {comment.text}
-                  </span>
+                  <span className="text-gray-200 font-normal ml-1">{comment.text}</span>
                 </p>
                 <div className="flex items-center space-x-4 mt-1">
-                  <button className="text-gray-400 text-xs font-medium hover:text-gray-300 transition-colors">
-                    2h
-                  </button>
-                  <button className="text-gray-400 text-xs font-medium hover:text-gray-300 transition-colors">
-                    Reply
-                  </button>
+                  <button className="text-gray-400 text-xs font-medium hover:text-gray-300 transition-colors">2h</button>
+                  <button className="text-gray-400 text-xs font-medium hover:text-gray-300 transition-colors">Reply</button>
                   <button className="opacity-0 group-hover:opacity-100 transition-opacity">
                     <Heart size={12} className="text-gray-400 hover:text-red-500 transition-colors" />
                   </button>
                 </div>
               </div>
-            </div>)}
+            </div>
+          ))}
         </div>
-
-        {/* Comments Link */}
-        
       </div>
-    </div>;
+    </div>
+  );
 };
 
 export default PostCard;

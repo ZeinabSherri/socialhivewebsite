@@ -9,6 +9,11 @@ interface Comment {
   text: string;
 }
 
+interface MediaItem {
+  type: 'image' | 'video';
+  url: string;
+}
+
 interface Post {
   id: number;
   username: string;
@@ -16,6 +21,7 @@ interface Post {
   timestamp: string;
   image?: string;       // single image for posts 1-3
   images?: string[];    // multiple images for carousel posts 4-8
+  media?: MediaItem[];  // media array for posts with mixed media
   caption: string;
   likes: number;
   comments: number;
@@ -30,7 +36,7 @@ const HomeFeed = ({ onNavigateToProfile }: { onNavigateToProfile?: () => void })
       username: 'socialhive.agency',
       userAvatar: '/lovable-uploads/social-hive-logo.png',
       timestamp: 'Now',
-      image: "/images/socialhive.png",
+      image: "/images/IMG-20250728-WA0027.jpg",
       caption: '🐝 Crafting Buzz. Driving Growth. Your partner in digital success.',
       likes: 1200,
       comments: 2,
@@ -45,7 +51,7 @@ const HomeFeed = ({ onNavigateToProfile }: { onNavigateToProfile?: () => void })
       username: 'socialhive.agency',
       userAvatar: '/lovable-uploads/social-hive-logo.png',
       timestamp: '1h',
-      image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80',
+      image: '/images/IMG-20250728-WA0026.jpg',
       caption: 'About Us: We create digital experiences that resonate and convert.',
       likes: 850,
       comments: 2,
@@ -60,7 +66,7 @@ const HomeFeed = ({ onNavigateToProfile }: { onNavigateToProfile?: () => void })
       username: 'socialhive.agency',
       userAvatar: '/lovable-uploads/social-hive-logo.png',
       timestamp: '2h',
-      image: 'https://images.unsplash.com/photo-1492724441997-5dc865305da7?auto=format&fit=crop&w=800&q=80',
+      image: '/images/IMG-20250728-WA0028.jpg',
       caption: 'Why Social Hive? Because your brand deserves the buzz.',
       likes: 950,
       comments: 2,
@@ -76,10 +82,10 @@ const HomeFeed = ({ onNavigateToProfile }: { onNavigateToProfile?: () => void })
       username: 'socialhive.agency',
       userAvatar: '/lovable-uploads/social-hive-logo.png',
       timestamp: '3h',
-      images: [
-        'https://images.unsplash.com/photo-1532619675605-64c5a00d9603?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80',
+      media: [
+       {type: 'image', url: '/images/IMG-20250728-WA0029.jpg'}, 
+        {type: 'video', url: '/videos/VID-20250728-WA0002.mp4'},
+         {type: 'video', url: '/videos/VID-20250728-WA0001.mp4'},
       ],
       caption: 'Our Services: Swipe to explore what we offer.',
       likes: 780,
