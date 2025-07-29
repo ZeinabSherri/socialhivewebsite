@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
-import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-react';
+import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Volume2, VolumeX } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import VerificationBadge from './VerificationBadge';
 
@@ -70,6 +70,7 @@ const PostCard = ({
   const [showFullCaption, setShowFullCaption] = useState(false);
   const [showLoveIcon, setShowLoveIcon] = useState(false);
   const [lastTap, setLastTap] = useState(0);
+  const [videoMuted, setVideoMuted] = useState(true);
 
   const truncateCaption = (text: string, maxLength: number = 100) => {
     if (text.length <= maxLength) return text;
@@ -87,6 +88,11 @@ const PostCard = ({
       setTimeout(() => setShowLoveIcon(false), 1000);
     }
     setLastTap(now);
+  };
+
+  const toggleVideoSound = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setVideoMuted(!videoMuted);
   };
 
   return (
@@ -123,16 +129,25 @@ const PostCard = ({
           {item.type === 'image' ? (
   <img src={item.url} alt={`media-${idx}`} className="w-full h-full object-cover rounded-lg" loading="lazy" />
 ) : (
-  <video
-    autoPlay
-    muted
-    loop
-    playsInline
-    className="w-full h-full object-cover rounded-lg"
-  >
-    <source src={item.url} type="video/mp4" />
-    Your browser does not support the video tag.
-  </video>
+  <div className="relative w-full h-full">
+    <video
+      autoPlay
+      muted={videoMuted}
+      loop
+      playsInline
+      className="w-full h-full object-cover rounded-lg"
+    >
+      <source src={item.url} type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
+    <button
+      onClick={toggleVideoSound}
+      className="absolute bottom-3 right-3 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
+      aria-label={videoMuted ? "Unmute video" : "Mute video"}
+    >
+      {videoMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+    </button>
+  </div>
 )}
             </div>
           ))}
@@ -152,14 +167,21 @@ const PostCard = ({
       ) : null}
 
       {showLoveIcon && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <Heart
-            size={80}
-            className="text-white fill-red-500 animate-scale-in"
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+          <div
+            className="relative"
             style={{
-              animation: 'scale-in 0.6s ease-out, fade-out 0.3s ease-out 0.7s forwards'
+              animation: 'instagram-heart 1s ease-out forwards'
             }}
-          />
+          >
+            <Heart
+              size={120}
+              className="text-white fill-white drop-shadow-2xl"
+              style={{
+                filter: 'drop-shadow(0 0 20px rgba(0,0,0,0.3))'
+              }}
+            />
+          </div>
         </div>
       )}
 
