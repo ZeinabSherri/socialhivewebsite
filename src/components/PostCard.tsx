@@ -126,29 +126,29 @@ const PostCard = ({
         <Carousel responsive={responsive} infinite arrows swipeable draggable showDots containerClass="carousel-container" itemClass="carousel-item" renderDotsOutside={true}>
           {post.media.map((item, idx) => (
             <div key={idx} className="aspect-[4/5] bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
-          {item.type === 'image' ? (
-  <img src={item.url} alt={`media-${idx}`} className="w-full h-full object-cover rounded-lg" loading="lazy" />
-) : (
-  <div className="relative w-full h-full">
-    <video
-      autoPlay
-      muted={videoMuted}
-      loop
-      playsInline
-      className="w-full h-full object-cover rounded-lg"
-    >
-      <source src={item.url} type="video/mp4" />
-      Your browser does not support the video tag.
-    </video>
-    <button
-      onClick={toggleVideoSound}
-      className="absolute bottom-3 right-3 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
-      aria-label={videoMuted ? "Unmute video" : "Mute video"}
-    >
-      {videoMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-    </button>
-  </div>
-)}
+              {item.type === 'image' ? (
+                <img src={item.url} alt={`media-${idx}`} className="w-full h-full object-cover rounded-lg" loading="lazy" />
+              ) : (
+                <div className="relative w-full h-full">
+                  <video
+                    autoPlay
+                    muted={videoMuted}
+                    loop
+                    playsInline
+                    className="w-full h-full object-cover rounded-lg"
+                  >
+                    <source src={item.url} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                  <button
+                    onClick={toggleVideoSound}
+                    className="absolute bottom-3 right-3 bg-black/70 text-white p-2 rounded-full hover:bg-black/90 transition-colors z-20"
+                    aria-label={videoMuted ? "Unmute video" : "Mute video"}
+                  >
+                    {videoMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </Carousel>
