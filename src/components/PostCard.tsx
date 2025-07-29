@@ -183,9 +183,9 @@ const PostCard = ({
           >
             <Heart
               size={120}
-              className="text-white fill-white drop-shadow-2xl"
+              className="text-red-500 fill-red-500 drop-shadow-2xl"
               style={{
-                filter: 'drop-shadow(0 0 20px rgba(0,0,0,0.3))'
+                filter: 'drop-shadow(0 0 20px rgba(239, 68, 68, 0.4))'
               }}
             />
           </div>
