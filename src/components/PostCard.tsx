@@ -119,7 +119,7 @@ const PostCard = ({
       {post.media && post.media.length > 0 ? (
         <Carousel responsive={responsive} infinite arrows swipeable draggable showDots containerClass="carousel-container" itemClass="carousel-item" renderDotsOutside={true}>
           {post.media.map((item, idx) => (
-            <div key={idx} className="aspect-square bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
+            <div key={idx} className="aspect-[4/5] bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
           {item.type === 'image' ? (
   <img src={item.url} alt={`media-${idx}`} className="w-full h-full object-cover rounded-lg" loading="lazy" />
 ) : (
@@ -140,13 +140,13 @@ const PostCard = ({
       ) : post.images && post.images.length > 0 ? (
         <Carousel responsive={responsive} infinite arrows swipeable draggable showDots containerClass="carousel-container" itemClass="carousel-item" renderDotsOutside={true}>
           {post.images.map((imgUrl, idx) => (
-            <div key={idx} className="aspect-square bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
+            <div key={idx} className="aspect-[4/5] bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
               <img src={imgUrl} alt={`Post image ${idx + 1}`} className="w-full h-full object-cover rounded-lg" loading="lazy" />
             </div>
           ))}
         </Carousel>
       ) : post.image ? (
-        <div className="aspect-square bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
+        <div className="aspect-[4/5] bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
           <img src={post.image} alt="Post content" className="w-full h-full object-cover rounded-lg" loading="lazy" />
         </div>
       ) : null}
