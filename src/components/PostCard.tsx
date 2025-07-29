@@ -156,6 +156,25 @@ const PostCard = ({
                   </button>
                 </div>
               )}
+              {/* Double-tap heart animation */}
+              {showLoveIcon && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+                  <div
+                    className="relative"
+                    style={{
+                      animation: 'instagram-heart 1s ease-out forwards'
+                    }}
+                  >
+                    <Heart
+                      size={120}
+                      className="text-red-500 fill-red-500 drop-shadow-2xl"
+                      style={{
+                        filter: 'drop-shadow(0 0 20px rgba(239, 68, 68, 0.4))'
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </Carousel>
