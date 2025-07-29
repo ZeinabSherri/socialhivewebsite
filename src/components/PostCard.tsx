@@ -77,7 +77,8 @@ const PostCard = ({
     return text.substring(0, maxLength) + '...';
   };
 
-  const handleDoubleTap = () => {
+  const handleDoubleTap = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
     const now = Date.now();
     const DOUBLE_TAP_DELAY = 300;
     if (now - lastTap < DOUBLE_TAP_DELAY) {
@@ -90,8 +91,9 @@ const PostCard = ({
     setLastTap(now);
   };
 
-  const toggleVideoSound = (e: React.MouseEvent) => {
+  const toggleVideoSound = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     setVideoMuted(!videoMuted);
   };
 
@@ -135,7 +137,12 @@ const PostCard = ({
                     muted={videoMuted}
                     loop
                     playsInline
+                    preload="metadata"
+                    controls={false}
                     className="w-full h-full object-cover rounded-lg"
+                    onLoadStart={() => console.log('Video loading started')}
+                    onCanPlay={() => console.log('Video can play')}
+                    onError={(e) => console.error('Video error:', e)}
                   >
                     <source src={item.url} type="video/mp4" />
                     Your browser does not support the video tag.
@@ -167,7 +174,7 @@ const PostCard = ({
       ) : null}
 
       {showLoveIcon && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
           <div
             className="relative"
             style={{
