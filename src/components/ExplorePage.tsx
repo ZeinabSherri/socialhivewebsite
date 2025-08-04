@@ -211,11 +211,11 @@ const ExplorePage = () => {
     
     if (isReel) {
       return (
-        <div
-          key={project.id}
-          onClick={() => handleProjectClick(project)}
-          className="aspect-[9/16] bg-gray-900 cursor-pointer hover:opacity-80 transition-opacity relative group overflow-hidden rounded-sm"
-        >
+      <div
+        key={project.id}
+        onClick={() => handleProjectClick(project)}
+        className="aspect-[9/16] bg-gray-900 cursor-pointer hover:opacity-80 transition-opacity relative group overflow-hidden rounded-sm"
+      >
           <video
             ref={(el) => (videoRefs.current[project.id] = el)}
             src={project.videoUrl}
@@ -260,7 +260,7 @@ const ExplorePage = () => {
       <div
         key={project.id}
         onClick={() => handleProjectClick(project)}
-        className="aspect-[9/16] bg-gray-900 cursor-pointer hover:opacity-80 transition-opacity relative group overflow-hidden rounded-sm"
+        className="aspect-square bg-gray-900 cursor-pointer hover:opacity-80 transition-opacity relative group overflow-hidden rounded-sm"
       >
         <img
           src={project.thumbnail}
