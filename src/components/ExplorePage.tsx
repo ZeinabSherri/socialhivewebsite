@@ -112,7 +112,7 @@ const ExplorePage = () => {
 
   const filteredProjects = activeFilter === 'Best results' 
     ? projects.filter(project => project.type === 'Reel')
-    : projects.filter(project => project.industry === activeFilter);
+    : projects.filter(project => project.industry === activeFilter && project.type === 'Post');
 
   const reels = filteredProjects.filter(project => project.type === 'Reel');
   const posts = filteredProjects.filter(project => project.type === 'Post');
