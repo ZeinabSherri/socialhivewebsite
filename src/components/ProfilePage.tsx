@@ -40,6 +40,12 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
     startDelay: 600 
   });
 
+  const postsCount = useCounterAnimation({ 
+    targetValue: currentProfile.posts, 
+    duration: 1500,
+    startDelay: 100 
+  });
+
   // Helper function to format large numbers
   const formatNumber = (num: number): string => {
     if (num >= 1000) {
@@ -243,7 +249,7 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
           <div className="flex-1">
             <div className="flex space-x-8 mb-3">
               <div className="text-center">
-                <div className="font-semibold">{currentProfile.posts}</div>
+                <div className="font-semibold">{postsCount}</div>
                 <div className="text-gray-400 text-sm">posts</div>
               </div>
               <div className="text-center">
