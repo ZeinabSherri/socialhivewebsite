@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import { Mail, Phone, MessageSquare } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Mail, Phone, MessageSquare, X } from 'lucide-react';
 
 interface AddPostPageProps {
   onBack: () => void;
@@ -14,6 +14,16 @@ const AddPostPage = ({ onBack }: AddPostPageProps) => {
     subject: '',
     message: ''
   });
+  
+  const [showWelcomeModal, setShowWelcomeModal] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowWelcomeModal(false);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -25,13 +35,53 @@ const AddPostPage = ({ onBack }: AddPostPageProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Contact form submitted:', formData);
-    // Handle form submission
-    onBack();
+    
+    // Format the WhatsApp message
+    const whatsappMessage = `Hello! I'm interested in starting a project with Social Hive.
+
+Here are my details:
+• Name: ${formData.name}
+• Email: ${formData.email}
+• Business Name: ${formData.phone || 'Not specified'}
+• Project Details: ${formData.message}
+
+Looking forward to hearing from you!`;
+
+    // Encode the message for URL
+    const encodedMessage = encodeURIComponent(whatsappMessage);
+    
+    // Create WhatsApp URL
+    const whatsappURL = `https://wa.me/96171542187?text=${encodedMessage}`;
+    
+    // Redirect to WhatsApp
+    window.open(whatsappURL, '_blank');
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white relative">
+      {/* Welcome Modal */}
+      {showWelcomeModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setShowWelcomeModal(false)}
+        >
+          <div 
+            className="bg-gray-900 border border-yellow-400/20 rounded-lg p-6 max-w-sm mx-4 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowWelcomeModal(false)}
+              className="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors"
+            >
+              <X size={20} />
+            </button>
+            <div className="text-center">
+              <h3 className="text-xl font-bold text-yellow-400 mb-3">Welcome to Social Hive!</h3>
+              <p className="text-gray-300 text-sm">Ready to create some buzz? Fill out the form to get started.</p>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="text-center py-8">
         <h1 className="text-2xl font-bold text-yellow-400 mb-2">Social Hive</h1>
