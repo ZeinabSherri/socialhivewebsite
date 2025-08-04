@@ -289,7 +289,8 @@ const ExplorePage = () => {
 
       {/* Filters */}
       <div className="px-4 py-3 border-b border-gray-800">
-        <div className="w-48 max-h-80 overflow-y-auto">
+        {/* Mobile/Tablet: Vertical layout */}
+        <div className="block md:hidden">
           <div className="flex flex-col space-y-3">
             {filters.map(filter => (
               <button
@@ -304,6 +305,59 @@ const ExplorePage = () => {
                 {filter}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* Desktop: Staggered grid layout */}
+        <div className="hidden md:block">
+          <div className="space-y-3">
+            {/* Group filters into rows following the 3-2-3-2 pattern */}
+            {Array.from({ length: Math.ceil(filters.length / 5) }, (_, groupIndex) => {
+              const startIndex = groupIndex * 5;
+              const groupFilters = filters.slice(startIndex, startIndex + 5);
+              
+              return (
+                <div key={groupIndex} className="space-y-3">
+                  {/* First row: 3 buttons */}
+                  {groupFilters.slice(0, 3).length > 0 && (
+                    <div className="grid grid-cols-3 gap-3">
+                      {groupFilters.slice(0, 3).map(filter => (
+                        <button
+                          key={filter}
+                          onClick={() => setActiveFilter(filter)}
+                          className={`px-4 py-3 rounded-full text-sm font-medium transition-all duration-200 ${
+                            activeFilter === filter
+                              ? 'bg-yellow-400 text-black shadow-lg transform scale-105'
+                              : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:transform hover:scale-102'
+                          }`}
+                        >
+                          {filter}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Second row: 2 buttons centered */}
+                  {groupFilters.slice(3, 5).length > 0 && (
+                    <div className="flex justify-center gap-3">
+                      {groupFilters.slice(3, 5).map(filter => (
+                        <button
+                          key={filter}
+                          onClick={() => setActiveFilter(filter)}
+                          className={`px-4 py-3 rounded-full text-sm font-medium transition-all duration-200 ${
+                            activeFilter === filter
+                              ? 'bg-yellow-400 text-black shadow-lg transform scale-105'
+                              : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:transform hover:scale-102'
+                          }`}
+                        >
+                          {filter}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
