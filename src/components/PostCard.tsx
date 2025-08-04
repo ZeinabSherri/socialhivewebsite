@@ -98,7 +98,7 @@ const PostCard = ({
   };
 
   return (
-    <div className="bg-black border-b border-gray-800 max-w-md mx-auto rounded-lg overflow-hidden">
+    <div className="bg-black border-b border-gray-800 max-w-md mx-auto rounded-lg overflow-hidden honey-container">
       {/* Post Header */}
       <div className="flex items-center justify-between p-3">
         <div className="flex items-center space-x-3">
@@ -124,73 +124,100 @@ const PostCard = ({
       </div>
 
       {/* Media Carousel (images/videos) */}
-      {post.media && post.media.length > 0 ? (
-        <Carousel responsive={responsive} infinite arrows swipeable draggable showDots containerClass="carousel-container" itemClass="carousel-item" renderDotsOutside={true}>
-          {post.media.map((item, idx) => (
-            <div key={idx} className="aspect-[4/5] bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
-              {item.type === 'image' ? (
-                <img src={item.url} alt={`media-${idx}`} className="w-full h-full object-cover rounded-lg" loading="lazy" />
-              ) : (
-                <div className="relative w-full h-full">
-                  <video
-                    autoPlay
-                    muted={videoMuted}
-                    loop
-                    playsInline
-                    preload="metadata"
-                    controls={false}
-                    className="w-full h-full object-cover rounded-lg"
-                    onLoadStart={() => console.log('Video loading started')}
-                    onCanPlay={() => console.log('Video can play')}
-                    onError={(e) => console.error('Video error:', e)}
-                  >
-                    <source src={item.url} type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
-                  <button
-                    onClick={toggleVideoSound}
-                    className="absolute bottom-3 right-3 bg-black/70 text-white p-2 rounded-full hover:bg-black/90 transition-colors z-20"
-                    aria-label={videoMuted ? "Unmute video" : "Mute video"}
-                  >
-                    {videoMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-                  </button>
+      <div className="relative">
+        {post.media && post.media.length > 0 ? (
+          <div className="relative">
+            <Carousel responsive={responsive} infinite arrows swipeable draggable showDots containerClass="carousel-container" itemClass="carousel-item" renderDotsOutside={true}>
+              {post.media.map((item, idx) => (
+                <div key={idx} className="aspect-[4/5] bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
+                  {item.type === 'image' ? (
+                    <img src={item.url} alt={`media-${idx}`} className="w-full h-full object-cover rounded-lg" loading="lazy" />
+                  ) : (
+                    <div className="relative w-full h-full">
+                      <video
+                        autoPlay
+                        muted={videoMuted}
+                        loop
+                        playsInline
+                        preload="metadata"
+                        controls={false}
+                        className="w-full h-full object-cover rounded-lg"
+                        onLoadStart={() => console.log('Video loading started')}
+                        onCanPlay={() => console.log('Video can play')}
+                        onError={(e) => console.error('Video error:', e)}
+                      >
+                        <source src={item.url} type="video/mp4" />
+                        Your browser does not support the video tag.
+                      </video>
+                      <button
+                        onClick={toggleVideoSound}
+                        className="absolute bottom-3 right-3 bg-black/70 text-white p-2 rounded-full hover:bg-black/90 transition-colors z-20"
+                        aria-label={videoMuted ? "Unmute video" : "Mute video"}
+                      >
+                        {videoMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                      </button>
+                    </div>
+                  )}
+                  {/* Double-tap heart animation */}
+                  {showLoveIcon && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+                      <div
+                        className="relative"
+                        style={{
+                          animation: 'instagram-heart 1s ease-out forwards'
+                        }}
+                      >
+                        <Heart
+                          size={120}
+                          className="text-red-500 fill-red-500 drop-shadow-2xl"
+                          style={{
+                            filter: 'drop-shadow(0 0 20px rgba(239, 68, 68, 0.4))'
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-              {/* Double-tap heart animation */}
-              {showLoveIcon && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
-                  <div
-                    className="relative"
-                    style={{
-                      animation: 'instagram-heart 1s ease-out forwards'
-                    }}
-                  >
-                    <Heart
-                      size={120}
-                      className="text-red-500 fill-red-500 drop-shadow-2xl"
-                      style={{
-                        filter: 'drop-shadow(0 0 20px rgba(239, 68, 68, 0.4))'
-                      }}
-                    />
-                  </div>
+              ))}
+            </Carousel>
+            {/* Honey drips for mixed media */}
+            <div className="honey-drip honey-drip-1"></div>
+            <div className="honey-drip honey-drip-3"></div>
+            <div className="honey-drip honey-drip-5"></div>
+          </div>
+        ) : post.images && post.images.length > 0 ? (
+          <div className="relative">
+            <Carousel responsive={responsive} infinite arrows swipeable draggable showDots containerClass="carousel-container" itemClass="carousel-item" renderDotsOutside={true}>
+              {post.images.map((imgUrl, idx) => (
+                <div key={idx} className="aspect-[4/5] bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
+                  <img src={imgUrl} alt={`Post image ${idx + 1}`} className="w-full h-full object-cover rounded-lg" loading="lazy" />
                 </div>
-              )}
+              ))}
+            </Carousel>
+            {/* Honey drips for image carousel */}
+            <div className="honey-drip honey-drip-1"></div>
+            <div className="honey-drip honey-drip-2"></div>
+            <div className="honey-drip honey-drip-4"></div>
+          </div>
+        ) : post.image ? (
+          <div className="relative">
+            <div className="aspect-[4/5] bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
+              <img src={post.image} alt="Post content" className="w-full h-full object-cover rounded-lg" loading="lazy" />
             </div>
-          ))}
-        </Carousel>
-      ) : post.images && post.images.length > 0 ? (
-        <Carousel responsive={responsive} infinite arrows swipeable draggable showDots containerClass="carousel-container" itemClass="carousel-item" renderDotsOutside={true}>
-          {post.images.map((imgUrl, idx) => (
-            <div key={idx} className="aspect-[4/5] bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
-              <img src={imgUrl} alt={`Post image ${idx + 1}`} className="w-full h-full object-cover rounded-lg" loading="lazy" />
-            </div>
-          ))}
-        </Carousel>
-      ) : post.image ? (
-        <div className="aspect-[4/5] bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
-          <img src={post.image} alt="Post content" className="w-full h-full object-cover rounded-lg" loading="lazy" />
+            {/* Honey drips for single image */}
+            <div className="honey-drip honey-drip-1"></div>
+            <div className="honey-drip honey-drip-2"></div>
+            <div className="honey-drip honey-drip-3"></div>
+            <div className="honey-drip honey-drip-5"></div>
+          </div>
+        ) : null}
+        
+        {/* Global honey drips that flow over post content */}
+        <div className="absolute bottom-0 left-0 right-0 pointer-events-none z-20">
+          <div className="honey-drip honey-drip-1" style={{ top: '-8px' }}></div>
+          <div className="honey-drip honey-drip-4" style={{ top: '-12px' }}></div>
         </div>
-      ) : null}
+      </div>
 
       {showLoveIcon && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
