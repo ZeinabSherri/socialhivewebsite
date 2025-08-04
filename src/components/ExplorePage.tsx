@@ -311,10 +311,10 @@ const ExplorePage = () => {
         {/* Desktop: Staggered grid layout */}
         <div className="hidden md:block">
           <div className="space-y-3">
-            {/* Group filters into rows following the 3-2-3-2 pattern */}
-            {Array.from({ length: Math.ceil(filters.length / 5) }, (_, groupIndex) => {
-              const startIndex = groupIndex * 5;
-              const groupFilters = filters.slice(startIndex, startIndex + 5);
+            {/* Group filters into rows following the 3-3-4 pattern */}
+            {Array.from({ length: Math.ceil(filters.length / 10) }, (_, groupIndex) => {
+              const startIndex = groupIndex * 10;
+              const groupFilters = filters.slice(startIndex, startIndex + 10);
               
               return (
                 <div key={groupIndex} className="space-y-3">
@@ -337,10 +337,29 @@ const ExplorePage = () => {
                     </div>
                   )}
                   
-                  {/* Second row: 2 buttons centered */}
-                  {groupFilters.slice(3, 5).length > 0 && (
-                    <div className="flex justify-center gap-3">
-                      {groupFilters.slice(3, 5).map(filter => (
+                  {/* Second row: 3 buttons */}
+                  {groupFilters.slice(3, 6).length > 0 && (
+                    <div className="grid grid-cols-3 gap-3">
+                      {groupFilters.slice(3, 6).map(filter => (
+                        <button
+                          key={filter}
+                          onClick={() => setActiveFilter(filter)}
+                          className={`px-4 py-3 rounded-full text-sm font-medium transition-all duration-200 ${
+                            activeFilter === filter
+                              ? 'bg-yellow-400 text-black shadow-lg transform scale-105'
+                              : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:transform hover:scale-102'
+                          }`}
+                        >
+                          {filter}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Third row: 4 buttons */}
+                  {groupFilters.slice(6, 10).length > 0 && (
+                    <div className="grid grid-cols-4 gap-3">
+                      {groupFilters.slice(6, 10).map(filter => (
                         <button
                           key={filter}
                           onClick={() => setActiveFilter(filter)}
