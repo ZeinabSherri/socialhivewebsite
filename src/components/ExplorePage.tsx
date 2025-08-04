@@ -1,11 +1,14 @@
 
 import { useState, useRef, useEffect } from 'react';
-import { X, Play, Volume2, VolumeX } from 'lucide-react';
+import { Play, Volume2, VolumeX } from 'lucide-react';
+import ReelModal from './ReelModal';
+import PostModal from './PostModal';
 
 const ExplorePage = () => {
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [activeFilter, setActiveFilter] = useState('Best results');
   const [mutedVideos, setMutedVideos] = useState<Set<number>>(new Set());
+  const [modalType, setModalType] = useState<'reel' | 'post' | null>(null);
   const videoRefs = useRef<{ [key: number]: HTMLVideoElement | null }>({});
 
   const projects = [
@@ -111,6 +114,32 @@ const ExplorePage = () => {
     ? projects.filter(project => project.type === 'Reel')
     : projects.filter(project => project.industry === activeFilter);
 
+  const reels = filteredProjects.filter(project => project.type === 'Reel');
+  const posts = filteredProjects.filter(project => project.type === 'Post');
+
+  const handleProjectClick = (project: any) => {
+    setSelectedProject(project);
+    setModalType(project.type === 'Reel' ? 'reel' : 'post');
+  };
+
+  const handleModalNavigate = (direction: 'prev' | 'next') => {
+    if (!selectedProject) return;
+
+    const currentList = selectedProject.type === 'Reel' ? reels : posts;
+    const currentIndex = currentList.findIndex(p => p.id === selectedProject.id);
+    
+    if (direction === 'prev' && currentIndex > 0) {
+      setSelectedProject(currentList[currentIndex - 1]);
+    } else if (direction === 'next' && currentIndex < currentList.length - 1) {
+      setSelectedProject(currentList[currentIndex + 1]);
+    }
+  };
+
+  const closeModal = () => {
+    setSelectedProject(null);
+    setModalType(null);
+  };
+
   const toggleMute = (videoId: number) => {
     const newMutedVideos = new Set(mutedVideos);
     if (mutedVideos.has(videoId)) {
@@ -143,7 +172,7 @@ const ExplorePage = () => {
       return (
         <div
           key={project.id}
-          onClick={() => setSelectedProject(project)}
+          onClick={() => handleProjectClick(project)}
           className="aspect-[9/16] bg-gray-900 cursor-pointer hover:opacity-80 transition-opacity relative group overflow-hidden rounded-sm"
         >
           <video
@@ -189,7 +218,7 @@ const ExplorePage = () => {
     return (
       <div
         key={project.id}
-        onClick={() => setSelectedProject(project)}
+        onClick={() => handleProjectClick(project)}
         className="aspect-[9/16] bg-gray-900 cursor-pointer hover:opacity-80 transition-opacity relative group overflow-hidden rounded-sm"
       >
         <img
@@ -241,62 +270,23 @@ const ExplorePage = () => {
         {filteredProjects.map((project, index) => renderGridItem(project, index))}
       </div>
 
-      {/* Project Modal */}
-      {selectedProject && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
-          <div className="bg-gray-900 rounded-lg max-w-md w-full max-h-[80vh] overflow-y-auto">
-            <div className="sticky top-0 bg-gray-900 p-4 border-b border-gray-700 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-white">{selectedProject.title}</h3>
-              <button
-                onClick={() => setSelectedProject(null)}
-                className="text-gray-400 hover:text-white"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            
-            <div className="p-4">
-              {selectedProject.type === 'Reel' ? (
-                <video
-                  src={selectedProject.videoUrl}
-                  poster={selectedProject.thumbnail}
-                  className="w-full aspect-video object-cover rounded-lg mb-4"
-                  controls
-                  loop
-                />
-              ) : (
-                <img
-                  src={selectedProject.thumbnail}
-                  alt={selectedProject.title}
-                  className="w-full aspect-video object-cover rounded-lg mb-4"
-                />
-              )}
-              
-              <div className="space-y-4">
-                <div>
-                  <span className="inline-block bg-yellow-400 text-black text-xs font-semibold px-2 py-1 rounded-full mb-2">
-                    {selectedProject.industry}
-                  </span>
-                  <p className="text-gray-300 text-sm">{selectedProject.description}</p>
-                </div>
-                
-                <div>
-                  <h4 className="text-white font-semibold mb-2">Results</h4>
-                  <p className="text-yellow-400 text-sm">{selectedProject.results}</p>
-                </div>
-                
-                <div>
-                  <h4 className="text-white font-semibold mb-2">Client</h4>
-                  <p className="text-gray-300 text-sm">{selectedProject.client}</p>
-                </div>
-                
-                <button className="w-full bg-yellow-400 text-black font-semibold py-3 rounded-lg hover:bg-yellow-300 transition-colors">
-                  Start Your Project
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Modals */}
+      {selectedProject && modalType === 'reel' && (
+        <ReelModal
+          reel={selectedProject}
+          allReels={reels}
+          onClose={closeModal}
+          onNavigate={handleModalNavigate}
+        />
+      )}
+
+      {selectedProject && modalType === 'post' && (
+        <PostModal
+          post={selectedProject}
+          allPosts={posts}
+          onClose={closeModal}
+          onNavigate={handleModalNavigate}
+        />
       )}
     </div>
   );
