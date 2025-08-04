@@ -144,7 +144,7 @@ const ExplorePage = () => {
         <div
           key={project.id}
           onClick={() => setSelectedProject(project)}
-          className="row-span-2 bg-gray-900 cursor-pointer hover:opacity-80 transition-opacity relative group overflow-hidden rounded-sm"
+          className="aspect-[9/16] bg-gray-900 cursor-pointer hover:opacity-80 transition-opacity relative group overflow-hidden rounded-sm"
         >
           <video
             ref={(el) => (videoRefs.current[project.id] = el)}
@@ -190,7 +190,7 @@ const ExplorePage = () => {
       <div
         key={project.id}
         onClick={() => setSelectedProject(project)}
-        className="aspect-square bg-gray-900 cursor-pointer hover:opacity-80 transition-opacity relative group overflow-hidden rounded-sm"
+        className="aspect-[9/16] bg-gray-900 cursor-pointer hover:opacity-80 transition-opacity relative group overflow-hidden rounded-sm"
       >
         <img
           src={project.thumbnail}
@@ -237,7 +237,7 @@ const ExplorePage = () => {
       </div>
 
       {/* Instagram-style Grid */}
-      <div className="grid grid-cols-3 gap-1 p-1 auto-rows-max">
+      <div className="grid grid-cols-3 gap-1 p-1">
         {filteredProjects.map((project, index) => renderGridItem(project, index))}
       </div>
 
