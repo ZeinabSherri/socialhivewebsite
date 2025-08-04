@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Grid, Play, Tag, Settings, ChevronDown } from 'lucide-react';
+import { Grid, Play, Tag, Settings, ChevronDown, X } from 'lucide-react';
 import VerificationBadge from './VerificationBadge';
+import PostCard from './PostCard';
 import { useCounterAnimation } from '../hooks/useCounterAnimation';
 
 interface ProfilePageProps {
@@ -11,6 +12,8 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
   const [activeTab, setActiveTab] = useState('posts');
   const [selectedProfile, setSelectedProfile] = useState('Agency');
   const [showProfileSelector, setShowProfileSelector] = useState(false);
+  const [showPostsFeed, setShowPostsFeed] = useState(false);
+  const [selectedPostIndex, setSelectedPostIndex] = useState(0);
 
   const profileOptions = [
     { id: 'agency', name: 'Agency', followers: 125000, followersDisplay: '125K', posts: 12 },
@@ -45,11 +48,110 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
     return num.toString();
   };
 
-  const posts = Array.from({ length: 12 }, (_, i) => ({
-    id: i + 1,
-    image: `https://images.unsplash.com/photo-${1649972904349 + i}`,
-    type: i % 3 === 0 ? 'reel' : 'post'
-  }));
+  // Generate posts based on selected profile
+  const getPostsForProfile = (profileName: string) => {
+    const baseImages = [
+      'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1600880292089-90a7e086ee0c?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1587440871875-191322ee64b0?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1590650516494-0c8e4a4dd67e?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1553484771-371a605b060b?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1517292987719-0369a794ec0f?auto=format&fit=crop&w=800&q=80'
+    ];
+
+    const profileConfigs = {
+      agency: {
+        captions: [
+          '🐝 Crafting digital experiences that drive results',
+          'Building brands that buzz with authenticity',
+          'Your growth is our mission. Let\'s make it happen!',
+          'Innovative strategies for modern businesses',
+          'Transforming ideas into digital success stories'
+        ]
+      },
+      restaurants: {
+        captions: [
+          '🍽️ Bringing food lovers to your table',
+          'Delicious content that drives foot traffic',
+          'Making every dish Instagram-worthy',
+          'From menu to marketing - we\'ve got you covered',
+          'Taste the difference digital marketing makes'
+        ]
+      },
+      beauty: {
+        captions: [
+          '💄 Beauty brands that glow online',
+          'Making every product launch picture-perfect',
+          'Your beauty deserves to be seen',
+          'Stunning visuals for stunning products',
+          'Confidence in every campaign'
+        ]
+      },
+      clinics: {
+        captions: [
+          '🏥 Building trust through digital presence',
+          'Healthcare marketing with heart',
+          'Connecting patients with quality care',
+          'Professional, compassionate, effective',
+          'Your health, our digital expertise'
+        ]
+      },
+      'e-commerce': {
+        captions: [
+          '🛒 Turning browsers into loyal customers',
+          'E-commerce strategies that convert',
+          'Shopping experiences that wow',
+          'From cart to checkout - we optimize it all',
+          'Digital storefronts that drive sales'
+        ]
+      },
+      'real estate': {
+        captions: [
+          '🏡 Connecting homes with hearts',
+          'Property marketing that moves',
+          'Every listing tells a story',
+          'Premium properties, premium marketing',
+          'Making dream homes a reality'
+        ]
+      },
+      education: {
+        captions: [
+          '📚 Knowledge that reaches further',
+          'Educational marketing that inspires',
+          'Learning experiences that engage',
+          'Empowering minds through digital reach',
+          'Education meets innovation'
+        ]
+      }
+    };
+
+    const config = profileConfigs[profileName.toLowerCase() as keyof typeof profileConfigs] || profileConfigs.agency;
+    
+    return Array.from({ length: 12 }, (_, i) => ({
+      id: i + 1,
+      username: `socialhive.${profileName.toLowerCase()}`,
+      userAvatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      timestamp: `${i + 1}h`,
+      image: baseImages[i % baseImages.length],
+      caption: config.captions[i % config.captions.length],
+      likes: Math.floor(Math.random() * 1000) + 100,
+      comments: Math.floor(Math.random() * 50) + 5,
+      isLiked: false,
+      staticComments: [
+        { id: 1, username: 'user1', text: 'Amazing work! 🔥' },
+        { id: 2, username: 'user2', text: 'Love this! 💛' },
+      ],
+      type: i % 3 === 0 ? 'reel' : 'post'
+    }));
+  };
+
+  const posts = getPostsForProfile(selectedProfile);
 
   const getBioText = () => {
     switch (selectedProfile.toLowerCase()) {
@@ -74,6 +176,15 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
     if (onNavigateToContact) {
       onNavigateToContact();
     }
+  };
+
+  const handlePostClick = (index: number) => {
+    setSelectedPostIndex(index);
+    setShowPostsFeed(true);
+  };
+
+  const handleLike = (postId: number) => {
+    // Handle like functionality if needed
   };
 
   return (
@@ -216,21 +327,61 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
 
       {/* Posts Grid */}
       <div className="grid grid-cols-3 gap-1">
-        {posts.map(post => (
-          <div key={post.id} className="aspect-square bg-gray-900 relative">
+        {posts.map((post, index) => (
+          <div 
+            key={post.id} 
+            className="aspect-square bg-gray-900 relative cursor-pointer group"
+            onClick={() => handlePostClick(index)}
+          >
             <img
               src={post.image}
               alt={`Post ${post.id}`}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-opacity duration-200 group-hover:opacity-80"
             />
             {post.type === 'reel' && (
               <div className="absolute top-2 right-2">
                 <Play size={16} className="text-white" />
               </div>
             )}
+            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white text-center">
+                <div className="flex items-center justify-center space-x-4 text-sm font-semibold">
+                  <span>❤️ {post.likes}</span>
+                  <span>💬 {post.comments}</span>
+                </div>
+              </div>
+            </div>
           </div>
         ))}
       </div>
+
+      {/* Posts Feed Modal */}
+      {showPostsFeed && (
+        <div className="fixed inset-0 bg-black bg-opacity-95 z-50 flex flex-col">
+          <div className="flex items-center justify-between p-4 border-b border-gray-800">
+            <h2 className="text-lg font-semibold">Posts</h2>
+            <button 
+              onClick={() => setShowPostsFeed(false)}
+              className="text-gray-400 hover:text-white p-2"
+            >
+              <X size={24} />
+            </button>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto">
+            <div className="max-w-md mx-auto space-y-0">
+              {posts.slice(selectedPostIndex).map(post => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onLike={() => handleLike(post.id)}
+                  onUsernameClick={() => {}}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
