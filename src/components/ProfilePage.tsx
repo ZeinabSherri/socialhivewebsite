@@ -12,13 +12,13 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
   const [showProfileSelector, setShowProfileSelector] = useState(false);
 
   const profileOptions = [
-    { id: 'agency', name: 'Agency', followers: '125K', posts: 847 },
-    { id: 'restaurants', name: 'Restaurants', followers: '89K', posts: 342 },
-    { id: 'beauty', name: 'Beauty', followers: '67K', posts: 256 },
-    { id: 'clinics', name: 'Clinics', followers: '45K', posts: 189 },
-    { id: 'ecommerce', name: 'E-Commerce', followers: '78K', posts: 298 },
-    { id: 'realestate', name: 'Real Estate', followers: '34K', posts: 167 },
-    { id: 'education', name: 'Education', followers: '23K', posts: 134 }
+    { id: 'agency', name: 'Agency', followers: '125K', posts: 12 },
+    { id: 'restaurants', name: 'Restaurants', followers: '89K', posts: 9 },
+    { id: 'beauty', name: 'Beauty', followers: '67K', posts: 9 },
+    { id: 'clinics', name: 'Clinics', followers: '45K', posts: 9 },
+    { id: 'ecommerce', name: 'E-Commerce', followers: '78K', posts: 9 },
+    { id: 'realestate', name: 'Real Estate', followers: '34K', posts: 9 },
+    { id: 'education', name: 'Education', followers: '23K', posts: 9 }
   ];
 
   const currentProfile = profileOptions.find(p => p.name === selectedProfile) || profileOptions[0];
