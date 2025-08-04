@@ -180,10 +180,13 @@ const PostCard = ({
                 </div>
               ))}
             </Carousel>
-            {/* Honey drips for mixed media */}
+            {/* Enhanced flowing honey border */}
+            <div className="honey-flow-border"></div>
+            {/* Natural honey drips with variations */}
             <div className="honey-drip honey-drip-1"></div>
             <div className="honey-drip honey-drip-3"></div>
             <div className="honey-drip honey-drip-5"></div>
+            <div className="honey-drip honey-drip-6"></div>
           </div>
         ) : post.images && post.images.length > 0 ? (
           <div className="relative">
@@ -194,29 +197,32 @@ const PostCard = ({
                 </div>
               ))}
             </Carousel>
-            {/* Honey drips for image carousel */}
+            {/* Enhanced flowing honey border for image carousel */}
+            <div className="honey-flow-border"></div>
+            {/* Natural honey drips */}
             <div className="honey-drip honey-drip-1"></div>
             <div className="honey-drip honey-drip-2"></div>
             <div className="honey-drip honey-drip-4"></div>
+            <div className="honey-drip honey-drip-6"></div>
           </div>
         ) : post.image ? (
           <div className="relative">
             <div className="aspect-[4/5] bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
               <img src={post.image} alt="Post content" className="w-full h-full object-cover rounded-lg" loading="lazy" />
             </div>
-            {/* Honey drips for single image */}
+            {/* Enhanced flowing honey border for single image */}
+            <div className="honey-flow-border"></div>
+            {/* Natural honey drips with full variation */}
             <div className="honey-drip honey-drip-1"></div>
             <div className="honey-drip honey-drip-2"></div>
             <div className="honey-drip honey-drip-3"></div>
+            <div className="honey-drip honey-drip-4"></div>
             <div className="honey-drip honey-drip-5"></div>
           </div>
         ) : null}
         
-        {/* Global honey drips that flow over post content */}
-        <div className="absolute bottom-0 left-0 right-0 pointer-events-none z-20">
-          <div className="honey-drip honey-drip-1" style={{ top: '-8px' }}></div>
-          <div className="honey-drip honey-drip-4" style={{ top: '-12px' }}></div>
-        </div>
+        {/* Honey overflow effect between posts */}
+        <div className="honey-overflow"></div>
       </div>
 
       {showLoveIcon && (

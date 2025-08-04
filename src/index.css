@@ -23,134 +23,261 @@
 
 @keyframes honey-drip {
   0% {
-    transform: translateY(-20px) scaleY(0);
+    transform: translateY(-30px) scaleY(0);
     opacity: 0;
   }
-  20% {
-    opacity: 1;
-    transform: translateY(0) scaleY(0.3);
+  30% {
+    opacity: 0.8;
+    transform: translateY(-5px) scaleY(0.4);
   }
   100% {
-    transform: translateY(15px) scaleY(1);
-    opacity: 0.9;
+    transform: translateY(25px) scaleY(1);
+    opacity: 0.85;
   }
 }
 
 @keyframes honey-shimmer {
   0%, 100% {
     background-position: 0% 50%;
+    filter: brightness(1);
   }
   50% {
     background-position: 100% 50%;
+    filter: brightness(1.2);
   }
 }
 
-/* Honey drip effects */
+@keyframes honey-flow {
+  0% {
+    clip-path: inset(100% 0 0 0);
+  }
+  100% {
+    clip-path: inset(0% 0 0 0);
+  }
+}
+
+/* Enhanced Realistic Honey Dripping Effects */
 .honey-container {
   position: relative;
   overflow: visible;
 }
 
-.honey-drip {
+.honey-flow-border {
   position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
   background: linear-gradient(
     180deg,
-    hsl(45, 100%, 65%) 0%,
-    hsl(35, 90%, 55%) 30%,
-    hsl(25, 85%, 45%) 70%,
-    hsl(20, 80%, 40%) 100%
+    #FFB000 0%,
+    #FF8C00 20%,
+    #FFA500 40%,
+    #DAA520 60%,
+    #B8860B 80%,
+    #8B6914 100%
   );
-  border-radius: 0 0 50% 50%;
+  clip-path: polygon(
+    0% 0%,
+    5% 25%,
+    12% 15%,
+    18% 35%,
+    25% 20%,
+    32% 40%,
+    38% 25%,
+    45% 45%,
+    52% 30%,
+    58% 50%,
+    65% 35%,
+    72% 55%,
+    78% 40%,
+    85% 60%,
+    92% 45%,
+    100% 65%,
+    100% 0%
+  );
+  z-index: 15;
+  opacity: 0.9;
   box-shadow: 
-    inset 0 2px 4px rgba(255, 255, 255, 0.3),
-    0 2px 8px rgba(0, 0, 0, 0.2),
-    0 0 10px rgba(255, 215, 0, 0.3);
-  z-index: 10;
-  animation: honey-drip 2s ease-out forwards;
-  transform-origin: top center;
+    inset 0 3px 6px rgba(255, 255, 255, 0.4),
+    0 4px 12px rgba(218, 165, 32, 0.3),
+    0 2px 20px rgba(255, 140, 0, 0.2);
+  animation: honey-flow 3s ease-out forwards;
 }
 
-.honey-drip::before {
+.honey-flow-border::before {
   content: '';
   position: absolute;
   top: 0;
-  left: 10%;
-  right: 10%;
-  height: 30%;
+  left: 0;
+  right: 0;
+  height: 100%;
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0.3) 25%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.3) 75%,
     transparent 100%
   );
-  border-radius: inherit;
+  animation: honey-shimmer 4s ease-in-out infinite;
 }
 
+/* Individual honey drips with natural variations */
+.honey-drip {
+  position: absolute;
+  background: radial-gradient(
+    ellipse at top,
+    #FFD700 0%,
+    #FFA500 30%,
+    #FF8C00 60%,
+    #DAA520 90%,
+    #B8860B 100%
+  );
+  border-radius: 50% 50% 80% 80%;
+  box-shadow: 
+    inset 2px 4px 8px rgba(255, 255, 255, 0.4),
+    inset -2px -4px 8px rgba(139, 105, 20, 0.3),
+    0 6px 16px rgba(218, 165, 32, 0.4),
+    0 2px 8px rgba(255, 140, 0, 0.3);
+  z-index: 16;
+  animation: honey-drip 2.5s ease-out forwards;
+  transform-origin: top center;
+}
+
+/* Honey drip bulges and tips */
 .honey-drip::after {
   content: '';
   position: absolute;
-  bottom: -3px;
+  bottom: -4px;
   left: 50%;
   transform: translateX(-50%);
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
   background: radial-gradient(
     circle,
-    hsl(25, 85%, 45%) 0%,
-    hsl(20, 80%, 40%) 100%
+    #DAA520 0%,
+    #B8860B 70%,
+    #8B6914 100%
   );
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  border-radius: 50% 50% 70% 70%;
+  box-shadow: 
+    0 4px 8px rgba(139, 105, 20, 0.5),
+    inset 1px 2px 3px rgba(255, 255, 255, 0.3);
 }
 
-/* Different drip positions and sizes */
+/* Natural drip variations */
 .honey-drip-1 {
-  left: 10%;
-  width: 12px;
-  height: 25px;
-  animation-delay: 0.5s;
+  left: 8%;
+  width: 16px;
+  height: 35px;
+  animation-delay: 0.3s;
+  border-radius: 45% 55% 70% 85%;
 }
 
 .honey-drip-2 {
-  right: 15%;
-  width: 8px;
-  height: 18px;
-  animation-delay: 1s;
+  right: 12%;
+  width: 12px;
+  height: 28px;
+  animation-delay: 0.8s;
+  border-radius: 55% 45% 80% 75%;
 }
 
 .honey-drip-3 {
-  left: 50%;
+  left: 45%;
   transform: translateX(-50%);
-  width: 10px;
-  height: 30px;
-  animation-delay: 1.5s;
+  width: 18px;
+  height: 42px;
+  animation-delay: 1.2s;
+  border-radius: 40% 60% 75% 90%;
 }
 
 .honey-drip-4 {
-  left: 25%;
-  width: 6px;
-  height: 20px;
-  animation-delay: 2s;
+  left: 22%;
+  width: 10px;
+  height: 25px;
+  animation-delay: 1.6s;
+  border-radius: 50% 50% 85% 70%;
 }
 
 .honey-drip-5 {
-  right: 35%;
-  width: 14px;
-  height: 22px;
-  animation-delay: 0.8s;
+  right: 28%;
+  width: 20px;
+  height: 38px;
+  animation-delay: 0.5s;
+  border-radius: 42% 58% 78% 88%;
 }
 
-/* Hover shimmer effect */
-.honey-container:hover .honey-drip {
+.honey-drip-6 {
+  left: 65%;
+  width: 14px;
+  height: 32px;
+  animation-delay: 1.8s;
+  border-radius: 48% 52% 82% 76%;
+}
+
+/* Honey overlapping effect between posts */
+.honey-overflow {
+  position: absolute;
+  bottom: -15px;
+  left: 0;
+  right: 0;
+  height: 20px;
   background: linear-gradient(
     180deg,
-    hsl(45, 100%, 70%) 0%,
-    hsl(35, 90%, 60%) 30%,
-    hsl(25, 85%, 50%) 70%,
-    hsl(20, 80%, 45%) 100%
+    transparent 0%,
+    rgba(255, 165, 0, 0.6) 40%,
+    rgba(218, 165, 32, 0.8) 100%
   );
-  background-size: 200% 200%;
-  animation: honey-drip 2s ease-out forwards, honey-shimmer 2s ease-in-out infinite;
+  clip-path: polygon(
+    0% 0%,
+    15% 60%,
+    35% 40%,
+    55% 80%,
+    75% 50%,
+    95% 90%,
+    100% 70%,
+    100% 100%,
+    0% 100%
+  );
+  z-index: 12;
+  pointer-events: none;
+}
+
+/* Enhanced hover effects */
+.honey-container:hover .honey-flow-border {
+  background: linear-gradient(
+    180deg,
+    #FFD700 0%,
+    #FFA500 20%,
+    #FF8C00 40%,
+    #DAA520 60%,
+    #B8860B 80%,
+    #8B6914 100%
+  );
+  animation: honey-flow 3s ease-out forwards, honey-shimmer 2s ease-in-out infinite;
+  filter: brightness(1.1) saturate(1.2);
+}
+
+.honey-container:hover .honey-drip {
+  filter: brightness(1.15) saturate(1.1);
+  animation-duration: 2s;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .honey-flow-border {
+    height: 25px;
+  }
+  
+  .honey-drip {
+    transform: scale(0.8);
+  }
+  
+  .honey-overflow {
+    height: 12px;
+    bottom: -8px;
+  }
 }
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
