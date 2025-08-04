@@ -278,14 +278,6 @@ const ExplorePage = () => {
 
   return (
     <div className="max-w-md mx-auto">
-      {/* Search Bar */}
-      <div className="px-4 py-3 border-b border-gray-800">
-        <input
-          type="text"
-          placeholder="Search projects, industries..."
-          className="w-full bg-gray-900 text-white placeholder-gray-400 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-yellow-400"
-        />
-      </div>
 
       {/* Filters */}
       <div className="px-4 py-3 border-b border-gray-800">
