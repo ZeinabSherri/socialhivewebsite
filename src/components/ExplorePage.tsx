@@ -289,20 +289,22 @@ const ExplorePage = () => {
 
       {/* Filters */}
       <div className="px-4 py-3 border-b border-gray-800">
-        <div className="flex space-x-2 overflow-x-auto">
-          {filters.map(filter => (
-            <button
-              key={filter}
-              onClick={() => setActiveFilter(filter)}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                activeFilter === filter
-                  ? 'bg-yellow-400 text-black'
-                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-              }`}
-            >
-              {filter}
-            </button>
-          ))}
+        <div className="w-48 max-h-80 overflow-y-auto">
+          <div className="flex flex-col space-y-3">
+            {filters.map(filter => (
+              <button
+                key={filter}
+                onClick={() => setActiveFilter(filter)}
+                className={`px-4 py-3 rounded-full text-sm font-medium text-left transition-all duration-200 ${
+                  activeFilter === filter
+                    ? 'bg-yellow-400 text-black shadow-lg transform scale-105'
+                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:transform hover:scale-102'
+                }`}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
