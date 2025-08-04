@@ -4,7 +4,7 @@ import { X, Play, Volume2, VolumeX } from 'lucide-react';
 
 const ExplorePage = () => {
   const [selectedProject, setSelectedProject] = useState<any>(null);
-  const [activeFilter, setActiveFilter] = useState('All');
+  const [activeFilter, setActiveFilter] = useState('Best results');
   const [mutedVideos, setMutedVideos] = useState<Set<number>>(new Set());
   const videoRefs = useRef<{ [key: number]: HTMLVideoElement | null }>({});
 
@@ -105,10 +105,10 @@ const ExplorePage = () => {
     }
   ];
 
-  const filters = ['All', 'Restaurants', 'Beauty', 'Clinics', 'E-Commerce', 'Real Estate', 'Education', 'Fashion', 'Technology', 'Fitness'];
+  const filters = ['Best results', 'Restaurants', 'Beauty', 'Clinics', 'E-Commerce', 'Real Estate', 'Education', 'Fashion', 'Technology', 'Fitness'];
 
-  const filteredProjects = activeFilter === 'All' 
-    ? projects 
+  const filteredProjects = activeFilter === 'Best results' 
+    ? projects.filter(project => project.type === 'Reel')
     : projects.filter(project => project.industry === activeFilter);
 
   const toggleMute = (videoId: number) => {
@@ -230,7 +230,7 @@ const ExplorePage = () => {
                   : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
               }`}
             >
-              {filter === 'All' ? 'Best results' : filter}
+              {filter}
             </button>
           ))}
         </div>
