@@ -74,20 +74,45 @@ const Stories = () => {
     },
     {
       id: 3,
+      username: 'Meet the Team',
+      avatar: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c',
+      stories: [
+        {
+          id: 6,
+          image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c',
+          content: '👋 Meet our amazing team! We are passionate professionals dedicated to your success.',
+          timestamp: '8h'
+        },
+        {
+          id: 7,
+          image: 'https://images.unsplash.com/photo-1531545514256-b1400bc00f31',
+          content: '🎯 Our diverse team brings unique perspectives and expertise to every project.',
+          timestamp: '7h'
+        },
+        {
+          id: 8,
+          image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4',
+          content: '💪 Together, we create innovative solutions that drive real results for our clients.',
+          timestamp: '6h'
+        }
+      ]
+    },
+    {
+      id: 4,
       username: 'Partners',
       avatar: 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7',
       stories: [
         {
-          id: 6,
+          id: 9,
           image: 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7',
           content: '🚀 Our latest projects showcase innovative digital marketing strategies across various industries.',
-          timestamp: '6h'
+          timestamp: '5h'
         },
         {
-          id: 7,
+          id: 10,
           image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f',
           content: '📈 Incredible growth results from our recent campaigns!',
-          timestamp: '5h'
+          timestamp: '4h'
         }
       ]
     }
