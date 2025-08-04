@@ -105,6 +105,47 @@ const ExplorePage = () => {
       description: 'Helped fitness studio double their membership through engaging reels.',
       results: '200% membership increase, 3M reel views',
       client: 'FitLife Studios'
+    },
+    // New posts for industries that only had reels
+    {
+      id: 10,
+      title: 'Beauty Salon Campaign',
+      industry: 'Beauty',
+      type: 'Post',
+      thumbnail: 'https://images.unsplash.com/photo-1560066984-138dadb4c035',
+      description: 'Increased bookings for beauty salon through stunning before/after posts.',
+      results: '400% booking increase, 150K impressions, 18% engagement rate',
+      client: 'Glamour Beauty Salon'
+    },
+    {
+      id: 11,
+      title: 'Luxury Property Sales',
+      industry: 'Real Estate',
+      type: 'Post',
+      thumbnail: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9',
+      description: 'Sold luxury properties through high-quality photography and targeted ads.',
+      results: '$5M in property sales, 200 qualified leads, 75% conversion rate',
+      client: 'Elite Real Estate'
+    },
+    {
+      id: 12,
+      title: 'Fashion Brand Growth',
+      industry: 'Fashion',
+      type: 'Post',
+      thumbnail: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8',
+      description: 'Built fashion brand awareness through styled photoshoots and influencer partnerships.',
+      results: '600% follower growth, $200K in sales, 22% engagement rate',
+      client: 'Urban Fashion Co.'
+    },
+    {
+      id: 13,
+      title: 'Fitness Center Marketing',
+      industry: 'Fitness',
+      type: 'Post',
+      thumbnail: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48',
+      description: 'Attracted new members through motivational content and success stories.',
+      results: '350% membership growth, 1.2M reach, 500 new sign-ups',
+      client: 'PowerFit Gym'
     }
   ];
 
@@ -112,7 +153,7 @@ const ExplorePage = () => {
 
   const filteredProjects = activeFilter === 'Best results' 
     ? projects.filter(project => project.type === 'Reel')
-    : projects.filter(project => project.industry === activeFilter && project.type === 'Post');
+    : projects.filter(project => project.industry === activeFilter);
 
   const reels = filteredProjects.filter(project => project.type === 'Reel');
   const posts = filteredProjects.filter(project => project.type === 'Post');
