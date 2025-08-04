@@ -99,7 +99,7 @@ const HomeFeed = ({ onNavigateToProfile }: { onNavigateToProfile?: () => void })
     // Post 5 with carousel images for Founders & Managers
     {
       id: 5,
-      username: 'Founders & Managers',
+      username: 'socialhive.agency',
       userAvatar: '/lovable-uploads/social-hive-logo.png',
       timestamp: '4h',
       images: [
@@ -119,7 +119,7 @@ const HomeFeed = ({ onNavigateToProfile }: { onNavigateToProfile?: () => void })
     // Post 6 with carousel images for Content Creators
     {
       id: 6,
-      username: 'Content Creators',
+      username: 'socialhive.agency',
       userAvatar: '/lovable-uploads/social-hive-logo.png',
       timestamp: '5h',
       images: [
@@ -139,7 +139,7 @@ const HomeFeed = ({ onNavigateToProfile }: { onNavigateToProfile?: () => void })
     // Post 7 with carousel images for Producers
     {
       id: 7,
-      username: 'Producers',
+      username: 'socialhive.agency',
       userAvatar: '/lovable-uploads/social-hive-logo.png',
       timestamp: '6h',
       images: [
@@ -158,7 +158,7 @@ const HomeFeed = ({ onNavigateToProfile }: { onNavigateToProfile?: () => void })
     // Post 8 with carousel images for Graphic Designers
     {
       id: 8,
-      username: 'Graphic Designers',
+      username: 'socialhive.agency',
       userAvatar: '/lovable-uploads/social-hive-logo.png',
       timestamp: '7h',
       images: [
