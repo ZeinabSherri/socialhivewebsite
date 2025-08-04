@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Grid, Play, Tag, Settings, ChevronDown } from 'lucide-react';
 import VerificationBadge from './VerificationBadge';
+import { useCounterAnimation } from '../hooks/useCounterAnimation';
 
 interface ProfilePageProps {
   onNavigateToContact?: () => void;
@@ -12,16 +13,37 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
   const [showProfileSelector, setShowProfileSelector] = useState(false);
 
   const profileOptions = [
-    { id: 'agency', name: 'Agency', followers: '125K', posts: 12 },
-    { id: 'restaurants', name: 'Restaurants', followers: '89K', posts: 9 },
-    { id: 'beauty', name: 'Beauty', followers: '67K', posts: 9 },
-    { id: 'clinics', name: 'Clinics', followers: '45K', posts: 9 },
-    { id: 'ecommerce', name: 'E-Commerce', followers: '78K', posts: 9 },
-    { id: 'realestate', name: 'Real Estate', followers: '34K', posts: 9 },
-    { id: 'education', name: 'Education', followers: '23K', posts: 9 }
+    { id: 'agency', name: 'Agency', followers: 125000, followersDisplay: '125K', posts: 12 },
+    { id: 'restaurants', name: 'Restaurants', followers: 89000, followersDisplay: '89K', posts: 9 },
+    { id: 'beauty', name: 'Beauty', followers: 67000, followersDisplay: '67K', posts: 9 },
+    { id: 'clinics', name: 'Clinics', followers: 45000, followersDisplay: '45K', posts: 9 },
+    { id: 'ecommerce', name: 'E-Commerce', followers: 78000, followersDisplay: '78K', posts: 9 },
+    { id: 'realestate', name: 'Real Estate', followers: 34000, followersDisplay: '34K', posts: 9 },
+    { id: 'education', name: 'Education', followers: 23000, followersDisplay: '23K', posts: 9 }
   ];
 
   const currentProfile = profileOptions.find(p => p.name === selectedProfile) || profileOptions[0];
+  
+  // Counter animations
+  const followersCount = useCounterAnimation({ 
+    targetValue: currentProfile.followers, 
+    duration: 2000,
+    startDelay: 300 
+  });
+  
+  const followingCount = useCounterAnimation({ 
+    targetValue: 1247, 
+    duration: 2000,
+    startDelay: 600 
+  });
+
+  // Helper function to format large numbers
+  const formatNumber = (num: number): string => {
+    if (num >= 1000) {
+      return (num / 1000).toFixed(0) + 'K';
+    }
+    return num.toString();
+  };
 
   const posts = Array.from({ length: 12 }, (_, i) => ({
     id: i + 1,
@@ -87,7 +109,7 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
                       <div className="font-medium">socialhive.{profile.name.toLowerCase()}</div>
                       <VerificationBadge username={`socialhive.${profile.name.toLowerCase()}`} />
                     </div>
-                    <div className="text-sm text-gray-400">{profile.followers} followers</div>
+                    <div className="text-sm text-gray-400">{profile.followersDisplay} followers</div>
                   </button>
                 ))}
               </div>
@@ -114,11 +136,11 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
                 <div className="text-gray-400 text-sm">posts</div>
               </div>
               <div className="text-center">
-                <div className="font-semibold">{currentProfile.followers}</div>
+                <div className="font-semibold">{formatNumber(followersCount)}</div>
                 <div className="text-gray-400 text-sm">followers</div>
               </div>
               <div className="text-center">
-                <div className="font-semibold">1,247</div>
+                <div className="font-semibold">{followingCount.toLocaleString()}</div>
                 <div className="text-gray-400 text-sm">following</div>
               </div>
             </div>
