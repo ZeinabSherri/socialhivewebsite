@@ -195,9 +195,6 @@ const ProfilePage = ({
                   </button>)}
               </div>}
           </div>
-          <button className="text-gray-400 hover:text-white">
-            <Settings size={24} className="bg-lime-700 hover:bg-lime-600" />
-          </button>
         </div>
 
         <div className="flex items-start space-x-4 mb-4">
