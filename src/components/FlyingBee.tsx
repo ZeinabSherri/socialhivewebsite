@@ -157,16 +157,17 @@ export default function FlyingBee() {
   // Rotation for more natural flying motion
   const rotate = useTransform(scrollYProgress, [0, 0.5, 1], [0, 10, -5]);
 
-  // Landing animation
-  const landingY = useMotionValue(0);
-  const springY = useSpring(landingY, { stiffness: 300, damping: 30 });
+  // Landing animation - combine y and landing offset
+  const landingOffset = useMotionValue(0);
+  const combinedY = useTransform([y, landingOffset], ([yVal, landingVal]: [number, number]) => yVal + landingVal);
+  const springY = useSpring(combinedY, { stiffness: 300, damping: 30 });
 
   // Track scroll activity
   useEffect(() => {
     const handleScroll = () => {
       setLastScrollTime(Date.now());
       setIsLanding(false);
-      landingY.set(0);
+      landingOffset.set(0);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -175,7 +176,7 @@ export default function FlyingBee() {
     const interval = setInterval(() => {
       if (Date.now() - lastScrollTime > 2000 && !isLanding) {
         setIsLanding(true);
-        landingY.set(20); // Gentle landing motion
+        landingOffset.set(20); // Gentle landing motion
       }
     }, 100);
 
@@ -183,7 +184,7 @@ export default function FlyingBee() {
       window.removeEventListener('scroll', handleScroll);
       clearInterval(interval);
     };
-  }, [lastScrollTime, isLanding, landingY]);
+  }, [lastScrollTime, isLanding, landingOffset]);
 
   if (prefersReducedMotion) {
     return (
@@ -191,7 +192,7 @@ export default function FlyingBee() {
         <Player
           autoplay
           loop
-          src="/Bee Flying.json"
+          src={beeAnimation}
           style={{ height: '60px', width: '60px' }}
           className="opacity-70"
         />
@@ -203,8 +204,8 @@ export default function FlyingBee() {
     <motion.div
       className="hidden lg:block fixed top-20 right-10 z-40 pointer-events-none"
       style={{ 
-        x: isLanding ? x : x, 
-        y: isLanding ? useTransform(() => y.get() + springY.get()) : y, 
+        x, 
+        y: springY, 
         rotate 
       }}
       initial={{ opacity: 0, scale: 0.8 }}
