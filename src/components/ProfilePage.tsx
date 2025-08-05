@@ -262,7 +262,7 @@ const ProfilePage = ({
       </div>
 
       <div className="grid grid-cols-3 gap-1">
-        {posts.map((post, index) => <div key={post.id} className="aspect-square bg-gray-900 relative cursor-pointer group" onClick={() => handlePostClick(index)} onMouseEnter={() => setHoveredPostId(post.id)} onMouseLeave={() => setHoveredPostId(null)}>
+        {posts.filter(post => activeTab === 'posts' ? post.type === 'post' : post.type === 'reel').map((post, index) => <div key={post.id} className="aspect-square bg-gray-900 relative cursor-pointer group" onClick={() => handlePostClick(index)} onMouseEnter={() => setHoveredPostId(post.id)} onMouseLeave={() => setHoveredPostId(null)}>
             <img src={post.image} alt={`Post ${post.id}`} className="w-full h-full object-cover transition-opacity duration-200 group-hover:opacity-80" />
             {post.type === 'reel' && <div className="absolute top-2 right-2">
                 <Play size={16} className="text-white" />
