@@ -4,9 +4,10 @@ interface LeftSidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   onAddClick: () => void;
+  showAddPage: boolean;
 }
 
-const LeftSidebar = ({ activeTab, onTabChange, onAddClick }: LeftSidebarProps) => {
+const LeftSidebar = ({ activeTab, onTabChange, onAddClick, showAddPage }: LeftSidebarProps) => {
   const menuItems = [
     { id: 'home', label: 'Home', icon: Home },
     { id: 'explore', label: 'Explore', icon: Compass },
@@ -36,7 +37,7 @@ const LeftSidebar = ({ activeTab, onTabChange, onAddClick }: LeftSidebarProps) =
       <nav className="space-y-2">
         {menuItems.map((item, index) => {
           const Icon = item.icon;
-          const isActive = item.id === 'create' ? false : activeTab === item.id;
+          const isActive = item.id === 'create' ? showAddPage : activeTab === item.id;
           
           return (
             <button

@@ -53,13 +53,14 @@ const Index = () => {
       {/* Desktop Layout (≥1024px) */}
       <div className="hidden lg:flex">
         {/* Left Sidebar */}
-        <LeftSidebar 
+        <LeftSidebar
           activeTab={activeTab}
           onTabChange={(tab) => {
             setActiveTab(tab);
             setShowAddPage(false);
           }}
           onAddClick={handleAddClick}
+          showAddPage={showAddPage}
         />
 
         {/* Main Content Area */}
