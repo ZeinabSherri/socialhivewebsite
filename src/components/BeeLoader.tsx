@@ -1,7 +1,11 @@
-import { Player } from '@lottiefiles/react-lottie-player';
-import { motion, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
-import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useState, useEffect } from 'react';
+import { Player } from '@lottiefiles/react-lottie-player';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useReducedMotion } from '../hooks/useReducedMotion';
+
+interface BeeLoaderProps {
+  onComplete: () => void;
+}
 
 const beeAnimation = {
   "v": "5.7.4",
@@ -144,110 +148,88 @@ const beeAnimation = {
   "markers": []
 };
 
-export default function FlyingBee() {
+export default function BeeLoader({ onComplete }: BeeLoaderProps) {
+  const [isVisible, setIsVisible] = useState(true);
   const prefersReducedMotion = useReducedMotion();
-  const { scrollYProgress } = useScroll();
-  const [isLanding, setIsLanding] = useState(false);
-  const [lastScrollTime, setLastScrollTime] = useState(Date.now());
 
-  // Create zigzag motion based on scroll
-  const x = useTransform(scrollYProgress, [0, 1], [0, 300]);
-  const y = useTransform(scrollYProgress, [0, 0.2, 0.4, 0.6, 0.8, 1], [0, -50, 20, -30, 40, -10]);
-  
-  // Rotation for more natural flying motion
-  const rotate = useTransform(scrollYProgress, [0, 0.5, 1], [0, 10, -5]);
-
-  // Landing animation
-  const landingY = useMotionValue(0);
-  const springY = useSpring(landingY, { stiffness: 300, damping: 30 });
-
-  // Track scroll activity
   useEffect(() => {
-    const handleScroll = () => {
-      setLastScrollTime(Date.now());
-      setIsLanding(false);
-      landingY.set(0);
-    };
+    const timer = setTimeout(() => {
+      setIsVisible(false);
+      setTimeout(onComplete, 500); // Allow fade out to complete
+    }, prefersReducedMotion ? 1000 : 3000);
 
-    window.addEventListener('scroll', handleScroll);
-    
-    // Check for scroll inactivity
-    const interval = setInterval(() => {
-      if (Date.now() - lastScrollTime > 2000 && !isLanding) {
-        setIsLanding(true);
-        landingY.set(20); // Gentle landing motion
-      }
-    }, 100);
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      clearInterval(interval);
-    };
-  }, [lastScrollTime, isLanding, landingY]);
+    return () => clearTimeout(timer);
+  }, [onComplete, prefersReducedMotion]);
 
   if (prefersReducedMotion) {
     return (
-      <div className="hidden lg:block fixed top-20 right-10 z-40 pointer-events-none">
-        <Player
-          autoplay
-          loop
-          src="/Bee Flying.json"
-          style={{ height: '60px', width: '60px' }}
-          className="opacity-70"
-        />
-      </div>
+      <AnimatePresence>
+        {isVisible && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Player
+              autoplay
+              loop
+              src={beeAnimation}
+              style={{ height: '100px', width: '100px' }}
+              className="opacity-80"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     );
   }
 
   return (
-    <motion.div
-      className="hidden lg:block fixed top-20 right-10 z-40 pointer-events-none"
-      style={{ 
-        x: isLanding ? x : x, 
-        y: isLanding ? useTransform(() => y.get() + springY.get()) : y, 
-        rotate 
-      }}
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 0.8, scale: 1 }}
-      transition={{ 
-        duration: 1.5, 
-        ease: "easeOut",
-        delay: 2
-      }}
-    >
-      <motion.div
-        animate={{ 
-          scale: isLanding ? [1, 1.05, 1] : [1, 1.1, 1],
-          rotate: isLanding ? [0, 2, 0] : [0, 5, -5, 0]
-        }}
-        transition={{ 
-          duration: isLanding ? 1 : 3, 
-          repeat: Infinity, 
-          ease: "easeInOut" 
-        }}
-      >
-        <Player
-          autoplay
-          loop
-          src={beeAnimation}
-          style={{ height: '60px', width: '60px' }}
-          className="drop-shadow-lg"
-        />
-      </motion.div>
-      
-      {/* Trail effect */}
-      <motion.div
-        className="absolute inset-0 bg-gradient-radial from-yellow-300/20 to-transparent rounded-full blur-sm"
-        animate={{ 
-          scale: [0.8, 1.2, 0.8],
-          opacity: isLanding ? [0.1, 0.05, 0.1] : [0.3, 0.1, 0.3]
-        }}
-        transition={{ 
-          duration: 2, 
-          repeat: Infinity, 
-          ease: "easeInOut" 
-        }}
-      />
-    </motion.div>
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm"
+          initial={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <motion.div
+            initial={{ scale: 1, x: 0, y: 0 }}
+            animate={{
+              scale: [1, 1.2, 0.3],
+              x: [0, 50, 200],
+              y: [0, -30, -100],
+              rotate: [0, 10, 45]
+            }}
+            transition={{
+              duration: 2.5,
+              ease: [0.4, 0, 0.2, 1],
+              times: [0, 0.4, 1]
+            }}
+            style={{ perspective: '1000px' }}
+          >
+            <motion.div
+              animate={{
+                rotateY: [0, 15, 45],
+                rotateX: [0, -10, -20]
+              }}
+              transition={{
+                duration: 2.5,
+                ease: "easeInOut",
+                times: [0, 0.4, 1]
+              }}
+            >
+              <Player
+                autoplay
+                loop
+                src={beeAnimation}
+                style={{ height: '120px', width: '120px' }}
+                className="drop-shadow-lg"
+              />
+            </motion.div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

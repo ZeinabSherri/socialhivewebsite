@@ -4,7 +4,7 @@ import 'react-multi-carousel/lib/styles.css';
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Volume2, VolumeX } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import VerificationBadge from './VerificationBadge';
-import HoneyDripOverlay from './HoneyDripOverlay';
+import HoneyDrip from './HoneyDrip';
 
 interface Comment {
   id: number;
@@ -132,7 +132,7 @@ const PostCard = ({
                {item.type === 'image' ? (
                  <>
                    <img src={item.url} alt={`media-${idx}`} className="w-full h-full object-cover rounded-lg" loading="lazy" />
-                   <HoneyDripOverlay />
+          <HoneyDrip />
                  </>
                ) : (
                 <div className="relative w-full h-full">
@@ -187,14 +187,14 @@ const PostCard = ({
            {post.images.map((imgUrl, idx) => (
              <div key={idx} className="aspect-[4/5] bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
                <img src={imgUrl} alt={`Post image ${idx + 1}`} className="w-full h-full object-cover rounded-lg" loading="lazy" />
-               <HoneyDripOverlay />
+              <HoneyDrip />
              </div>
           ))}
         </Carousel>
        ) : post.image ? (
          <div className="aspect-[4/5] bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
            <img src={post.image} alt="Post content" className="w-full h-full object-cover rounded-lg" loading="lazy" />
-           <HoneyDripOverlay />
+           <HoneyDrip />
          </div>
       ) : null}
 
