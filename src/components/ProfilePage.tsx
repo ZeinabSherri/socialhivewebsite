@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Grid, Play, Tag, Settings, ChevronDown, X } from 'lucide-react';
 import VerificationBadge from './VerificationBadge';
 import PostCard from './PostCard';
+import PostHoverStats from './PostHoverStats';
 import { useCounterAnimation } from '../hooks/useCounterAnimation';
 
 interface ProfilePageProps {
@@ -14,6 +15,7 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
   const [showProfileSelector, setShowProfileSelector] = useState(false);
   const [showPostsFeed, setShowPostsFeed] = useState(false);
   const [selectedPostIndex, setSelectedPostIndex] = useState(0);
+  const [hoveredPostId, setHoveredPostId] = useState<number | null>(null);
 
   const profileOptions = [
     { id: 'agency', name: 'Agency', followers: 125000, followersDisplay: '125K', posts: 12 },
@@ -27,7 +29,13 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
 
   const currentProfile = profileOptions.find(p => p.name === selectedProfile) || profileOptions[0];
   
-  // Counter animations
+  // Counter animations for main stats
+  const postsCount = useCounterAnimation({ 
+    targetValue: currentProfile.posts, 
+    duration: 1500,
+    startDelay: 100 
+  });
+  
   const followersCount = useCounterAnimation({ 
     targetValue: currentProfile.followers, 
     duration: 2000,
@@ -243,7 +251,7 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
           <div className="flex-1">
             <div className="flex space-x-8 mb-3">
               <div className="text-center">
-                <div className="font-semibold">{currentProfile.posts}</div>
+                <div className="font-semibold">{postsCount}</div>
                 <div className="text-gray-400 text-sm">posts</div>
               </div>
               <div className="text-center">
@@ -325,13 +333,14 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
         </div>
       </div>
 
-      {/* Posts Grid */}
       <div className="grid grid-cols-3 gap-1">
         {posts.map((post, index) => (
           <div 
             key={post.id} 
             className="aspect-square bg-gray-900 relative cursor-pointer group"
             onClick={() => handlePostClick(index)}
+            onMouseEnter={() => setHoveredPostId(post.id)}
+            onMouseLeave={() => setHoveredPostId(null)}
           >
             <img
               src={post.image}
@@ -345,10 +354,11 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
             )}
             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
               <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white text-center">
-                <div className="flex items-center justify-center space-x-4 text-sm font-semibold">
-                  <span>❤️ {post.likes}</span>
-                  <span>💬 {post.comments}</span>
-                </div>
+                <PostHoverStats 
+                  likes={post.likes}
+                  comments={post.comments}
+                  isVisible={hoveredPostId === post.id}
+                />
               </div>
             </div>
           </div>
