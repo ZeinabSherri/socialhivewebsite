@@ -2,6 +2,7 @@ import { useState } from 'react';
 import PostCard from './PostCard';
 import Stories from './Stories';
 import VerificationBadge from './VerificationBadge';
+import FlyingBee from './FlyingBee';
 
 interface Comment {
   id: number;
@@ -190,7 +191,10 @@ const HomeFeed = ({ onNavigateToProfile }: { onNavigateToProfile?: () => void })
   };
 
   return (
-    <div className="max-w-md mx-auto">
+    <div className="max-w-md mx-auto relative">
+      {/* Flying Bee Animation */}
+      <FlyingBee />
+      
       {/* Stories Section */}
       <Stories />
 

@@ -4,6 +4,7 @@ import 'react-multi-carousel/lib/styles.css';
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Volume2, VolumeX } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import VerificationBadge from './VerificationBadge';
+import HoneyDripOverlay from './HoneyDripOverlay';
 
 interface Comment {
   id: number;
@@ -128,9 +129,12 @@ const PostCard = ({
         <Carousel responsive={responsive} infinite arrows swipeable draggable containerClass="carousel-container" itemClass="carousel-item" renderDotsOutside={true}>
           {post.media.map((item, idx) => (
             <div key={idx} className="aspect-[4/5] bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
-              {item.type === 'image' ? (
-                <img src={item.url} alt={`media-${idx}`} className="w-full h-full object-cover rounded-lg" loading="lazy" />
-              ) : (
+               {item.type === 'image' ? (
+                 <>
+                   <img src={item.url} alt={`media-${idx}`} className="w-full h-full object-cover rounded-lg" loading="lazy" />
+                   <HoneyDripOverlay />
+                 </>
+               ) : (
                 <div className="relative w-full h-full">
                   <video
                     autoPlay
@@ -180,16 +184,18 @@ const PostCard = ({
         </Carousel>
       ) : post.images && post.images.length > 0 ? (
         <Carousel responsive={responsive} infinite arrows swipeable draggable containerClass="carousel-container" itemClass="carousel-item" renderDotsOutside={true}>
-          {post.images.map((imgUrl, idx) => (
-            <div key={idx} className="aspect-[4/5] bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
-              <img src={imgUrl} alt={`Post image ${idx + 1}`} className="w-full h-full object-cover rounded-lg" loading="lazy" />
-            </div>
+           {post.images.map((imgUrl, idx) => (
+             <div key={idx} className="aspect-[4/5] bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
+               <img src={imgUrl} alt={`Post image ${idx + 1}`} className="w-full h-full object-cover rounded-lg" loading="lazy" />
+               <HoneyDripOverlay />
+             </div>
           ))}
         </Carousel>
-      ) : post.image ? (
-        <div className="aspect-[4/5] bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
-          <img src={post.image} alt="Post content" className="w-full h-full object-cover rounded-lg" loading="lazy" />
-        </div>
+       ) : post.image ? (
+         <div className="aspect-[4/5] bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
+           <img src={post.image} alt="Post content" className="w-full h-full object-cover rounded-lg" loading="lazy" />
+           <HoneyDripOverlay />
+         </div>
       ) : null}
 
       {showLoveIcon && (
