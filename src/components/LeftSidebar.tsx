@@ -37,7 +37,7 @@ const LeftSidebar = ({ activeTab, onTabChange, onAddClick, showAddPage }: LeftSi
       <nav className="space-y-2">
         {menuItems.map((item, index) => {
           const Icon = item.icon;
-          const isActive = item.id === 'create' ? showAddPage : activeTab === item.id;
+          const isActive = item.id === 'create' ? showAddPage : (activeTab === item.id && !showAddPage);
           
           return (
             <button
