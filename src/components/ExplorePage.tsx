@@ -281,22 +281,63 @@ const ExplorePage = () => {
 
       {/* Filters */}
       <div className="px-4 py-3 border-b border-gray-800">
-        {/* Mobile/Tablet: Vertical layout */}
+        {/* Mobile/Tablet: Grid layout */}
         <div className="block md:hidden">
-          <div className="flex flex-col space-y-3">
-            {filters.map(filter => (
-              <button
-                key={filter}
-                onClick={() => setActiveFilter(filter)}
-                className={`px-4 py-3 rounded-full text-sm font-medium text-left transition-all duration-200 ${
-                  activeFilter === filter
-                    ? 'bg-yellow-400 text-black shadow-lg transform scale-105'
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:transform hover:scale-102'
-                }`}
-              >
-                {filter}
-              </button>
-            ))}
+          <div className="space-y-3">
+            {/* First row: 3 categories */}
+            <div className="grid grid-cols-3 gap-3">
+              {filters.slice(0, 3).map(filter => (
+                <button
+                  key={filter}
+                  onClick={() => setActiveFilter(filter)}
+                  className={`px-3 py-2 rounded-full text-xs font-medium transition-all duration-200 ${
+                    activeFilter === filter
+                      ? 'bg-yellow-400 text-black shadow-lg transform scale-105'
+                      : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:transform hover:scale-102'
+                  }`}
+                >
+                  {filter}
+                </button>
+              ))}
+            </div>
+            
+            {/* Second row: 4 categories */}
+            {filters.slice(3, 7).length > 0 && (
+              <div className="grid grid-cols-4 gap-2">
+                {filters.slice(3, 7).map(filter => (
+                  <button
+                    key={filter}
+                    onClick={() => setActiveFilter(filter)}
+                    className={`px-2 py-2 rounded-full text-xs font-medium transition-all duration-200 ${
+                      activeFilter === filter
+                        ? 'bg-yellow-400 text-black shadow-lg transform scale-105'
+                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:transform hover:scale-102'
+                    }`}
+                  >
+                    {filter}
+                  </button>
+                ))}
+              </div>
+            )}
+            
+            {/* Third row: remaining categories (3 columns) */}
+            {filters.slice(7).length > 0 && (
+              <div className="grid grid-cols-3 gap-3">
+                {filters.slice(7).map(filter => (
+                  <button
+                    key={filter}
+                    onClick={() => setActiveFilter(filter)}
+                    className={`px-3 py-2 rounded-full text-xs font-medium transition-all duration-200 ${
+                      activeFilter === filter
+                        ? 'bg-yellow-400 text-black shadow-lg transform scale-105'
+                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:transform hover:scale-102'
+                    }`}
+                  >
+                    {filter}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
