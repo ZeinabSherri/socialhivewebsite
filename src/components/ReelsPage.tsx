@@ -6,8 +6,6 @@ const ReelsPage = () => {
   const [isMuted, setIsMuted] = useState(true);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
-  const touchStartY = useRef<number>(0);
-  const touchEndY = useRef<number>(0);
 
   const reels = [
     {
@@ -45,42 +43,6 @@ const ReelsPage = () => {
     }
   ];
 
-  const handleSwipe = (direction: 'up' | 'down') => {
-    if (direction === 'up' && currentReel < reels.length - 1) {
-      setCurrentReel(currentReel + 1);
-    } else if (direction === 'down' && currentReel > 0) {
-      setCurrentReel(currentReel - 1);
-    }
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartY.current = e.targetTouches[0].clientY;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndY.current = e.targetTouches[0].clientY;
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStartY.current || !touchEndY.current) return;
-    
-    const distance = touchStartY.current - touchEndY.current;
-    const isSignificantSwipe = Math.abs(distance) > 50;
-
-    if (isSignificantSwipe) {
-      if (distance > 0) {
-        // Swiped up - next reel
-        handleSwipe('up');
-      } else {
-        // Swiped down - previous reel
-        handleSwipe('down');
-      }
-    }
-
-    touchStartY.current = 0;
-    touchEndY.current = 0;
-  };
-
   const toggleMute = () => {
     setIsMuted(!isMuted);
     const currentVideo = videoRefs.current[currentReel];
@@ -108,136 +70,187 @@ const ReelsPage = () => {
     });
   }, [currentReel, isMuted]);
 
+  // Handle scroll snap detection
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const scrollTop = container.scrollTop;
+      const itemHeight = container.clientHeight;
+      const newIndex = Math.round(scrollTop / itemHeight);
+      
+      if (newIndex !== currentReel && newIndex >= 0 && newIndex < reels.length) {
+        setCurrentReel(newIndex);
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [currentReel, reels.length]);
+
+  // Keyboard navigation
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowUp') handleSwipe('down');
-      if (e.key === 'ArrowDown') handleSwipe('up');
+      const container = containerRef.current;
+      if (!container) return;
+
+      if (e.key === 'ArrowUp' && currentReel > 0) {
+        container.scrollTo({
+          top: (currentReel - 1) * container.clientHeight,
+          behavior: 'smooth'
+        });
+      } else if (e.key === 'ArrowDown' && currentReel < reels.length - 1) {
+        container.scrollTo({
+          top: (currentReel + 1) * container.clientHeight,
+          behavior: 'smooth'
+        });
+      }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [currentReel]);
+  }, [currentReel, reels.length]);
 
   return (
-    <div 
-      className="h-screen overflow-hidden relative bg-black"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      ref={containerRef}
-    >
+    <div className="h-screen bg-black">
+      {/* Desktop: Centered with margins, Mobile: Full width */}
       <div 
-        className="h-full transition-transform duration-300 ease-out"
-        style={{ transform: `translateY(-${currentReel * 100}vh)` }}
+        ref={containerRef}
+        className="h-full overflow-y-auto scroll-smooth scrollbar-hidden"
+        style={{
+          scrollSnapType: 'y mandatory',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+        }}
       >
+        
         {reels.map((reel, index) => (
-          <div key={reel.id} className="h-screen w-full relative bg-black">
-            {/* Video Background */}
-            <div className="absolute inset-0">
-              <video
-                ref={(el) => (videoRefs.current[index] = el)}
-                className="w-full h-full object-cover"
-                loop
-                muted={isMuted}
-                playsInline
-                preload="metadata"
-                poster={`data:image/svg+xml;base64,${btoa(`
-                  <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="100%" height="100%" fill="#000"/>
-                    <circle cx="50" cy="50" r="20" fill="#FCD34D"/>
-                    <text x="50" y="58" text-anchor="middle" fill="#000" font-size="16">SH</text>
-                  </svg>
-                `)}`}
-                onLoadedData={() => {
-                  const video = videoRefs.current[index];
-                  if (video && index === currentReel) {
-                    video.play().catch(console.error);
-                  }
-                }}
-              >
-                <source src={reel.videoUrl} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-              
-              {/* Fallback content when video doesn't load */}
-              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-yellow-400/20 to-black">
-                <div className="text-center">
-                  <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center mb-4 mx-auto">
-                    <span className="text-black text-3xl">🐝</span>
+          <div 
+            key={reel.id} 
+            className="h-screen w-full relative flex items-center justify-center bg-black"
+            style={{ scrollSnapAlign: 'start' }}
+          >
+            {/* Desktop: Centered 4:5 container, Mobile: Full width */}
+            <div className="relative w-full max-w-sm mx-auto h-full md:h-[80vh] md:max-h-[600px] md:w-[480px] overflow-hidden">
+              {/* Instagram-style rounded container with shadow */}
+              <div className="relative w-full h-full md:rounded-2xl md:shadow-2xl md:shadow-black/50 overflow-hidden bg-black">
+                {/* Video Background */}
+                <video
+                  ref={(el) => (videoRefs.current[index] = el)}
+                  className="w-full h-full object-cover"
+                  loop
+                  muted={isMuted}
+                  playsInline
+                  preload="metadata"
+                  poster={`data:image/svg+xml;base64,${btoa(`
+                    <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+                      <rect width="100%" height="100%" fill="#000"/>
+                      <circle cx="50" cy="50" r="20" fill="#FCD34D"/>
+                      <text x="50" y="58" text-anchor="middle" fill="#000" font-size="16">SH</text>
+                    </svg>
+                  `)}`}
+                  onLoadedData={() => {
+                    const video = videoRefs.current[index];
+                    if (video && index === currentReel) {
+                      video.play().catch(console.error);
+                    }
+                  }}
+                >
+                  <source src={reel.videoUrl} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+                
+                {/* Fallback content when video doesn't load */}
+                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-yellow-400/20 to-black">
+                  <div className="text-center">
+                    <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center mb-4 mx-auto">
+                      <span className="text-black text-3xl">🐝</span>
+                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-2">{reel.title}</h3>
+                    <p className="text-gray-300 max-w-xs px-4">{reel.description}</p>
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-2">{reel.title}</h3>
-                  <p className="text-gray-300 max-w-xs">{reel.description}</p>
+                </div>
+
+                {/* Gradient overlay for better text readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+
+                {/* Progress Indicators - Top */}
+                <div className="absolute top-3 left-3 right-3 flex space-x-1 z-20">
+                  {reels.map((_, i) => (
+                    <div
+                      key={i}
+                      className={`h-0.5 rounded-full transition-all duration-300 flex-1 ${
+                        i === currentReel ? 'bg-white' : 'bg-white/30'
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                {/* User Info - Bottom Left */}
+                <div className="absolute bottom-4 left-4 right-16 z-20">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <div className="w-10 h-10 rounded-full bg-yellow-400 flex items-center justify-center border-2 border-white shadow-lg">
+                      <span className="text-black text-sm font-bold">🐝</span>
+                    </div>
+                    <span className="text-white font-semibold text-sm">{reel.user}</span>
+                    <button className="border border-white text-white px-3 py-1 rounded-lg text-xs font-medium hover:bg-white hover:text-black transition-colors">
+                      Follow
+                    </button>
+                  </div>
+                  <p className="text-white text-sm leading-relaxed pr-2">{reel.description}</p>
+                </div>
+
+                {/* Action Buttons - Right Side */}
+                <div className="absolute bottom-4 right-3 z-20 flex flex-col space-y-4">
+                  <button
+                    onClick={() => toggleLike(index)}
+                    className="flex flex-col items-center space-y-1 group"
+                  >
+                    <div className={`p-2 rounded-full transition-transform group-active:scale-95 ${
+                      reel.isLiked ? 'text-red-500' : 'text-white'
+                    }`}>
+                      <Heart 
+                        size={28} 
+                        fill={reel.isLiked ? 'currentColor' : 'none'} 
+                        strokeWidth={reel.isLiked ? 0 : 2}
+                        className="drop-shadow-lg"
+                      />
+                    </div>
+                    <span className="text-white text-xs font-medium drop-shadow-lg">
+                      {reel.likes.toLocaleString()}
+                    </span>
+                  </button>
+
+                  <button className="flex flex-col items-center space-y-1 group">
+                    <div className="p-2 rounded-full text-white transition-transform group-active:scale-95">
+                      <MessageCircle size={28} strokeWidth={2} className="drop-shadow-lg" />
+                    </div>
+                    <span className="text-white text-xs font-medium drop-shadow-lg">{reel.comments}</span>
+                  </button>
+
+                  <button className="flex flex-col items-center space-y-1 group">
+                    <div className="p-2 rounded-full text-white transition-transform group-active:scale-95">
+                      <Send size={28} strokeWidth={2} className="drop-shadow-lg" />
+                    </div>
+                    <span className="text-white text-xs font-medium drop-shadow-lg">{reel.shares}</span>
+                  </button>
+
+                  <button className="flex flex-col items-center space-y-1 group">
+                    <div className="p-2 rounded-full text-white transition-transform group-active:scale-95">
+                      <Bookmark size={28} strokeWidth={2} className="drop-shadow-lg" />
+                    </div>
+                  </button>
+
+                  {/* Mute/Unmute Button - Bottom Right */}
+                  <button
+                    onClick={toggleMute}
+                    className="p-2 rounded-full bg-black/40 text-white backdrop-blur-sm transition-transform active:scale-95 border border-white/20"
+                  >
+                    {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                  </button>
                 </div>
               </div>
-            </div>
-
-            {/* Mute/Unmute Button */}
-            <div className="absolute top-4 right-4 z-10">
-              <button
-                onClick={toggleMute}
-                className="bg-black/50 p-3 rounded-full text-white backdrop-blur-sm"
-              >
-                {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-              </button>
-            </div>
-
-            {/* User Info */}
-            <div className="absolute bottom-24 left-4 right-20 z-10">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="w-12 h-12 rounded-full bg-yellow-400 flex items-center justify-center border-2 border-white">
-                  <span className="text-black text-lg">🐝</span>
-                </div>
-                <span className="text-white font-semibold text-lg">{reel.user}</span>
-                <button className="border border-white text-white px-4 py-1 rounded-md text-sm font-medium">
-                  Follow
-                </button>
-              </div>
-              <p className="text-white text-sm leading-relaxed">{reel.description}</p>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="absolute bottom-24 right-4 z-10 flex flex-col space-y-6">
-              <button
-                onClick={() => toggleLike(index)}
-                className="flex flex-col items-center space-y-2"
-              >
-                <div className={`p-3 rounded-full ${reel.isLiked ? 'text-red-500' : 'text-white'}`}>
-                  <Heart size={32} fill={reel.isLiked ? 'currentColor' : 'none'} strokeWidth={1.5} />
-                </div>
-                <span className="text-white text-xs font-medium">{reel.likes.toLocaleString()}</span>
-              </button>
-
-              <button className="flex flex-col items-center space-y-2">
-                <div className="p-3 rounded-full text-white">
-                  <MessageCircle size={32} strokeWidth={1.5} />
-                </div>
-                <span className="text-white text-xs font-medium">{reel.comments}</span>
-              </button>
-
-              <button className="flex flex-col items-center space-y-2">
-                <div className="p-3 rounded-full text-white">
-                  <Send size={32} strokeWidth={1.5} />
-                </div>
-                <span className="text-white text-xs font-medium">{reel.shares}</span>
-              </button>
-
-              <button className="flex flex-col items-center space-y-2">
-                <div className="p-3 rounded-full text-white">
-                  <Bookmark size={32} strokeWidth={1.5} />
-                </div>
-              </button>
-            </div>
-
-            {/* Progress Indicators */}
-            <div className="absolute top-4 left-4 flex space-x-1">
-              {reels.map((_, i) => (
-                <div
-                  key={i}
-                  className={`h-0.5 rounded-full transition-all duration-300 ${
-                    i === currentReel ? 'bg-white w-8' : 'bg-gray-500 w-2'
-                  }`}
-                />
-              ))}
             </div>
           </div>
         ))}
