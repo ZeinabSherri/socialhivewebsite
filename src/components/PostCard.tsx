@@ -125,7 +125,7 @@ const PostCard = ({
 
       {/* Media Carousel (images/videos) */}
       {post.media && post.media.length > 0 ? (
-        <Carousel responsive={responsive} infinite arrows swipeable draggable showDots containerClass="carousel-container" itemClass="carousel-item" renderDotsOutside={true}>
+        <Carousel responsive={responsive} infinite arrows swipeable draggable containerClass="carousel-container" itemClass="carousel-item" renderDotsOutside={true}>
           {post.media.map((item, idx) => (
             <div key={idx} className="aspect-[4/5] bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
               {item.type === 'image' ? (
@@ -179,7 +179,7 @@ const PostCard = ({
           ))}
         </Carousel>
       ) : post.images && post.images.length > 0 ? (
-        <Carousel responsive={responsive} infinite arrows swipeable draggable showDots containerClass="carousel-container" itemClass="carousel-item" renderDotsOutside={true}>
+        <Carousel responsive={responsive} infinite arrows swipeable draggable containerClass="carousel-container" itemClass="carousel-item" renderDotsOutside={true}>
           {post.images.map((imgUrl, idx) => (
             <div key={idx} className="aspect-[4/5] bg-gray-900 relative" onTouchEnd={handleDoubleTap} onClick={handleDoubleTap}>
               <img src={imgUrl} alt={`Post image ${idx + 1}`} className="w-full h-full object-cover rounded-lg" loading="lazy" />
