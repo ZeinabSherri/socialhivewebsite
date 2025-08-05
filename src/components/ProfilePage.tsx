@@ -196,7 +196,7 @@ const ProfilePage = ({
               </div>}
           </div>
           <button className="text-gray-400 hover:text-white">
-            <Settings size={24} />
+            <Settings size={24} className="bg-lime-700 hover:bg-lime-600" />
           </button>
         </div>
 
