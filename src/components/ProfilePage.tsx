@@ -277,7 +277,7 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
         <div className="flex space-x-2 mb-6">
           <button 
             onClick={() => setShowProfileSelector(!showProfileSelector)}
-            className="flex-1 bg-yellow-400 text-black font-semibold py-2 rounded-md transition-all duration-300 hover:scale-105 hover:bg-yellow-300 active:scale-95 animate-pulse hover:animate-none"
+            className="flex-1 bg-yellow-400 text-black font-semibold py-2 rounded-md transition-all duration-300 hover:scale-110 hover:bg-yellow-300 active:scale-95 animate-bounce hover:animate-pulse shadow-lg hover:shadow-yellow-400/50 hover:shadow-xl transform hover:-translate-y-1"
           >
             Switch Accounts
           </button>
