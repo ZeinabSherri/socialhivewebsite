@@ -258,9 +258,6 @@ const ProfilePage = ({
           <button onClick={() => setActiveTab('reels')} className={`flex-1 py-3 flex items-center justify-center ${activeTab === 'reels' ? 'border-t-2 border-yellow-400' : ''}`}>
             <Play size={20} />
           </button>
-          <button onClick={() => setActiveTab('tagged')} className={`flex-1 py-3 flex items-center justify-center ${activeTab === 'tagged' ? 'border-t-2 border-yellow-400' : ''}`}>
-            <Tag size={20} />
-          </button>
         </div>
       </div>
 
