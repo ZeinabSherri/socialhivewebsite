@@ -14,6 +14,9 @@ export const useCounterAnimation = ({
   const [currentValue, setCurrentValue] = useState(0);
 
   useEffect(() => {
+    // Reset to 0 when target value changes
+    setCurrentValue(0);
+    
     const timer = setTimeout(() => {
       let startTime: number;
       let animationId: number;

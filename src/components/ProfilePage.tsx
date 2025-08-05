@@ -29,7 +29,7 @@ const ProfilePage = ({ onNavigateToContact }: ProfilePageProps) => {
 
   const currentProfile = profileOptions.find(p => p.name === selectedProfile) || profileOptions[0];
   
-  // Counter animations for main stats
+  // Counter animations for main stats - reset when profile changes
   const postsCount = useCounterAnimation({ 
     targetValue: currentProfile.posts, 
     duration: 1500,
