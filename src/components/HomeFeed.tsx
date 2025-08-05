@@ -2,8 +2,6 @@ import { useState } from 'react';
 import PostCard from './PostCard';
 import Stories from './Stories';
 import VerificationBadge from './VerificationBadge';
-import FlyingBee from './FlyingBee';
-import BeeLoader from './BeeLoader';
 
 interface Comment {
   id: number;
@@ -32,7 +30,6 @@ interface Post {
 }
 
 const HomeFeed = ({ onNavigateToProfile }: { onNavigateToProfile?: () => void }) => {
-  const [showLoader, setShowLoader] = useState(true);
   const [posts, setPosts] = useState<Post[]>([
     {
       id: 1,
@@ -193,13 +190,7 @@ const HomeFeed = ({ onNavigateToProfile }: { onNavigateToProfile?: () => void })
   };
 
   return (
-    <div className="max-w-md mx-auto relative">
-      {/* Bee Loader */}
-      {showLoader && <BeeLoader onComplete={() => setShowLoader(false)} />}
-      
-      {/* Flying Bee Animation */}
-      {!showLoader && <FlyingBee />}
-      
+    <div className="max-w-md mx-auto">
       {/* Stories Section */}
       <Stories />
 
