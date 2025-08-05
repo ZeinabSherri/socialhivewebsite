@@ -145,25 +145,24 @@ const beeAnimation = {
 };
 
 export default function FlyingBee() {
+  // ALL HOOKS MUST BE CALLED FIRST - UNCONDITIONALLY
   const prefersReducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll();
   const [isLanding, setIsLanding] = useState(false);
   const [lastScrollTime, setLastScrollTime] = useState(Date.now());
 
-  // Create zigzag motion based on scroll
+  // Always call these hooks regardless of reduced motion
   const x = useTransform(scrollYProgress, [0, 1], [0, 300]);
   const y = useTransform(scrollYProgress, [0, 0.2, 0.4, 0.6, 0.8, 1], [0, -50, 20, -30, 40, -10]);
-  
-  // Rotation for more natural flying motion
   const rotate = useTransform(scrollYProgress, [0, 0.5, 1], [0, 10, -5]);
-
-  // Landing animation - combine y and landing offset
   const landingOffset = useMotionValue(0);
   const combinedY = useTransform([y, landingOffset], ([yVal, landingVal]: [number, number]) => yVal + landingVal);
   const springY = useSpring(combinedY, { stiffness: 300, damping: 30 });
 
-  // Track scroll activity
+  // Track scroll activity - only if not reduced motion
   useEffect(() => {
+    if (prefersReducedMotion) return;
+    
     const handleScroll = () => {
       setLastScrollTime(Date.now());
       setIsLanding(false);
@@ -172,11 +171,10 @@ export default function FlyingBee() {
 
     window.addEventListener('scroll', handleScroll);
     
-    // Check for scroll inactivity
     const interval = setInterval(() => {
       if (Date.now() - lastScrollTime > 2000 && !isLanding) {
         setIsLanding(true);
-        landingOffset.set(20); // Gentle landing motion
+        landingOffset.set(20);
       }
     }, 100);
 
@@ -184,8 +182,9 @@ export default function FlyingBee() {
       window.removeEventListener('scroll', handleScroll);
       clearInterval(interval);
     };
-  }, [lastScrollTime, isLanding, landingOffset]);
+  }, [lastScrollTime, isLanding, landingOffset, prefersReducedMotion]);
 
+  // Simple static version for reduced motion
   if (prefersReducedMotion) {
     return (
       <div className="hidden lg:block fixed top-20 right-10 z-40 pointer-events-none">
@@ -200,14 +199,11 @@ export default function FlyingBee() {
     );
   }
 
+  // Animated version
   return (
     <motion.div
       className="hidden lg:block fixed top-20 right-10 z-40 pointer-events-none"
-      style={{ 
-        x, 
-        y: springY, 
-        rotate 
-      }}
+      style={{ x, y: springY, rotate }}
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 0.8, scale: 1 }}
       transition={{ 
@@ -236,7 +232,6 @@ export default function FlyingBee() {
         />
       </motion.div>
       
-      {/* Trail effect */}
       <motion.div
         className="absolute inset-0 bg-gradient-radial from-yellow-300/20 to-transparent rounded-full blur-sm"
         animate={{ 
