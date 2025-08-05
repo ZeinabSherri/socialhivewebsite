@@ -9,11 +9,8 @@ interface LeftSidebarProps {
 const LeftSidebar = ({ activeTab, onTabChange, onAddClick }: LeftSidebarProps) => {
   const menuItems = [
     { id: 'home', label: 'Home', icon: Home },
-    { id: 'search', label: 'Search', icon: Search },
     { id: 'explore', label: 'Explore', icon: Compass },
     { id: 'reels', label: 'Reels', icon: Film },
-    { id: 'messages', label: 'Messages', icon: MessageCircle },
-    { id: 'notifications', label: 'Notifications', icon: Heart },
     { id: 'create', label: 'Create', icon: Plus },
     { id: 'profile', label: 'Profile', icon: User },
   ];
@@ -21,9 +18,6 @@ const LeftSidebar = ({ activeTab, onTabChange, onAddClick }: LeftSidebarProps) =
   const handleItemClick = (itemId: string) => {
     if (itemId === 'create') {
       onAddClick();
-    } else if (itemId === 'search') {
-      // Map search to explore since we don't have a separate search page
-      onTabChange('explore');
     } else {
       onTabChange(itemId);
     }
@@ -42,9 +36,7 @@ const LeftSidebar = ({ activeTab, onTabChange, onAddClick }: LeftSidebarProps) =
       <nav className="space-y-2">
         {menuItems.map((item, index) => {
           const Icon = item.icon;
-          const isActive = item.id === 'create' ? false : 
-                          item.id === 'search' ? activeTab === 'explore' :
-                          activeTab === item.id;
+          const isActive = item.id === 'create' ? false : activeTab === item.id;
           
           return (
             <button
