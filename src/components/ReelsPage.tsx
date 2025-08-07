@@ -298,6 +298,23 @@ const ReelsPage = () => {
 
   return (
     <div className="h-screen w-screen bg-black overflow-hidden fixed inset-0">
+      {/* Progress Bar at Top */}
+      <div className="absolute top-0 left-0 right-0 z-50 p-2">
+        <div className="flex space-x-1">
+          {reels.map((_, index) => (
+            <div key={index} className="flex-1 h-0.5 bg-white/30 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-white transition-all duration-300 ease-linear"
+                style={{ 
+                  width: index < currentReel ? '100%' : 
+                         index === currentReel ? `${progress}%` : '0%'
+                }}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div 
         ref={containerRef}
         className="h-full w-full overflow-y-auto scrollbar-hidden"
@@ -326,7 +343,8 @@ const ReelsPage = () => {
                 style={{
                   width: '100vw',
                   height: '100vh',
-                  objectFit: 'cover'
+                  objectFit: 'cover',
+                  objectPosition: 'center'
                 }}
                 loop
                 muted={isMuted}
@@ -365,21 +383,12 @@ const ReelsPage = () => {
                 <div className="absolute inset-0 bg-black/50 z-10 pointer-events-none" />
               )}
 
-              {/* Bottom Progress Bar */}
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-30">
-                <div 
-                  className="h-full bg-white transition-all duration-75 ease-linear"
-                  style={{ 
-                    width: `${index === currentReel ? progress : 0}%`,
-                    transition: index === currentReel ? 'width 0.1s linear' : 'width 0.3s ease-out'
-                  }}
-                />
-              </div>
-
               {/* User Info - Bottom Left */}
-              <div className={`absolute bottom-24 left-4 right-20 z-20 transition-all duration-300 pb-safe ${
+              <div className={`absolute bottom-16 left-4 right-20 z-20 transition-all duration-300 ${
                 expandedDescription.has(index) ? 'z-30' : ''
-              }`} style={{ paddingBottom: 'env(safe-area-inset-bottom, 24px)' }}>
+              }`} style={{ 
+                paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 16px)'
+              }}>
                 <div className="flex items-center space-x-3 mb-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center border-2 border-white/50 shadow-lg">
                     <span className="text-black text-sm font-bold">{reel.avatar}</span>
@@ -427,7 +436,9 @@ const ReelsPage = () => {
               </div>
 
               {/* Action Buttons - Right Side */}
-              <div className="absolute bottom-24 right-3 z-20 flex flex-col space-y-6 pb-safe" style={{ paddingBottom: 'env(safe-area-inset-bottom, 24px)' }}>
+              <div className="absolute bottom-16 right-3 z-20 flex flex-col space-y-6" style={{ 
+                paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 16px)'
+              }}>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
