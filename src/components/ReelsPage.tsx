@@ -305,6 +305,11 @@ const ReelsPage = () => {
               <video
                 ref={(el) => (videoRefs.current[index] = el)}
                 className="w-full h-full object-cover cursor-pointer"
+                style={{
+                  width: '100vw',
+                  height: '100vh',
+                  objectFit: 'cover'
+                }}
                 loop
                 muted={isMuted}
                 playsInline
