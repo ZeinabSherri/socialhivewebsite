@@ -1,89 +1,58 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Heart, MessageCircle, Send, VolumeX, Volume2, MoreHorizontal } from 'lucide-react';
+import { Heart, MessageCircle, Send, MoreHorizontal, ChevronDown, Camera, Home, Search, Plus, Play, User, Music } from 'lucide-react';
 
 const ReelsPage = () => {
   const [currentReel, setCurrentReel] = useState(0);
-  const [isMuted, setIsMuted] = useState(true);
   const [isPlaying, setIsPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
   const [likedReels, setLikedReels] = useState<Set<number>>(new Set());
+  const [expandedCaptions, setExpandedCaptions] = useState<Set<number>>(new Set());
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isNavigatingRef = useRef(false);
-  const lastTapRef = useRef(0);
 
   const reels = [
     {
       id: 1,
       title: 'Social Media Strategy Explained',
-      description: 'Learn how we create winning social media strategies that drive real results for our clients. 🚀✨ #SocialMedia #Marketing #Strategy',
+      description: 'Learn how we create winning social media strategies that drive real results for our clients. Transform your business with proven digital marketing techniques that actually work! 🚀✨ #SocialMedia #Marketing #Strategy #DigitalMarketing #BusinessGrowth',
       likes: 15420,
       comments: 234,
       shares: 89,
       user: 'socialhive.agency',
-      avatar: '🐝',
+      avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      isFollowing: false,
+      audioTitle: 'Original Audio',
       videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
     },
     {
       id: 2,
       title: 'Content Creation Process',
-      description: 'Behind the scenes of our content creation process - from concept to viral post. 🎬💡 #ContentCreation #BTS #Creative',
+      description: 'Behind the scenes of our content creation process - from concept to viral post. See how we craft engaging content that converts! 🎬💡 #ContentCreation #BTS #Creative #VideoMarketing',
       likes: 12890,
       comments: 187,
       shares: 56,
       user: 'socialhive.agency',
-      avatar: '🐝',
+      avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      isFollowing: false,
+      audioTitle: 'Trending Audio',
       videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
     },
     {
       id: 3,
       title: 'Client Success Story',
-      description: 'How we helped a local restaurant increase their sales by 300% in just 3 months. 📈🍕 #Success #ROI #Results',
+      description: 'How we helped a local restaurant increase their sales by 300% in just 3 months through strategic social media marketing! 📈🍕 #Success #ROI #Results #RestaurantMarketing',
       likes: 18750,
       comments: 312,
       shares: 145,
       user: 'socialhive.agency',
-      avatar: '🐝',
+      avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      isFollowing: false,
+      audioTitle: 'Success Stories Mix',
       videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
     }
   ];
-
-  const toggleMute = () => {
-    setIsMuted(!isMuted);
-    const currentVideo = videoRefs.current[currentReel];
-    if (currentVideo) {
-      currentVideo.muted = !isMuted;
-    }
-  };
-
-  const togglePlayPause = () => {
-    const currentVideo = videoRefs.current[currentReel];
-    if (currentVideo) {
-      if (isPlaying) {
-        currentVideo.pause();
-      } else {
-        currentVideo.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const handleVideoClick = (e: React.MouseEvent) => {
-    const now = Date.now();
-    const timeSinceLastTap = now - lastTapRef.current;
-    
-    if (timeSinceLastTap < 300) {
-      // Double tap - like the video
-      e.preventDefault();
-      toggleLike(currentReel);
-    } else {
-      // Single tap - play/pause
-      togglePlayPause();
-    }
-    
-    lastTapRef.current = now;
-  };
 
   const toggleLike = (index: number) => {
     setLikedReels(prev => {
@@ -97,17 +66,37 @@ const ReelsPage = () => {
     });
   };
 
+  const toggleCaption = (index: number) => {
+    setExpandedCaptions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
   const navigateToReel = useCallback((newIndex: number) => {
-    if (isNavigatingRef.current || newIndex < 0 || newIndex >= reels.length) return;
+    if (isNavigatingRef.current) return;
+    
+    // Handle infinite loop
+    let targetIndex = newIndex;
+    if (newIndex < 0) {
+      targetIndex = reels.length - 1;
+    } else if (newIndex >= reels.length) {
+      targetIndex = 0;
+    }
     
     isNavigatingRef.current = true;
-    setCurrentReel(newIndex);
+    setCurrentReel(targetIndex);
     setProgress(0);
     
     const container = containerRef.current;
     if (container) {
       container.scrollTo({
-        top: newIndex * window.innerHeight,
+        top: targetIndex * (window.innerHeight - 44 - 55),
         behavior: 'smooth'
       });
     }
@@ -150,6 +139,18 @@ const ReelsPage = () => {
     }
   }, [currentReel]);
 
+  const handleVideoClick = () => {
+    const currentVideo = videoRefs.current[currentReel];
+    if (currentVideo) {
+      if (isPlaying) {
+        currentVideo.pause();
+      } else {
+        currentVideo.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
   // Handle video playback and autoplay
   useEffect(() => {
     const currentVideo = videoRefs.current[currentReel];
@@ -157,7 +158,6 @@ const ReelsPage = () => {
 
     // Reset and setup current video
     currentVideo.currentTime = 0;
-    currentVideo.muted = isMuted;
     setProgress(0);
 
     if (isPlaying) {
@@ -178,11 +178,9 @@ const ReelsPage = () => {
     }
     progressIntervalRef.current = setInterval(updateProgress, 100);
 
-    // Handle video end
+    // Handle video end - loop to next
     const handleEnded = () => {
-      setProgress(0);
-      currentVideo.currentTime = 0;
-      currentVideo.play().catch(console.error);
+      navigateToReel(currentReel + 1);
     };
 
     currentVideo.addEventListener('ended', handleEnded);
@@ -195,38 +193,7 @@ const ReelsPage = () => {
         clearInterval(progressIntervalRef.current);
       }
     };
-  }, [currentReel, isMuted, isPlaying, updateProgress]);
-
-  // Handle scroll snap detection
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const handleScroll = () => {
-      if (isNavigatingRef.current) return;
-      
-      const scrollTop = container.scrollTop;
-      const itemHeight = window.innerHeight;
-      const newIndex = Math.round(scrollTop / itemHeight);
-      
-      if (newIndex !== currentReel && newIndex >= 0 && newIndex < reels.length) {
-        setCurrentReel(newIndex);
-        setProgress(0);
-      }
-    };
-
-    let scrollTimeout: NodeJS.Timeout;
-    const debouncedScroll = () => {
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(handleScroll, 50);
-    };
-
-    container.addEventListener('scroll', debouncedScroll);
-    return () => {
-      container.removeEventListener('scroll', debouncedScroll);
-      clearTimeout(scrollTimeout);
-    };
-  }, [currentReel, reels.length]);
+  }, [currentReel, isPlaying, updateProgress, navigateToReel]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -239,10 +206,7 @@ const ReelsPage = () => {
         navigateToReel(currentReel + 1);
       } else if (e.key === ' ') {
         e.preventDefault();
-        togglePlayPause();
-      } else if (e.key === 'm' || e.key === 'M') {
-        e.preventDefault();
-        toggleMute();
+        handleVideoClick();
       }
     };
 
@@ -259,35 +223,66 @@ const ReelsPage = () => {
     };
   }, []);
 
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + 'M';
+    } else if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'K';
+    }
+    return num.toString();
+  };
+
+  const truncateText = (text: string, isExpanded: boolean): string => {
+    if (isExpanded) return text;
+    const words = text.split(' ');
+    if (words.length <= 15) return text;
+    return words.slice(0, 15).join(' ') + '...';
+  };
+
+  const currentReelData = reels[currentReel];
+
   return (
-    <div className="h-screen w-screen bg-black overflow-hidden fixed inset-0">
-      <div 
-        ref={containerRef}
-        className="h-full w-full overflow-y-auto scrollbar-hidden"
-        style={{
-          scrollSnapType: 'y mandatory',
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-        }}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
-        {reels.map((reel, index) => (
-          <div 
-            key={reel.id} 
-            className="h-screen w-full relative bg-black flex-shrink-0"
-            style={{ 
-              scrollSnapAlign: 'start',
-              scrollSnapStop: 'always'
-            }}
-          >
-            <div className="relative w-full h-full overflow-hidden bg-black">
-              {/* Video Background */}
+    <div className="h-screen w-screen bg-black overflow-hidden fixed inset-0 flex flex-col">
+      {/* Header */}
+      <div className="h-11 bg-black flex items-center justify-between px-4 z-50 border-b border-gray-800">
+        <div className="flex items-center space-x-2">
+          <span className="text-white font-semibold text-lg">Reels</span>
+          <ChevronDown size={20} className="text-white" />
+        </div>
+        <button className="text-white">
+          <Camera size={24} />
+        </button>
+      </div>
+
+      {/* Video Container */}
+      <div className="flex-1 relative overflow-hidden">
+        <div 
+          ref={containerRef}
+          className="h-full w-full overflow-y-auto scrollbar-hidden"
+          style={{
+            scrollSnapType: 'y mandatory',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+          }}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
+          {reels.map((reel, index) => (
+            <div 
+              key={reel.id} 
+              className="relative bg-black flex-shrink-0"
+              style={{ 
+                height: `calc(100vh - 44px - 55px)`,
+                scrollSnapAlign: 'start',
+                scrollSnapStop: 'always'
+              }}
+            >
+              {/* Video */}
               <video
                 ref={(el) => (videoRefs.current[index] = el)}
                 className="w-full h-full object-cover cursor-pointer"
                 loop
-                muted={isMuted}
+                muted
                 playsInline
                 preload="metadata"
                 onClick={handleVideoClick}
@@ -302,10 +297,87 @@ const ReelsPage = () => {
                 Your browser does not support the video tag.
               </video>
 
-              {/* Gradient overlay for better text readability */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+              {/* Right Side Actions */}
+              <div className="absolute right-3 bottom-20 flex flex-col space-y-6 z-20">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleLike(index);
+                  }}
+                  className="flex flex-col items-center space-y-1"
+                >
+                  <Heart 
+                    size={28} 
+                    className={`${likedReels.has(index) ? 'text-red-500 fill-red-500' : 'text-white'} drop-shadow-lg`}
+                    strokeWidth={likedReels.has(index) ? 0 : 1.5}
+                  />
+                  <span className="text-white text-xs font-medium drop-shadow-lg">
+                    {formatNumber(reel.likes + (likedReels.has(index) ? 1 : 0))}
+                  </span>
+                </button>
 
-              {/* Bottom Progress Bar */}
+                <button className="flex flex-col items-center space-y-1">
+                  <MessageCircle size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
+                  <span className="text-white text-xs font-medium drop-shadow-lg">
+                    {formatNumber(reel.comments)}
+                  </span>
+                </button>
+
+                <button className="flex flex-col items-center space-y-1">
+                  <Send size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
+                  <span className="text-white text-xs font-medium drop-shadow-lg">
+                    {formatNumber(reel.shares)}
+                  </span>
+                </button>
+
+                <button className="flex flex-col items-center space-y-1">
+                  <MoreHorizontal size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
+                </button>
+
+                {/* Audio Icon */}
+                <button className="mt-4 w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-yellow-500 flex items-center justify-center border border-white">
+                  <Music size={16} className="text-white" />
+                </button>
+              </div>
+
+              {/* Profile & Caption Overlay */}
+              <div className="absolute bottom-4 left-4 right-20 z-20">
+                {/* Profile Info */}
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-8 h-8 rounded-full overflow-hidden border border-white">
+                    <img src={reel.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  </div>
+                  <span className="text-white font-semibold text-sm">{reel.user}</span>
+                  {!reel.isFollowing && (
+                    <button className="text-white text-sm font-semibold">• Follow</button>
+                  )}
+                </div>
+
+                {/* Caption */}
+                <div className="mb-3">
+                  <p className="text-white text-sm leading-relaxed">
+                    {truncateText(reel.description, expandedCaptions.has(index))}
+                    {reel.description.split(' ').length > 15 && (
+                      <button 
+                        onClick={() => toggleCaption(index)}
+                        className="text-gray-300 ml-1"
+                      >
+                        {expandedCaptions.has(index) ? ' less' : ' more'}
+                      </button>
+                    )}
+                  </p>
+                </div>
+
+                {/* Audio Info */}
+                <div className="flex items-center space-x-2">
+                  <Music size={12} className="text-white" />
+                  <span className="text-white text-xs">
+                    {reel.user} • {reel.audioTitle}
+                  </span>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-30">
                 <div 
                   className="h-full bg-white transition-all duration-75 ease-linear"
@@ -315,82 +387,30 @@ const ReelsPage = () => {
                   }}
                 />
               </div>
-
-              {/* User Info - Bottom Left */}
-              <div className="absolute bottom-6 left-4 right-20 z-20">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center border border-white/50 shadow-lg">
-                    <span className="text-black text-xs font-bold">{reel.avatar}</span>
-                  </div>
-                  <span className="text-white font-semibold text-sm">{reel.user}</span>
-                  <button className="border border-white text-white px-2 py-1 rounded text-xs font-medium hover:bg-white hover:text-black transition-colors">
-                    Follow
-                  </button>
-                </div>
-                <p className="text-white text-sm leading-relaxed pr-4 mb-2">{reel.description}</p>
-                <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 rounded bg-white/20 flex items-center justify-center">
-                    <span className="text-white text-xs">♪</span>
-                  </div>
-                  <span className="text-white text-xs opacity-75">Original audio</span>
-                </div>
-              </div>
-
-              {/* Action Buttons - Right Side */}
-              <div className="absolute bottom-6 right-3 z-20 flex flex-col space-y-6">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleLike(index);
-                  }}
-                  className="flex flex-col items-center space-y-1 group"
-                >
-                  <div className={`transition-transform group-active:scale-95 ${
-                    likedReels.has(index) ? 'text-red-500' : 'text-white'
-                  }`}>
-                    <Heart 
-                      size={32} 
-                      fill={likedReels.has(index) ? 'currentColor' : 'none'} 
-                      strokeWidth={likedReels.has(index) ? 0 : 1.5}
-                      className="drop-shadow-lg"
-                    />
-                  </div>
-                  <span className="text-white text-xs font-medium drop-shadow-lg">
-                    {(reel.likes + (likedReels.has(index) ? 1 : 0)).toLocaleString()}
-                  </span>
-                </button>
-
-                <button className="flex flex-col items-center space-y-1 group">
-                  <div className="text-white transition-transform group-active:scale-95">
-                    <MessageCircle size={32} strokeWidth={1.5} className="drop-shadow-lg" />
-                  </div>
-                  <span className="text-white text-xs font-medium drop-shadow-lg">{reel.comments}</span>
-                </button>
-
-                <button className="flex flex-col items-center space-y-1 group">
-                  <div className="text-white transition-transform group-active:scale-95">
-                    <Send size={32} strokeWidth={1.5} className="drop-shadow-lg" />
-                  </div>
-                  <span className="text-white text-xs font-medium drop-shadow-lg">{reel.shares}</span>
-                </button>
-
-                <button className="flex flex-col items-center space-y-1 group">
-                  <div className="text-white transition-transform group-active:scale-95">
-                    <MoreHorizontal size={32} strokeWidth={1.5} className="drop-shadow-lg" />
-                  </div>
-                </button>
-
-                {/* Mute/Unmute Button */}
-                <button
-                  onClick={toggleMute}
-                  className="w-8 h-8 rounded-full bg-black/50 text-white backdrop-blur-sm transition-transform active:scale-95 border border-white/20 flex items-center justify-center"
-                >
-                  {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-                </button>
-              </div>
             </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Bottom Navigation */}
+      <div className="h-14 bg-black border-t border-gray-800 flex items-center justify-around px-4 z-50">
+        <button className="flex flex-col items-center space-y-1">
+          <Home size={24} className="text-white" strokeWidth={1.5} />
+        </button>
+        <button className="flex flex-col items-center space-y-1">
+          <Search size={24} className="text-white" strokeWidth={1.5} />
+        </button>
+        <button className="flex flex-col items-center space-y-1">
+          <Plus size={24} className="text-white" strokeWidth={1.5} />
+        </button>
+        <button className="flex flex-col items-center space-y-1">
+          <div className="w-6 h-6 bg-white rounded flex items-center justify-center">
+            <Play size={16} className="text-black" fill="black" />
           </div>
-        ))}
+        </button>
+        <button className="flex flex-col items-center space-y-1">
+          <User size={24} className="text-white" strokeWidth={1.5} />
+        </button>
       </div>
     </div>
   );
