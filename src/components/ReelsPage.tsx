@@ -330,21 +330,20 @@ const ReelsPage = () => {
         {reels.map((reel, index) => (
           <div 
             key={reel.id} 
-            className="h-screen w-full relative bg-black flex-shrink-0"
+            className="h-screen w-full relative bg-black flex-shrink-0 flex flex-col"
             style={{ 
               scrollSnapAlign: 'start',
               scrollSnapStop: 'always'
             }}
           >
-            <div className="relative w-full h-full overflow-hidden bg-black">
-              {/* Video Background */}
+            {/* Video Container - Reduced height to leave space for caption */}
+            <div className="relative w-full bg-black flex-1" style={{ height: 'calc(100vh - 100px)' }}>
               <video
                 ref={(el) => (videoRefs.current[index] = el)}
                 className="w-full h-full object-cover cursor-pointer"
                 style={{
                   width: '100%',
                   height: '100%',
-                  maxHeight: '100vh',
                   objectFit: 'cover',
                   objectPosition: 'center'
                 }}
@@ -364,9 +363,6 @@ const ReelsPage = () => {
                 Your browser does not support the video tag.
               </video>
 
-              {/* Gradient overlay for better text readability */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-
               {/* Center Mute/Unmute Icon */}
               {showMuteIcon && index === currentReel && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-40">
@@ -380,64 +376,8 @@ const ReelsPage = () => {
                 </div>
               )}
 
-              {/* Black overlay when description is expanded */}
-              {expandedDescription.has(index) && (
-                <div className="absolute inset-0 bg-black/50 z-10 pointer-events-none" />
-              )}
-
-              {/* Caption Overlay - Always Visible at Bottom */}
-              <div className="absolute bottom-0 left-0 right-0 z-20">
-                {/* Semi-transparent background */}
-                <div className="bg-black/50 backdrop-blur-sm px-4 pt-4 pb-6">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center border border-white/50">
-                      <span className="text-black text-xs font-bold">{reel.avatar}</span>
-                    </div>
-                    <span className="text-white font-semibold text-sm">{reel.user}</span>
-                    <button className="border border-white text-white px-2 py-1 rounded-full text-xs font-medium hover:bg-white hover:text-black transition-colors">
-                      Follow
-                    </button>
-                  </div>
-                  
-                  <div className="pr-16">
-                    <p className="text-white text-sm leading-5">
-                      {getTruncatedDescription(reel.description, expandedDescription.has(index))}
-                      {reel.description.split(' ').length > 4 && !expandedDescription.has(index) && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleDescription(index);
-                          }}
-                          className="text-gray-300 ml-1 hover:text-white transition-colors font-medium"
-                        >
-                          more
-                        </button>
-                      )}
-                    </p>
-                    {reel.description.split(' ').length > 4 && expandedDescription.has(index) && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleDescription(index);
-                        }}
-                        className="text-gray-300 text-sm hover:text-white transition-colors font-medium mt-1"
-                      >
-                        Show less
-                      </button>
-                    )}
-                  </div>
-                  
-                  <div className="flex items-center space-x-2 mt-2">
-                    <div className="w-4 h-4 rounded bg-white/20 flex items-center justify-center">
-                      <span className="text-white text-xs">♪</span>
-                    </div>
-                    <span className="text-white text-xs opacity-75">Original audio</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons - Right Side */}
-              <div className="absolute bottom-20 right-3 z-30 flex flex-col space-y-4">
+              {/* Action Buttons - Right Side, positioned within video area */}
+              <div className="absolute bottom-4 right-3 z-30 flex flex-col space-y-4">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -487,6 +427,54 @@ const ReelsPage = () => {
                 >
                   {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
                 </button>
+              </div>
+            </div>
+
+            {/* Caption Area - Always visible below video */}
+            <div className="w-full bg-black/70 backdrop-blur-sm px-4 py-3" style={{ height: '100px', minHeight: '100px' }}>
+              <div className="flex items-center space-x-3 mb-2">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center border border-white/50">
+                  <span className="text-black text-xs font-bold">{reel.avatar}</span>
+                </div>
+                <span className="text-white font-semibold text-sm">{reel.user}</span>
+                <button className="border border-white text-white px-2 py-1 rounded-full text-xs font-medium hover:bg-white hover:text-black transition-colors">
+                  Follow
+                </button>
+              </div>
+              
+              <div className="pr-16">
+                <p className="text-white text-sm leading-[18px]" style={{ fontSize: '14px', lineHeight: '18px' }}>
+                  {getTruncatedDescription(reel.description, expandedDescription.has(index))}
+                  {reel.description.split(' ').length > 12 && !expandedDescription.has(index) && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleDescription(index);
+                      }}
+                      className="text-gray-300 ml-1 hover:text-white transition-colors font-medium"
+                    >
+                      more
+                    </button>
+                  )}
+                </p>
+                {reel.description.split(' ').length > 12 && expandedDescription.has(index) && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleDescription(index);
+                    }}
+                    className="text-gray-300 text-sm hover:text-white transition-colors font-medium mt-1"
+                  >
+                    Show less
+                  </button>
+                )}
+              </div>
+              
+              <div className="flex items-center space-x-2 mt-2">
+                <div className="w-4 h-4 rounded bg-white/20 flex items-center justify-center">
+                  <span className="text-white text-xs">♪</span>
+                </div>
+                <span className="text-white text-xs opacity-75">Original audio</span>
               </div>
             </div>
           </div>
