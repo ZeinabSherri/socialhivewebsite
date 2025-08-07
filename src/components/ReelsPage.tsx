@@ -341,8 +341,9 @@ const ReelsPage = () => {
                 ref={(el) => (videoRefs.current[index] = el)}
                 className="w-full h-full object-cover cursor-pointer"
                 style={{
-                  width: '100vw',
-                  height: '100vh',
+                  width: '100%',
+                  height: '100%',
+                  maxHeight: '100vh',
                   objectFit: 'cover',
                   objectPosition: 'center'
                 }}
