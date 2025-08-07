@@ -337,7 +337,17 @@ const ReelsPage = () => {
             }}
           >
             {/* Video Container - Reduced height to leave space for caption */}
-            <div className="relative w-full bg-black flex-1" style={{ height: 'calc(100vh - 100px)' }}>
+            <div className="relative w-full bg-black flex-1" style={{ height: 'calc(100vh - 70px)' }}>
+              {/* User Info - Top level with sound icon */}
+              <div className="absolute top-4 left-4 z-30 flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center border border-white/50">
+                  <span className="text-black text-xs font-bold">{reel.avatar}</span>
+                </div>
+                <span className="text-white font-semibold text-sm">{reel.user}</span>
+                <button className="border border-white text-white px-2 py-1 rounded-full text-xs font-medium hover:bg-white hover:text-black transition-colors">
+                  Follow
+                </button>
+              </div>
               <video
                 ref={(el) => (videoRefs.current[index] = el)}
                 className="w-full h-full object-cover cursor-pointer"
@@ -431,17 +441,7 @@ const ReelsPage = () => {
             </div>
 
             {/* Caption Area - Always visible below video */}
-            <div className="w-full bg-black/70 backdrop-blur-sm px-4 py-3" style={{ height: '100px', minHeight: '100px' }}>
-              <div className="flex items-center space-x-3 mb-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center border border-white/50">
-                  <span className="text-black text-xs font-bold">{reel.avatar}</span>
-                </div>
-                <span className="text-white font-semibold text-sm">{reel.user}</span>
-                <button className="border border-white text-white px-2 py-1 rounded-full text-xs font-medium hover:bg-white hover:text-black transition-colors">
-                  Follow
-                </button>
-              </div>
-              
+            <div className="w-full bg-black/70 backdrop-blur-sm px-4 py-2" style={{ height: '70px', minHeight: '70px' }}>
               <div className="pr-16">
                 <p className="text-white text-sm leading-[18px]" style={{ fontSize: '14px', lineHeight: '18px' }}>
                   {getTruncatedDescription(reel.description, expandedDescription.has(index))}
@@ -470,7 +470,7 @@ const ReelsPage = () => {
                 )}
               </div>
               
-              <div className="flex items-center space-x-2 mt-2">
+              <div className="flex items-center space-x-2 mt-1">
                 <div className="w-4 h-4 rounded bg-white/20 flex items-center justify-center">
                   <span className="text-white text-xs">♪</span>
                 </div>
