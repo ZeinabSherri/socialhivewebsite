@@ -89,12 +89,16 @@ export default {
 				'move-horizontal': {
 					'0%, 100%': { transform: 'translateX(0)' },
 					'50%': { transform: 'translateX(5px)' }
+				},
+				'move-vertical': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-3px)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'move': 'move-horizontal 2s ease-in-out infinite'
+				'move': 'move-vertical 2s ease-in-out infinite'
 			}
 		}
 	},
