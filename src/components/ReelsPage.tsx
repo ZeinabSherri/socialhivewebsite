@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Heart, MessageCircle, Send, Bookmark, VolumeX, Volume2, MoreHorizontal } from 'lucide-react';
+import { Heart, MessageCircle, Send, VolumeX, Volume2, MoreHorizontal } from 'lucide-react';
 
 const ReelsPage = () => {
   const [currentReel, setCurrentReel] = useState(0);
@@ -11,6 +11,7 @@ const ReelsPage = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isNavigatingRef = useRef(false);
+  const lastTapRef = useRef(0);
 
   const reels = [
     {
@@ -66,6 +67,22 @@ const ReelsPage = () => {
       }
       setIsPlaying(!isPlaying);
     }
+  };
+
+  const handleVideoClick = (e: React.MouseEvent) => {
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapRef.current;
+    
+    if (timeSinceLastTap < 300) {
+      // Double tap - like the video
+      e.preventDefault();
+      toggleLike(currentReel);
+    } else {
+      // Single tap - play/pause
+      togglePlayPause();
+    }
+    
+    lastTapRef.current = now;
   };
 
   const toggleLike = (index: number) => {
@@ -273,7 +290,7 @@ const ReelsPage = () => {
                 muted={isMuted}
                 playsInline
                 preload="metadata"
-                onClick={togglePlayPause}
+                onClick={handleVideoClick}
                 onLoadedData={() => {
                   const video = videoRefs.current[index];
                   if (video && index === currentReel && isPlaying) {
@@ -322,7 +339,10 @@ const ReelsPage = () => {
               {/* Action Buttons - Right Side */}
               <div className="absolute bottom-6 right-3 z-20 flex flex-col space-y-6">
                 <button
-                  onClick={() => toggleLike(index)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleLike(index);
+                  }}
                   className="flex flex-col items-center space-y-1 group"
                 >
                   <div className={`transition-transform group-active:scale-95 ${
@@ -352,12 +372,6 @@ const ReelsPage = () => {
                     <Send size={32} strokeWidth={1.5} className="drop-shadow-lg" />
                   </div>
                   <span className="text-white text-xs font-medium drop-shadow-lg">{reel.shares}</span>
-                </button>
-
-                <button className="flex flex-col items-center space-y-1 group">
-                  <div className="text-white transition-transform group-active:scale-95">
-                    <Bookmark size={32} strokeWidth={1.5} className="drop-shadow-lg" />
-                  </div>
                 </button>
 
                 <button className="flex flex-col items-center space-y-1 group">
