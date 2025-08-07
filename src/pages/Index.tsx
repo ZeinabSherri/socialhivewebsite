@@ -76,8 +76,8 @@ const Index = () => {
 
       {/* Mobile/Tablet Layout (<1024px) - Keep existing design */}
       <div className="lg:hidden">
-        {/* Header - only show when not on add page */}
-        {!showAddPage && (
+        {/* Header - only show when not on add page or reels */}
+        {!showAddPage && activeTab !== 'reels' && (
           <header className="sticky top-0 z-40 bg-black border-b border-gray-800 px-4 py-3">
             <div className="max-w-md mx-auto flex items-center justify-between">
               <h1 className="text-[#edbe01] font-extrabold text-2xl">
