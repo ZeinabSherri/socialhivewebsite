@@ -7,6 +7,7 @@ const ReelsPage = () => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
   const [likedReels, setLikedReels] = useState<Set<number>>(new Set());
+  const [expandedDescription, setExpandedDescription] = useState<Set<number>>(new Set());
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -95,6 +96,24 @@ const ReelsPage = () => {
       }
       return newSet;
     });
+  };
+
+  const toggleDescription = (index: number) => {
+    setExpandedDescription(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
+  const getTruncatedDescription = (description: string, isExpanded: boolean) => {
+    if (isExpanded) return description;
+    const words = description.split(' ');
+    return words.slice(0, 4).join(' ') + (words.length > 4 ? '...' : '');
   };
 
   const navigateToReel = useCallback((newIndex: number) => {
@@ -305,6 +324,11 @@ const ReelsPage = () => {
               {/* Gradient overlay for better text readability */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
 
+              {/* Black overlay when description is expanded */}
+              {expandedDescription.has(index) && (
+                <div className="absolute inset-0 bg-black/50 z-10 pointer-events-none" />
+              )}
+
               {/* Bottom Progress Bar */}
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-30">
                 <div 
@@ -317,7 +341,9 @@ const ReelsPage = () => {
               </div>
 
               {/* User Info - Bottom Left */}
-              <div className="absolute bottom-6 left-4 right-20 z-20">
+              <div className={`absolute bottom-6 left-4 right-20 z-20 transition-all duration-300 ${
+                expandedDescription.has(index) ? 'z-30' : ''
+              }`}>
                 <div className="flex items-center space-x-3 mb-3">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center border border-white/50 shadow-lg">
                     <span className="text-black text-xs font-bold">{reel.avatar}</span>
@@ -327,7 +353,24 @@ const ReelsPage = () => {
                     Follow
                   </button>
                 </div>
-                <p className="text-white text-sm leading-relaxed pr-4 mb-2">{reel.description}</p>
+                
+                <div className="mb-2">
+                  <p className="text-white text-sm leading-relaxed pr-4 mb-1">
+                    {getTruncatedDescription(reel.description, expandedDescription.has(index))}
+                  </p>
+                  {reel.description.split(' ').length > 4 && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleDescription(index);
+                      }}
+                      className="text-gray-300 text-xs hover:text-white transition-colors"
+                    >
+                      {expandedDescription.has(index) ? 'Show less' : 'Show all'}
+                    </button>
+                  )}
+                </div>
+                
                 <div className="flex items-center space-x-2">
                   <div className="w-4 h-4 rounded bg-white/20 flex items-center justify-center">
                     <span className="text-white text-xs">♪</span>
