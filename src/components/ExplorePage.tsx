@@ -280,18 +280,18 @@ const ExplorePage = () => {
     <div className="max-w-md mx-auto">
 
       {/* Filters */}
-      <div className="px-4 py-3 border-b border-gray-800">
+      <div className="px-4 py-3 bg-black">
         {/* Mobile/Tablet: Vertical layout */}
         <div className="block md:hidden">
-          <div className="flex flex-col space-y-2">
+          <div className="flex flex-wrap gap-2">
             {filters.map(filter => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
-                className={`px-3 py-2 rounded-full text-xs font-medium text-left transition-all duration-200 ${
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                   activeFilter === filter
-                    ? 'bg-yellow-400 text-black shadow-md'
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                    ? 'bg-yellow-500 text-black'
+                    : 'bg-gray-800 text-white'
                 }`}
               >
                 {filter}
@@ -302,73 +302,20 @@ const ExplorePage = () => {
 
         {/* Desktop: Staggered grid layout */}
         <div className="hidden md:block">
-          <div className="space-y-3">
-            {/* Group filters into rows following the 3-3-4 pattern */}
-            {Array.from({ length: Math.ceil(filters.length / 10) }, (_, groupIndex) => {
-              const startIndex = groupIndex * 10;
-              const groupFilters = filters.slice(startIndex, startIndex + 10);
-              
-              return (
-                <div key={groupIndex} className="space-y-3">
-                  {/* First row: 3 buttons */}
-                  {groupFilters.slice(0, 3).length > 0 && (
-                    <div className="grid grid-cols-3 gap-3">
-                      {groupFilters.slice(0, 3).map(filter => (
-                        <button
-                          key={filter}
-                          onClick={() => setActiveFilter(filter)}
-                          className={`px-4 py-3 rounded-full text-sm font-medium transition-all duration-200 ${
-                            activeFilter === filter
-                              ? 'bg-yellow-400 text-black shadow-lg transform scale-105'
-                              : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:transform hover:scale-102'
-                          }`}
-                        >
-                          {filter}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {/* Second row: 3 buttons */}
-                  {groupFilters.slice(3, 6).length > 0 && (
-                    <div className="grid grid-cols-3 gap-3">
-                      {groupFilters.slice(3, 6).map(filter => (
-                        <button
-                          key={filter}
-                          onClick={() => setActiveFilter(filter)}
-                          className={`px-4 py-3 rounded-full text-sm font-medium transition-all duration-200 ${
-                            activeFilter === filter
-                              ? 'bg-yellow-400 text-black shadow-lg transform scale-105'
-                              : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:transform hover:scale-102'
-                          }`}
-                        >
-                          {filter}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Third row: 4 buttons */}
-                  {groupFilters.slice(6, 10).length > 0 && (
-                    <div className="grid grid-cols-4 gap-3">
-                      {groupFilters.slice(6, 10).map(filter => (
-                        <button
-                          key={filter}
-                          onClick={() => setActiveFilter(filter)}
-                          className={`px-4 py-3 rounded-full text-sm font-medium transition-all duration-200 ${
-                            activeFilter === filter
-                              ? 'bg-yellow-400 text-black shadow-lg transform scale-105'
-                              : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:transform hover:scale-102'
-                          }`}
-                        >
-                          {filter}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+          <div className="flex flex-wrap gap-2">
+            {filters.map(filter => (
+              <button
+                key={filter}
+                onClick={() => setActiveFilter(filter)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                  activeFilter === filter
+                    ? 'bg-yellow-500 text-black'
+                    : 'bg-gray-800 text-white'
+                }`}
+              >
+                {filter}
+              </button>
+            ))}
           </div>
         </div>
       </div>
