@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Heart, MessageCircle, Send, Bookmark, VolumeX, Volume2, MoreHorizontal } from 'lucide-react';
 
 const ReelsPage = () => {
@@ -6,11 +6,11 @@ const ReelsPage = () => {
   const [isMuted, setIsMuted] = useState(true);
   const [isPlaying, setIsPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
-  const [touchStart, setTouchStart] = useState(0);
   const [likedReels, setLikedReels] = useState<Set<number>>(new Set());
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isNavigatingRef = useRef(false);
 
   const reels = [
     {
@@ -80,71 +80,105 @@ const ReelsPage = () => {
     });
   };
 
-  const updateProgress = () => {
+  const navigateToReel = useCallback((newIndex: number) => {
+    if (isNavigatingRef.current || newIndex < 0 || newIndex >= reels.length) return;
+    
+    isNavigatingRef.current = true;
+    setCurrentReel(newIndex);
+    setProgress(0);
+    
+    const container = containerRef.current;
+    if (container) {
+      container.scrollTo({
+        top: newIndex * window.innerHeight,
+        behavior: 'smooth'
+      });
+    }
+    
+    setTimeout(() => {
+      isNavigatingRef.current = false;
+    }, 300);
+  }, [reels.length]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    containerRef.current?.setAttribute('data-start-y', touch.clientY.toString());
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    const container = containerRef.current;
+    if (!container) return;
+    
+    const startY = parseFloat(container.getAttribute('data-start-y') || '0');
+    const endY = e.changedTouches[0].clientY;
+    const diff = startY - endY;
+    const threshold = 50;
+    
+    if (Math.abs(diff) > threshold) {
+      if (diff > 0) {
+        // Swipe up - next reel
+        navigateToReel(currentReel + 1);
+      } else {
+        // Swipe down - previous reel
+        navigateToReel(currentReel - 1);
+      }
+    }
+  }, [currentReel, navigateToReel]);
+
+  const updateProgress = useCallback(() => {
     const currentVideo = videoRefs.current[currentReel];
-    if (currentVideo) {
+    if (currentVideo && currentVideo.duration) {
       const progressPercent = (currentVideo.currentTime / currentVideo.duration) * 100;
       setProgress(progressPercent);
     }
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.touches[0].clientY);
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const touchEnd = e.changedTouches[0].clientY;
-    const diff = touchStart - touchEnd;
-    
-    if (Math.abs(diff) > 50) { // Minimum swipe distance
-      if (diff > 0 && currentReel < reels.length - 1) {
-        // Swipe up - next reel
-        setCurrentReel(currentReel + 1);
-      } else if (diff < 0 && currentReel > 0) {
-        // Swipe down - previous reel
-        setCurrentReel(currentReel - 1);
-      }
-    }
-  };
+  }, [currentReel]);
 
   // Handle video playback and autoplay
   useEffect(() => {
+    const currentVideo = videoRefs.current[currentReel];
+    if (!currentVideo) return;
+
+    // Reset and setup current video
+    currentVideo.currentTime = 0;
+    currentVideo.muted = isMuted;
+    setProgress(0);
+
+    if (isPlaying) {
+      currentVideo.play().catch(console.error);
+    }
+
+    // Pause all other videos
     videoRefs.current.forEach((video, index) => {
-      if (video) {
-        if (index === currentReel) {
-          video.currentTime = 0;
-          video.muted = isMuted;
-          if (isPlaying) {
-            video.play().catch(console.error);
-          }
-          
-          // Set up progress tracking
-          if (progressIntervalRef.current) {
-            clearInterval(progressIntervalRef.current);
-          }
-          progressIntervalRef.current = setInterval(updateProgress, 100);
-          
-          // Handle video end
-          const handleEnded = () => {
-            setProgress(0);
-            video.currentTime = 0;
-            video.play().catch(console.error);
-          };
-          
-          video.addEventListener('ended', handleEnded);
-          return () => video.removeEventListener('ended', handleEnded);
-        } else {
-          video.pause();
-        }
+      if (video && index !== currentReel) {
+        video.pause();
+        video.currentTime = 0;
       }
     });
-    
+
+    // Set up progress tracking
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+    }
+    progressIntervalRef.current = setInterval(updateProgress, 100);
+
+    // Handle video end
+    const handleEnded = () => {
+      setProgress(0);
+      currentVideo.currentTime = 0;
+      currentVideo.play().catch(console.error);
+    };
+
+    currentVideo.addEventListener('ended', handleEnded);
+    currentVideo.addEventListener('timeupdate', updateProgress);
+
     return () => {
+      currentVideo.removeEventListener('ended', handleEnded);
+      currentVideo.removeEventListener('timeupdate', updateProgress);
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current);
       }
     };
-  }, [currentReel, isMuted, isPlaying]);
+  }, [currentReel, isMuted, isPlaying, updateProgress]);
 
   // Handle scroll snap detection
   useEffect(() => {
@@ -152,58 +186,83 @@ const ReelsPage = () => {
     if (!container) return;
 
     const handleScroll = () => {
+      if (isNavigatingRef.current) return;
+      
       const scrollTop = container.scrollTop;
-      const itemHeight = container.clientHeight;
+      const itemHeight = window.innerHeight;
       const newIndex = Math.round(scrollTop / itemHeight);
       
       if (newIndex !== currentReel && newIndex >= 0 && newIndex < reels.length) {
         setCurrentReel(newIndex);
+        setProgress(0);
       }
     };
 
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
+    let scrollTimeout: NodeJS.Timeout;
+    const debouncedScroll = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(handleScroll, 50);
+    };
+
+    container.addEventListener('scroll', debouncedScroll);
+    return () => {
+      container.removeEventListener('scroll', debouncedScroll);
+      clearTimeout(scrollTimeout);
+    };
   }, [currentReel, reels.length]);
 
   // Keyboard navigation
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      const container = containerRef.current;
-      if (!container) return;
-
-      if (e.key === 'ArrowUp' && currentReel > 0) {
-        container.scrollTo({
-          top: (currentReel - 1) * container.clientHeight,
-          behavior: 'smooth'
-        });
-      } else if (e.key === 'ArrowDown' && currentReel < reels.length - 1) {
-        container.scrollTo({
-          top: (currentReel + 1) * container.clientHeight,
-          behavior: 'smooth'
-        });
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        navigateToReel(currentReel - 1);
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        navigateToReel(currentReel + 1);
+      } else if (e.key === ' ') {
+        e.preventDefault();
+        togglePlayPause();
+      } else if (e.key === 'm' || e.key === 'M') {
+        e.preventDefault();
+        toggleMute();
       }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [currentReel, reels.length]);
+  }, [currentReel, navigateToReel]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+    };
+  }, []);
 
   return (
-    <div className="h-screen bg-black overflow-hidden">
+    <div className="h-screen w-screen bg-black overflow-hidden fixed inset-0">
       <div 
         ref={containerRef}
-        className="h-full overflow-hidden relative"
+        className="h-full w-full overflow-y-auto scrollbar-hidden"
+        style={{
+          scrollSnapType: 'y mandatory',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+        }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
         {reels.map((reel, index) => (
           <div 
             key={reel.id} 
-            className={`absolute inset-0 w-full h-full transition-transform duration-300 ease-out ${
-              index === currentReel ? 'translate-y-0' : 
-              index < currentReel ? '-translate-y-full' : 'translate-y-full'
-            }`}
-            style={{ zIndex: index === currentReel ? 10 : 0 }}
+            className="h-screen w-full relative bg-black flex-shrink-0"
+            style={{ 
+              scrollSnapAlign: 'start',
+              scrollSnapStop: 'always'
+            }}
           >
             <div className="relative w-full h-full overflow-hidden bg-black">
               {/* Video Background */}
@@ -215,13 +274,6 @@ const ReelsPage = () => {
                 playsInline
                 preload="metadata"
                 onClick={togglePlayPause}
-                poster={`data:image/svg+xml;base64,${btoa(`
-                  <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="100%" height="100%" fill="#000"/>
-                    <circle cx="50" cy="50" r="20" fill="#FCD34D"/>
-                    <text x="50" y="58" text-anchor="middle" fill="#000" font-size="16">SH</text>
-                  </svg>
-                `)}`}
                 onLoadedData={() => {
                   const video = videoRefs.current[index];
                   if (video && index === currentReel && isPlaying) {
@@ -236,28 +288,19 @@ const ReelsPage = () => {
               {/* Gradient overlay for better text readability */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
 
-              {/* Progress Bar - Bottom */}
+              {/* Bottom Progress Bar */}
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-30">
                 <div 
-                  className="h-full bg-white transition-all duration-100 ease-linear"
-                  style={{ width: `${index === currentReel ? progress : 0}%` }}
+                  className="h-full bg-white transition-all duration-75 ease-linear"
+                  style={{ 
+                    width: `${index === currentReel ? progress : 0}%`,
+                    transition: index === currentReel ? 'width 0.1s linear' : 'width 0.3s ease-out'
+                  }}
                 />
               </div>
 
-              {/* Reel indicators - Top */}
-              <div className="absolute top-4 left-4 right-4 flex space-x-1 z-20">
-                {reels.map((_, i) => (
-                  <div
-                    key={i}
-                    className={`h-0.5 rounded-full transition-all duration-300 flex-1 ${
-                      i === currentReel ? 'bg-white' : 'bg-white/30'
-                    }`}
-                  />
-                ))}
-              </div>
-
               {/* User Info - Bottom Left */}
-              <div className="absolute bottom-20 left-4 right-20 z-20">
+              <div className="absolute bottom-6 left-4 right-20 z-20">
                 <div className="flex items-center space-x-3 mb-3">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center border border-white/50 shadow-lg">
                     <span className="text-black text-xs font-bold">{reel.avatar}</span>
@@ -277,7 +320,7 @@ const ReelsPage = () => {
               </div>
 
               {/* Action Buttons - Right Side */}
-              <div className="absolute bottom-20 right-3 z-20 flex flex-col space-y-6">
+              <div className="absolute bottom-6 right-3 z-20 flex flex-col space-y-6">
                 <button
                   onClick={() => toggleLike(index)}
                   className="flex flex-col items-center space-y-1 group"
@@ -330,29 +373,6 @@ const ReelsPage = () => {
                 >
                   {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
                 </button>
-              </div>
-
-              {/* Navigation hints for desktop */}
-              <div className="hidden md:block absolute top-1/2 left-4 transform -translate-y-1/2 z-20">
-                {currentReel > 0 && (
-                  <button
-                    onClick={() => setCurrentReel(currentReel - 1)}
-                    className="w-10 h-10 rounded-full bg-black/50 text-white backdrop-blur-sm border border-white/20 flex items-center justify-center hover:bg-black/70 transition-colors"
-                  >
-                    ↑
-                  </button>
-                )}
-              </div>
-              
-              <div className="hidden md:block absolute top-1/2 right-4 transform -translate-y-1/2 z-20">
-                {currentReel < reels.length - 1 && (
-                  <button
-                    onClick={() => setCurrentReel(currentReel + 1)}
-                    className="w-10 h-10 rounded-full bg-black/50 text-white backdrop-blur-sm border border-white/20 flex items-center justify-center hover:bg-black/70 transition-colors"
-                  >
-                    ↓
-                  </button>
-                )}
               </div>
             </div>
           </div>
