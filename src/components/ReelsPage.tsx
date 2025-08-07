@@ -11,7 +11,9 @@ import {
   Plus,
   Play,
   User,
-  Music
+  Music,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 
 const ReelsPage = () => {
@@ -20,10 +22,14 @@ const ReelsPage = () => {
   const [progress, setProgress] = useState(0);
   const [likedReels, setLikedReels] = useState<Set<number>>(new Set());
   const [expandedCaptions, setExpandedCaptions] = useState<Set<number>>(new Set());
+  const [isMuted, setIsMuted] = useState(true);
+  const [heartAnimation, setHeartAnimation] = useState<{ show: boolean; x: number; y: number } | null>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isNavigatingRef = useRef(false);
+  const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const tapCountRef = useRef(0);
 
   const reels = [
     {
@@ -149,18 +155,50 @@ const ReelsPage = () => {
     }
   }, [currentReel]);
 
-  const handleVideoClick = () => {
+  const toggleMute = () => {
     const vid = videoRefs.current[currentReel];
     if (!vid) return;
-    if (isPlaying) vid.pause();
-    else vid.play().catch(console.error);
-    setIsPlaying(!isPlaying);
+    vid.muted = !vid.muted;
+    setIsMuted(vid.muted);
+  };
+
+  const showHeartAnimation = (e: React.MouseEvent | React.TouchEvent) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = ('touches' in e ? e.touches[0].clientX : e.clientX) - rect.left;
+    const y = ('touches' in e ? e.touches[0].clientY : e.clientY) - rect.top;
+    
+    setHeartAnimation({ show: true, x, y });
+    toggleLike(currentReel);
+    
+    setTimeout(() => {
+      setHeartAnimation(null);
+    }, 1000);
+  };
+
+  const handleVideoClick = (e: React.MouseEvent | React.TouchEvent) => {
+    tapCountRef.current += 1;
+    
+    if (tapTimeoutRef.current) {
+      clearTimeout(tapTimeoutRef.current);
+    }
+    
+    tapTimeoutRef.current = setTimeout(() => {
+      if (tapCountRef.current === 1) {
+        // Single tap - toggle mute
+        toggleMute();
+      } else if (tapCountRef.current === 2) {
+        // Double tap - like
+        showHeartAnimation(e);
+      }
+      tapCountRef.current = 0;
+    }, 250);
   };
 
   useEffect(() => {
     const vid = videoRefs.current[currentReel];
     if (!vid) return;
     vid.currentTime = 0;
+    vid.muted = isMuted;
     setProgress(0);
     if (isPlaying) vid.play().catch(console.error);
     videoRefs.current.forEach((v, i) => {
@@ -177,17 +215,20 @@ const ReelsPage = () => {
       vid.removeEventListener('ended', onEnded);
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
     };
-  }, [currentReel, isPlaying, navigateToReel, updateProgress]);
+  }, [currentReel, isPlaying, isMuted, navigateToReel, updateProgress]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowUp') navigateToReel(currentReel - 1);
       if (e.key === 'ArrowDown') navigateToReel(currentReel + 1);
-      if (e.key === ' ') handleVideoClick();
+      if (e.key === ' ') {
+        e.preventDefault();
+        toggleMute();
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [currentReel, navigateToReel, handleVideoClick]);
+  }, [currentReel, navigateToReel]);
 
   return (
     <div className="w-screen bg-black overflow-hidden fixed inset-0 flex flex-col">
@@ -233,6 +274,41 @@ const ReelsPage = () => {
             >
               <source src={reel.videoUrl} type="video/mp4" />
             </video>
+
+            {/* Mute/Unmute Button - only show for current reel */}
+            {idx === currentReel && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleMute();
+                }}
+                className="absolute top-4 right-4 z-30 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center"
+              >
+                {isMuted ? (
+                  <VolumeX size={20} className="text-white" />
+                ) : (
+                  <Volume2 size={20} className="text-white" />
+                )}
+              </button>
+            )}
+
+            {/* Heart Animation - only show for current reel */}
+            {idx === currentReel && heartAnimation?.show && (
+              <div
+                className="absolute z-40 pointer-events-none animate-fade-in"
+                style={{
+                  left: heartAnimation.x - 20,
+                  top: heartAnimation.y - 20,
+                  animation: 'fade-in 0.3s ease-out, scale-in 0.3s ease-out'
+                }}
+              >
+                <Heart
+                  size={40}
+                  className="text-red-500 fill-red-500 drop-shadow-lg"
+                  strokeWidth={0}
+                />
+              </div>
+            )}
 
             {/* Right Side Actions */}
             <div className="absolute right-3 bottom-24 flex flex-col space-y-6 z-20">
