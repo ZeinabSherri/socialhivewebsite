@@ -377,21 +377,21 @@ const ReelsPage = () => {
               </div>
 
               {/* User Info - Bottom Left */}
-              <div className={`absolute bottom-6 left-4 right-20 z-20 transition-all duration-300 ${
+              <div className={`absolute bottom-20 left-4 right-20 z-20 transition-all duration-300 ${
                 expandedDescription.has(index) ? 'z-30' : ''
               }`}>
                 <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center border border-white/50 shadow-lg">
-                    <span className="text-black text-xs font-bold">{reel.avatar}</span>
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center border-2 border-white/50 shadow-lg">
+                    <span className="text-black text-sm font-bold">{reel.avatar}</span>
                   </div>
-                  <span className="text-white font-semibold text-sm">{reel.user}</span>
-                  <button className="border border-white text-white px-2 py-1 rounded text-xs font-medium hover:bg-white hover:text-black transition-colors">
+                  <span className="text-white font-semibold text-base drop-shadow-lg">{reel.user}</span>
+                  <button className="border border-white text-white px-3 py-1.5 rounded-full text-sm font-medium hover:bg-white hover:text-black transition-colors backdrop-blur-sm">
                     Follow
                   </button>
                 </div>
                 
-                <div className="mb-2">
-                  <p className="text-white text-sm leading-relaxed pr-4 mb-1">
+                <div className="mb-3">
+                  <p className="text-white text-base leading-relaxed pr-4 mb-2 drop-shadow-lg font-medium">
                     {getTruncatedDescription(reel.description, expandedDescription.has(index))}
                     {reel.description.split(' ').length > 4 && !expandedDescription.has(index) && (
                       <button
@@ -399,7 +399,7 @@ const ReelsPage = () => {
                           e.stopPropagation();
                           toggleDescription(index);
                         }}
-                        className="text-gray-300 ml-1 hover:text-white transition-colors"
+                        className="text-gray-300 ml-1 hover:text-white transition-colors font-semibold"
                       >
                         more
                       </button>
@@ -411,7 +411,7 @@ const ReelsPage = () => {
                         e.stopPropagation();
                         toggleDescription(index);
                       }}
-                      className="text-gray-300 text-xs hover:text-white transition-colors"
+                      className="text-gray-300 text-sm hover:text-white transition-colors font-semibold"
                     >
                       Show less
                     </button>
@@ -419,15 +419,15 @@ const ReelsPage = () => {
                 </div>
                 
                 <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 rounded bg-white/20 flex items-center justify-center">
-                    <span className="text-white text-xs">♪</span>
+                  <div className="w-5 h-5 rounded bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                    <span className="text-white text-sm">♪</span>
                   </div>
-                  <span className="text-white text-xs opacity-75">Original audio</span>
+                  <span className="text-white text-sm opacity-75 drop-shadow-lg">Original audio</span>
                 </div>
               </div>
 
               {/* Action Buttons - Right Side */}
-              <div className="absolute bottom-6 right-3 z-20 flex flex-col space-y-6">
+              <div className="absolute bottom-20 right-3 z-20 flex flex-col space-y-6">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
