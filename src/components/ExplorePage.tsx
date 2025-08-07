@@ -283,12 +283,12 @@ const ExplorePage = () => {
       <div className="px-4 py-3 bg-black">
         {/* Mobile/Tablet: Vertical layout */}
         <div className="block md:hidden">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {filters.map(filter => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
                   activeFilter === filter
                     ? 'bg-yellow-500 text-black'
                     : 'bg-gray-800 text-white'
@@ -302,12 +302,12 @@ const ExplorePage = () => {
 
         {/* Desktop: Staggered grid layout */}
         <div className="hidden md:block">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {filters.map(filter => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
                   activeFilter === filter
                     ? 'bg-yellow-500 text-black'
                     : 'bg-gray-800 text-white'
