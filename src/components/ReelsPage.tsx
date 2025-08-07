@@ -377,9 +377,9 @@ const ReelsPage = () => {
               </div>
 
               {/* User Info - Bottom Left */}
-              <div className={`absolute bottom-20 left-4 right-20 z-20 transition-all duration-300 ${
+              <div className={`absolute bottom-24 left-4 right-20 z-20 transition-all duration-300 pb-safe ${
                 expandedDescription.has(index) ? 'z-30' : ''
-              }`}>
+              }`} style={{ paddingBottom: 'env(safe-area-inset-bottom, 24px)' }}>
                 <div className="flex items-center space-x-3 mb-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center border-2 border-white/50 shadow-lg">
                     <span className="text-black text-sm font-bold">{reel.avatar}</span>
@@ -427,7 +427,7 @@ const ReelsPage = () => {
               </div>
 
               {/* Action Buttons - Right Side */}
-              <div className="absolute bottom-20 right-3 z-20 flex flex-col space-y-6">
+              <div className="absolute bottom-24 right-3 z-20 flex flex-col space-y-6 pb-safe" style={{ paddingBottom: 'env(safe-area-inset-bottom, 24px)' }}>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
