@@ -272,7 +272,7 @@ const ReelsPage = () => {
               key={reel.id} 
               className="relative bg-black flex-shrink-0"
               style={{ 
-                height: `calc(100vh - 44px - 80px)`,
+                height: `calc(100vh - 44px - 55px)`,
                 scrollSnapAlign: 'start',
                 scrollSnapStop: 'always'
               }}
@@ -298,7 +298,7 @@ const ReelsPage = () => {
               </video>
 
               {/* Right Side Actions */}
-              <div className="absolute right-3 z-20 flex flex-col space-y-6" style={{ bottom: '100px' }}>
+              <div className="absolute right-3 bottom-24 flex flex-col space-y-6 z-20">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -341,26 +341,26 @@ const ReelsPage = () => {
               </div>
 
               {/* Profile & Caption Overlay */}
-              <div className="absolute left-4 right-20 z-20" style={{ bottom: '80px' }}>
+              <div className="absolute bottom-6 left-4 right-20 z-20 bg-gradient-to-t from-black/60 to-transparent pt-8">
                 {/* Profile Info */}
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-8 h-8 rounded-full overflow-hidden border border-white">
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30">
                     <img src={reel.avatar} alt="Avatar" className="w-full h-full object-cover" />
                   </div>
                   <span className="text-white font-semibold text-sm">{reel.user}</span>
                   {!reel.isFollowing && (
-                    <button className="text-white text-sm font-semibold">• Follow</button>
+                    <span className="text-white text-sm font-semibold">• Follow</span>
                   )}
                 </div>
 
                 {/* Caption */}
-                <div className="mb-3">
-                  <p className="text-white text-sm leading-relaxed">
+                <div className="mb-2">
+                  <p className="text-white text-sm leading-5 max-w-xs">
                     {truncateText(reel.description, expandedCaptions.has(index))}
                     {reel.description.split(' ').length > 15 && (
                       <button 
                         onClick={() => toggleCaption(index)}
-                        className="text-gray-300 ml-1"
+                        className="text-gray-300 ml-1 font-medium"
                       >
                         {expandedCaptions.has(index) ? ' less' : ' more'}
                       </button>
@@ -369,7 +369,7 @@ const ReelsPage = () => {
                 </div>
 
                 {/* Audio Info */}
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 pb-2">
                   <Music size={12} className="text-white" />
                   <span className="text-white text-xs">
                     {reel.user} • {reel.audioTitle}
@@ -393,7 +393,7 @@ const ReelsPage = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="h-14 bg-black border-t border-gray-800 flex items-center justify-around px-4 z-50">
+      <div className="h-14 bg-black border-t border-gray-800/50 flex items-center justify-around px-4 z-50">
         <button className="flex flex-col items-center space-y-1">
           <Home size={24} className="text-white" strokeWidth={1.5} />
         </button>
