@@ -275,7 +275,7 @@ const ReelsPage = () => {
             </div>
 
             {/* Profile & Caption Overlay */}
-            <div className="absolute bottom-6 left-4 right-20 z-20 bg-gradient-to-t from-black/60 to-transparent pt-8">
+            <div className="absolute bottom-6 left-4 right-20 z-20 pt-8">
               <div className="flex items-center space-x-3 mb-2">
                 <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30">
                   <img src={reel.avatar} alt="" className="w-full h-full object-cover" />
