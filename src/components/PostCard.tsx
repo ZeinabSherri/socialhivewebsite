@@ -44,6 +44,7 @@ interface PostCardProps {
   post: Post
   onLike: () => void
   onUsernameClick?: () => void
+  isFirstPost?: boolean
 }
 
 const responsive = {
@@ -55,7 +56,8 @@ const responsive = {
 const PostCard: React.FC<PostCardProps> = ({
   post,
   onLike,
-  onUsernameClick
+  onUsernameClick,
+  isFirstPost = false
 }) => {
   const [showFullCaption, setShowFullCaption] = useState(false)
   const [showLoveIcon, setShowLoveIcon]     = useState(false)
@@ -84,7 +86,7 @@ const PostCard: React.FC<PostCardProps> = ({
   const renderMedia = () => (
     <div className="relative overflow-hidden">
       {/* only one drip overlay per post */}
-      <DrippingHoney />
+      {isFirstPost && <DrippingHoney />}
 
       {/* carousel / single media */}
       {post.media && post.media.length > 0 ? (

@@ -255,6 +255,7 @@ const HomeFeed: React.FC<{ onNavigateToProfile?: () => void }> = ({
               post={post}
               onLike={() => handleLike(post.id)}
               onUsernameClick={onNavigateToProfile}
+              isFirstPost={idx === 0}
             />
           </div>
         ))}
