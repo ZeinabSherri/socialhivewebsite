@@ -23,7 +23,8 @@ const ReelsPage = () => {
   const [likedReels, setLikedReels] = useState<Set<number>>(new Set());
   const [expandedCaptions, setExpandedCaptions] = useState<Set<number>>(new Set());
   const [isMuted, setIsMuted] = useState(true);
-  const [heartAnimation, setHeartAnimation] = useState<{ show: boolean; x: number; y: number } | null>(null);
+  const [muteIconAnimation, setMuteIconAnimation] = useState<{ show: boolean } | null>(null);
+  const [heartAnimation, setHeartAnimation] = useState<{ show: boolean } | null>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -160,14 +161,16 @@ const ReelsPage = () => {
     if (!vid) return;
     vid.muted = !vid.muted;
     setIsMuted(vid.muted);
+    
+    // Show mute icon animation in center
+    setMuteIconAnimation({ show: true });
+    setTimeout(() => {
+      setMuteIconAnimation(null);
+    }, 800);
   };
 
-  const showHeartAnimation = (e: React.MouseEvent | React.TouchEvent) => {
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const x = ('touches' in e ? e.touches[0].clientX : e.clientX) - rect.left;
-    const y = ('touches' in e ? e.touches[0].clientY : e.clientY) - rect.top;
-    
-    setHeartAnimation({ show: true, x, y });
+  const showHeartAnimation = () => {
+    setHeartAnimation({ show: true });
     toggleLike(currentReel);
     
     setTimeout(() => {
@@ -176,6 +179,9 @@ const ReelsPage = () => {
   };
 
   const handleVideoClick = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     tapCountRef.current += 1;
     
     if (tapTimeoutRef.current) {
@@ -184,11 +190,11 @@ const ReelsPage = () => {
     
     tapTimeoutRef.current = setTimeout(() => {
       if (tapCountRef.current === 1) {
-        // Single tap - toggle mute
+        // Single tap - toggle mute and show icon
         toggleMute();
       } else if (tapCountRef.current === 2) {
-        // Double tap - like
-        showHeartAnimation(e);
+        // Double tap - like and show heart
+        showHeartAnimation();
       }
       tapCountRef.current = 0;
     }, 250);
@@ -275,36 +281,25 @@ const ReelsPage = () => {
               <source src={reel.videoUrl} type="video/mp4" />
             </video>
 
-            {/* Mute/Unmute Button - only show for current reel */}
-            {idx === currentReel && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleMute();
-                }}
-                className="absolute top-4 right-4 z-30 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center"
-              >
-                {isMuted ? (
-                  <VolumeX size={20} className="text-white" />
-                ) : (
-                  <Volume2 size={20} className="text-white" />
-                )}
-              </button>
+            {/* Mute Icon Animation - center overlay for current reel */}
+            {idx === currentReel && muteIconAnimation?.show && (
+              <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
+                <div className="bg-black/60 rounded-full p-4 animate-fade-in">
+                  {isMuted ? (
+                    <VolumeX size={48} className="text-white" />
+                  ) : (
+                    <Volume2 size={48} className="text-white" />
+                  )}
+                </div>
+              </div>
             )}
 
-            {/* Heart Animation - only show for current reel */}
+            {/* Heart Animation - center overlay for current reel */}
             {idx === currentReel && heartAnimation?.show && (
-              <div
-                className="absolute z-40 pointer-events-none animate-fade-in"
-                style={{
-                  left: heartAnimation.x - 20,
-                  top: heartAnimation.y - 20,
-                  animation: 'fade-in 0.3s ease-out, scale-in 0.3s ease-out'
-                }}
-              >
+              <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
                 <Heart
-                  size={40}
-                  className="text-red-500 fill-red-500 drop-shadow-lg"
+                  size={80}
+                  className="text-red-500 fill-red-500 drop-shadow-lg animate-scale-in"
                   strokeWidth={0}
                 />
               </div>
