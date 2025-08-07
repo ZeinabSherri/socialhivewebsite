@@ -88,8 +88,8 @@ const HomeFeed: React.FC<{ onNavigateToProfile?: () => void }> = ({
       timestamp: "3h",
       media: [
         { type: "image", url: "/images/IMG-20250728-WA0029.jpg" },
-        { type: "image", url: "https://images.unsplash.com/photo-1611224923853-80b023f02d71?auto=format&fit=crop&w=800&q=80" },
-        { type: "image", url: "https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?auto=format&fit=crop&w=800&q=80" },
+        { type: "video", url: "/videos/VID-20250728-WA0002.mp4" },
+        { type: "video", url: "/videos/VID-20250728-WA0001.mp4" },
       ],
       caption: "Our Services: Swipe to explore what we offer.",
       likes: 780,
