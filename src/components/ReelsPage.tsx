@@ -272,7 +272,7 @@ const ReelsPage = () => {
               key={reel.id} 
               className="relative bg-black flex-shrink-0"
               style={{ 
-                height: `calc(100vh - 44px - 55px)`,
+                height: `calc(100vh - 44px - 65px)`,
                 scrollSnapAlign: 'start',
                 scrollSnapStop: 'always'
               }}
