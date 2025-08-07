@@ -37,7 +37,7 @@ const FlyingBee: React.FC<FlyingBeeProps> = ({ postRefs }) => {
     const prog = y / (docHeight - winHeight);
     const idx = Math.min(Math.floor(prog * boxes.length), boxes.length - 1);
     const b = boxes[idx];
-    return b.left + b.width - 30; // flush right minus half the bee width (60 / 2)
+    return b.left + b.width - 80; // moved further left for better mobile visibility
   });
 
   // Y = top of the post + a bit of padding with smooth transitions
