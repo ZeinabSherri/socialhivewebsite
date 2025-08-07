@@ -272,7 +272,7 @@ const ReelsPage = () => {
               key={reel.id} 
               className="relative bg-black flex-shrink-0"
               style={{ 
-                height: `calc(100vh - 44px - 65px)`,
+                height: `calc(100vh - 44px - 80px)`,
                 scrollSnapAlign: 'start',
                 scrollSnapStop: 'always'
               }}
@@ -298,7 +298,7 @@ const ReelsPage = () => {
               </video>
 
               {/* Right Side Actions */}
-              <div className="absolute right-3 bottom-20 flex flex-col space-y-6 z-20">
+              <div className="absolute right-3 z-20 flex flex-col space-y-6" style={{ bottom: '100px' }}>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -341,7 +341,7 @@ const ReelsPage = () => {
               </div>
 
               {/* Profile & Caption Overlay */}
-              <div className="absolute bottom-4 left-4 right-20 z-20">
+              <div className="absolute left-4 right-20 z-20" style={{ bottom: '80px' }}>
                 {/* Profile Info */}
                 <div className="flex items-center space-x-3 mb-3">
                   <div className="w-8 h-8 rounded-full overflow-hidden border border-white">
