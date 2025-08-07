@@ -283,57 +283,20 @@ const ExplorePage = () => {
       <div className="px-4 py-3 border-b border-gray-800">
         {/* Mobile/Tablet: Vertical layout */}
         <div className="block md:hidden">
-          <div className="space-y-2">
-            {/* First row: 3 buttons including highlighted one */}
-            <div className="flex space-x-2 justify-center">
-              {filters.slice(0, 3).map(filter => (
-                <button
-                  key={filter}
-                  onClick={() => setActiveFilter(filter)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
-                    activeFilter === filter
-                      ? 'bg-yellow-400 text-black shadow-md'
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  }`}
-                >
-                  {filter}
-                </button>
-              ))}
-            </div>
-            
-            {/* Second row: 3 buttons */}
-            <div className="flex space-x-2 justify-center">
-              {filters.slice(3, 6).map(filter => (
-                <button
-                  key={filter}
-                  onClick={() => setActiveFilter(filter)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
-                    activeFilter === filter
-                      ? 'bg-yellow-400 text-black shadow-md'
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  }`}
-                >
-                  {filter}
-                </button>
-              ))}
-            </div>
-
-            {/* Third row: 4 buttons */}
-            <div className="flex space-x-2 justify-center">
-              {filters.slice(6, 10).map(filter => (
-                <button
-                  key={filter}
-                  onClick={() => setActiveFilter(filter)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
-                    activeFilter === filter
-                      ? 'bg-yellow-400 text-black shadow-md'
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  }`}
-                >
-                  {filter}
-                </button>
-              ))}
-            </div>
+          <div className="flex flex-col space-y-3">
+            {filters.map(filter => (
+              <button
+                key={filter}
+                onClick={() => setActiveFilter(filter)}
+                className={`px-4 py-3 rounded-full text-sm font-medium text-left transition-all duration-200 ${
+                  activeFilter === filter
+                    ? 'bg-yellow-400 text-black shadow-lg transform scale-105'
+                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:transform hover:scale-102'
+                }`}
+              >
+                {filter}
+              </button>
+            ))}
           </div>
         </div>
 

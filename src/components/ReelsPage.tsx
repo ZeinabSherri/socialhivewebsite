@@ -7,8 +7,6 @@ const ReelsPage = () => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
   const [likedReels, setLikedReels] = useState<Set<number>>(new Set());
-  const [expandedDescription, setExpandedDescription] = useState<Set<number>>(new Set());
-  const [showMuteIcon, setShowMuteIcon] = useState(false);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -48,17 +46,6 @@ const ReelsPage = () => {
       user: 'socialhive.agency',
       avatar: '🐝',
       videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
-    },
-    {
-      id: 4,
-      title: 'New Video Content',
-      description: 'Amazing new video content added to our reels! 🎥✨ #NewContent #Video #Viral',
-      likes: 8950,
-      comments: 156,
-      shares: 73,
-      user: 'socialhive.agency',
-      avatar: '🐝',
-      videoUrl: 'https://drive.google.com/uc?export=download&id=1BxjRmZTs1U_KhlU2UeeVDuQ-R3Mqz_Jt'
     }
   ];
 
@@ -68,12 +55,6 @@ const ReelsPage = () => {
     if (currentVideo) {
       currentVideo.muted = !isMuted;
     }
-    
-    // Show mute icon in center
-    setShowMuteIcon(true);
-    setTimeout(() => {
-      setShowMuteIcon(false);
-    }, 1000);
   };
 
   const togglePlayPause = () => {
@@ -97,8 +78,8 @@ const ReelsPage = () => {
       e.preventDefault();
       toggleLike(currentReel);
     } else {
-      // Single tap - toggle mute
-      toggleMute();
+      // Single tap - play/pause
+      togglePlayPause();
     }
     
     lastTapRef.current = now;
@@ -114,25 +95,6 @@ const ReelsPage = () => {
       }
       return newSet;
     });
-  };
-
-  const toggleDescription = (index: number) => {
-    setExpandedDescription(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(index)) {
-        newSet.delete(index);
-      } else {
-        newSet.add(index);
-      }
-      return newSet;
-    });
-  };
-
-  const getTruncatedDescription = (description: string, isExpanded: boolean) => {
-    if (isExpanded) return description;
-    const words = description.split(' ');
-    const maxWords = 12; // Show more words for better caption visibility
-    return words.slice(0, maxWords).join(' ') + (words.length > maxWords ? '...' : '');
   };
 
   const navigateToReel = useCallback((newIndex: number) => {
@@ -299,23 +261,6 @@ const ReelsPage = () => {
 
   return (
     <div className="h-screen w-screen bg-black overflow-hidden fixed inset-0">
-      {/* Progress Bar at Top */}
-      <div className="absolute top-0 left-0 right-0 z-50 p-2">
-        <div className="flex space-x-1">
-          {reels.map((_, index) => (
-            <div key={index} className="flex-1 h-0.5 bg-white/30 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-white transition-all duration-300 ease-linear"
-                style={{ 
-                  width: index < currentReel ? '100%' : 
-                         index === currentReel ? `${progress}%` : '0%'
-                }}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-
       <div 
         ref={containerRef}
         className="h-full w-full overflow-y-auto scrollbar-hidden"
@@ -330,33 +275,17 @@ const ReelsPage = () => {
         {reels.map((reel, index) => (
           <div 
             key={reel.id} 
-            className="h-screen w-full relative bg-black flex-shrink-0 flex flex-col"
+            className="h-screen w-full relative bg-black flex-shrink-0"
             style={{ 
               scrollSnapAlign: 'start',
               scrollSnapStop: 'always'
             }}
           >
-            {/* Video Container - Reduced height to leave space for caption */}
-            <div className="relative w-full bg-black flex-1" style={{ height: 'calc(100vh - 70px)' }}>
-              {/* User Info - Top level with sound icon */}
-              <div className="absolute top-4 left-4 z-30 flex items-center space-x-3">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center border border-white/50">
-                  <span className="text-black text-xs font-bold">{reel.avatar}</span>
-                </div>
-                <span className="text-white font-semibold text-sm">{reel.user}</span>
-                <button className="border border-white text-white px-2 py-1 rounded-full text-xs font-medium hover:bg-white hover:text-black transition-colors">
-                  Follow
-                </button>
-              </div>
+            <div className="relative w-full h-full overflow-hidden bg-black">
+              {/* Video Background */}
               <video
                 ref={(el) => (videoRefs.current[index] = el)}
                 className="w-full h-full object-cover cursor-pointer"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  objectPosition: 'center'
-                }}
                 loop
                 muted={isMuted}
                 playsInline
@@ -373,21 +302,42 @@ const ReelsPage = () => {
                 Your browser does not support the video tag.
               </video>
 
-              {/* Center Mute/Unmute Icon */}
-              {showMuteIcon && index === currentReel && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-40">
-                  <div className="bg-black/70 backdrop-blur-sm rounded-full p-6 border border-white/20 animate-in fade-in-0 zoom-in-50 duration-300">
-                    {isMuted ? (
-                      <VolumeX size={48} className="text-white" strokeWidth={1.5} />
-                    ) : (
-                      <Volume2 size={48} className="text-white" strokeWidth={1.5} />
-                    )}
-                  </div>
-                </div>
-              )}
+              {/* Gradient overlay for better text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
 
-              {/* Action Buttons - Right Side, positioned within video area */}
-              <div className="absolute bottom-4 right-3 z-30 flex flex-col space-y-4">
+              {/* Bottom Progress Bar */}
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-30">
+                <div 
+                  className="h-full bg-white transition-all duration-75 ease-linear"
+                  style={{ 
+                    width: `${index === currentReel ? progress : 0}%`,
+                    transition: index === currentReel ? 'width 0.1s linear' : 'width 0.3s ease-out'
+                  }}
+                />
+              </div>
+
+              {/* User Info - Bottom Left */}
+              <div className="absolute bottom-6 left-4 right-20 z-20">
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center border border-white/50 shadow-lg">
+                    <span className="text-black text-xs font-bold">{reel.avatar}</span>
+                  </div>
+                  <span className="text-white font-semibold text-sm">{reel.user}</span>
+                  <button className="border border-white text-white px-2 py-1 rounded text-xs font-medium hover:bg-white hover:text-black transition-colors">
+                    Follow
+                  </button>
+                </div>
+                <p className="text-white text-sm leading-relaxed pr-4 mb-2">{reel.description}</p>
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 rounded bg-white/20 flex items-center justify-center">
+                    <span className="text-white text-xs">♪</span>
+                  </div>
+                  <span className="text-white text-xs opacity-75">Original audio</span>
+                </div>
+              </div>
+
+              {/* Action Buttons - Right Side */}
+              <div className="absolute bottom-6 right-3 z-20 flex flex-col space-y-6">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -437,44 +387,6 @@ const ReelsPage = () => {
                 >
                   {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
                 </button>
-              </div>
-            </div>
-
-            {/* Caption Area - Always visible below video */}
-            <div className="w-full bg-black/70 backdrop-blur-sm px-4 py-2" style={{ height: '70px', minHeight: '70px' }}>
-              <div className="pr-16">
-                <p className="text-white text-sm leading-[18px]" style={{ fontSize: '14px', lineHeight: '18px' }}>
-                  {getTruncatedDescription(reel.description, expandedDescription.has(index))}
-                  {reel.description.split(' ').length > 12 && !expandedDescription.has(index) && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleDescription(index);
-                      }}
-                      className="text-gray-300 ml-1 hover:text-white transition-colors font-medium"
-                    >
-                      more
-                    </button>
-                  )}
-                </p>
-                {reel.description.split(' ').length > 12 && expandedDescription.has(index) && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleDescription(index);
-                    }}
-                    className="text-gray-300 text-sm hover:text-white transition-colors font-medium mt-1"
-                  >
-                    Show less
-                  </button>
-                )}
-              </div>
-              
-              <div className="flex items-center space-x-2 mt-1">
-                <div className="w-4 h-4 rounded bg-white/20 flex items-center justify-center">
-                  <span className="text-white text-xs">♪</span>
-                </div>
-                <span className="text-white text-xs opacity-75">Original audio</span>
               </div>
             </div>
           </div>
