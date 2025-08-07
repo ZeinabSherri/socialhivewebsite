@@ -357,8 +357,19 @@ const ReelsPage = () => {
                 <div className="mb-2">
                   <p className="text-white text-sm leading-relaxed pr-4 mb-1">
                     {getTruncatedDescription(reel.description, expandedDescription.has(index))}
+                    {reel.description.split(' ').length > 4 && !expandedDescription.has(index) && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleDescription(index);
+                        }}
+                        className="text-gray-300 ml-1 hover:text-white transition-colors"
+                      >
+                        more
+                      </button>
+                    )}
                   </p>
-                  {reel.description.split(' ').length > 4 && (
+                  {reel.description.split(' ').length > 4 && expandedDescription.has(index) && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -366,7 +377,7 @@ const ReelsPage = () => {
                       }}
                       className="text-gray-300 text-xs hover:text-white transition-colors"
                     >
-                      {expandedDescription.has(index) ? 'Show less' : 'Show all'}
+                      Show less
                     </button>
                   )}
                 </div>
