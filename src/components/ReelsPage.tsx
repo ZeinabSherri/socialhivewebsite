@@ -47,6 +47,17 @@ const ReelsPage = () => {
       user: 'socialhive.agency',
       avatar: '🐝',
       videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
+    },
+    {
+      id: 4,
+      title: 'New Video Content',
+      description: 'Amazing new video content added to our reels! 🎥✨ #NewContent #Video #Viral',
+      likes: 8950,
+      comments: 156,
+      shares: 73,
+      user: 'socialhive.agency',
+      avatar: '🐝',
+      videoUrl: 'https://drive.google.com/uc?export=download&id=1BxjRmZTs1U_KhlU2UeeVDuQ-R3Mqz_Jt'
     }
   ];
 
