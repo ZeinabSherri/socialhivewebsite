@@ -8,6 +8,7 @@ const ReelsPage = () => {
   const [progress, setProgress] = useState(0);
   const [likedReels, setLikedReels] = useState<Set<number>>(new Set());
   const [expandedDescription, setExpandedDescription] = useState<Set<number>>(new Set());
+  const [showMuteIcon, setShowMuteIcon] = useState(false);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -67,6 +68,12 @@ const ReelsPage = () => {
     if (currentVideo) {
       currentVideo.muted = !isMuted;
     }
+    
+    // Show mute icon in center
+    setShowMuteIcon(true);
+    setTimeout(() => {
+      setShowMuteIcon(false);
+    }, 1000);
   };
 
   const togglePlayPause = () => {
@@ -90,8 +97,8 @@ const ReelsPage = () => {
       e.preventDefault();
       toggleLike(currentReel);
     } else {
-      // Single tap - play/pause
-      togglePlayPause();
+      // Single tap - toggle mute
+      toggleMute();
     }
     
     lastTapRef.current = now;
@@ -339,6 +346,19 @@ const ReelsPage = () => {
 
               {/* Gradient overlay for better text readability */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+
+              {/* Center Mute/Unmute Icon */}
+              {showMuteIcon && index === currentReel && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-40">
+                  <div className="bg-black/70 backdrop-blur-sm rounded-full p-6 border border-white/20 animate-in fade-in-0 zoom-in-50 duration-300">
+                    {isMuted ? (
+                      <VolumeX size={48} className="text-white" strokeWidth={1.5} />
+                    ) : (
+                      <Volume2 size={48} className="text-white" strokeWidth={1.5} />
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Black overlay when description is expanded */}
               {expandedDescription.has(index) && (
