@@ -131,7 +131,8 @@ const ReelsPage = () => {
   const getTruncatedDescription = (description: string, isExpanded: boolean) => {
     if (isExpanded) return description;
     const words = description.split(' ');
-    return words.slice(0, 4).join(' ') + (words.length > 4 ? '...' : '');
+    const maxWords = 12; // Show more words for better caption visibility
+    return words.slice(0, maxWords).join(' ') + (words.length > maxWords ? '...' : '');
   };
 
   const navigateToReel = useCallback((newIndex: number) => {
@@ -384,62 +385,59 @@ const ReelsPage = () => {
                 <div className="absolute inset-0 bg-black/50 z-10 pointer-events-none" />
               )}
 
-              {/* User Info - Bottom Left */}
-              <div className={`absolute bottom-16 left-4 right-20 z-20 transition-all duration-300 ${
-                expandedDescription.has(index) ? 'z-30' : ''
-              }`} style={{ 
-                paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 16px)'
-              }}>
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center border-2 border-white/50 shadow-lg">
-                    <span className="text-black text-sm font-bold">{reel.avatar}</span>
+              {/* Caption Overlay - Always Visible at Bottom */}
+              <div className="absolute bottom-0 left-0 right-0 z-20">
+                {/* Semi-transparent background */}
+                <div className="bg-black/50 backdrop-blur-sm px-4 pt-4 pb-6">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center border border-white/50">
+                      <span className="text-black text-xs font-bold">{reel.avatar}</span>
+                    </div>
+                    <span className="text-white font-semibold text-sm">{reel.user}</span>
+                    <button className="border border-white text-white px-2 py-1 rounded-full text-xs font-medium hover:bg-white hover:text-black transition-colors">
+                      Follow
+                    </button>
                   </div>
-                  <span className="text-white font-semibold text-base drop-shadow-lg">{reel.user}</span>
-                  <button className="border border-white text-white px-3 py-1.5 rounded-full text-sm font-medium hover:bg-white hover:text-black transition-colors backdrop-blur-sm">
-                    Follow
-                  </button>
-                </div>
-                
-                <div className="mb-3">
-                  <p className="text-white text-base leading-relaxed pr-4 mb-2 drop-shadow-lg font-medium">
-                    {getTruncatedDescription(reel.description, expandedDescription.has(index))}
-                    {reel.description.split(' ').length > 4 && !expandedDescription.has(index) && (
+                  
+                  <div className="pr-16">
+                    <p className="text-white text-sm leading-5">
+                      {getTruncatedDescription(reel.description, expandedDescription.has(index))}
+                      {reel.description.split(' ').length > 4 && !expandedDescription.has(index) && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleDescription(index);
+                          }}
+                          className="text-gray-300 ml-1 hover:text-white transition-colors font-medium"
+                        >
+                          more
+                        </button>
+                      )}
+                    </p>
+                    {reel.description.split(' ').length > 4 && expandedDescription.has(index) && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleDescription(index);
                         }}
-                        className="text-gray-300 ml-1 hover:text-white transition-colors font-semibold"
+                        className="text-gray-300 text-sm hover:text-white transition-colors font-medium mt-1"
                       >
-                        more
+                        Show less
                       </button>
                     )}
-                  </p>
-                  {reel.description.split(' ').length > 4 && expandedDescription.has(index) && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleDescription(index);
-                      }}
-                      className="text-gray-300 text-sm hover:text-white transition-colors font-semibold"
-                    >
-                      Show less
-                    </button>
-                  )}
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <div className="w-5 h-5 rounded bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                    <span className="text-white text-sm">♪</span>
                   </div>
-                  <span className="text-white text-sm opacity-75 drop-shadow-lg">Original audio</span>
+                  
+                  <div className="flex items-center space-x-2 mt-2">
+                    <div className="w-4 h-4 rounded bg-white/20 flex items-center justify-center">
+                      <span className="text-white text-xs">♪</span>
+                    </div>
+                    <span className="text-white text-xs opacity-75">Original audio</span>
+                  </div>
                 </div>
               </div>
 
               {/* Action Buttons - Right Side */}
-              <div className="absolute bottom-16 right-3 z-20 flex flex-col space-y-6" style={{ 
-                paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 16px)'
-              }}>
+              <div className="absolute bottom-20 right-3 z-30 flex flex-col space-y-4">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
