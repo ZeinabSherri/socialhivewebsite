@@ -359,6 +359,28 @@ const ReelsPage = () => {
     return () => window.removeEventListener('keydown', onKey);
   }, [currentReel, navigateToReel]);
 
+  // Auto-play videos when scrolling into view
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      if (isNavigatingRef.current) return;
+      
+      const containerHeight = container.clientHeight;
+      const scrollTop = container.scrollTop;
+      const newIndex = Math.round(scrollTop / containerHeight);
+      
+      if (newIndex !== currentReel && newIndex >= 0 && newIndex < reels.length) {
+        setCurrentReel(newIndex);
+        setProgress(0);
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [currentReel, reels.length]);
+
   return (
     <div className="w-screen bg-black overflow-hidden fixed inset-0 flex flex-col">
       {/* Header */}
