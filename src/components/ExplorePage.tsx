@@ -194,11 +194,10 @@ const ExplorePage = () => {
   };
 
   useEffect(() => {
-    // Auto-play and mute all videos
+    // Just mute all videos, don't auto-play in grid
     Object.values(videoRefs.current).forEach(video => {
       if (video) {
         video.muted = true;
-        video.play().catch(console.log);
       }
     });
   }, [filteredProjects]);
@@ -221,12 +220,6 @@ const ExplorePage = () => {
             loop
             muted
             playsInline
-            onLoadedData={() => {
-              const video = videoRefs.current[project.id];
-              if (video) {
-                video.play().catch(console.log);
-              }
-            }}
           />
           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
             <div className="absolute top-2 left-2">
