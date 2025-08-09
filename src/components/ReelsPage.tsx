@@ -405,7 +405,7 @@ const ReelsPage = () => {
   }, [currentReel, reels.length]);
 
   return (
-    <div className="w-screen bg-black overflow-hidden fixed inset-0 flex flex-col lg:bg-black lg:min-h-screen">
+    <div className="w-screen bg-black overflow-hidden fixed inset-0 flex flex-col">
       {/* Header - Mobile/Tablet Only */}
       <div className="h-11 bg-black flex items-center justify-between px-4 z-50 border-b border-gray-800 lg:hidden">
         <div className="flex items-center space-x-2">
@@ -418,17 +418,12 @@ const ReelsPage = () => {
       </div>
 
       {/* Desktop Layout - ≥1024px */}
-      <div className="hidden lg:grid lg:grid-cols-[1fr_clamp(420px,28vw,500px)_72px] lg:gap-8 lg:items-center lg:justify-items-center lg:min-h-screen lg:px-8">
-        {/* Left Spacer */}
-        <div></div>
-        
-        {/* Center Video Rail */}
-        <div className="relative w-full" style={{ aspectRatio: '9/16', height: 'min(86vh, 900px)' }}>
+      <div className="hidden lg:flex lg:justify-center lg:items-center lg:min-h-screen lg:bg-black">
+        <div className="relative" style={{ aspectRatio: '9/16', height: 'min(86vh, 900px)', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 10px 40px rgba(0,0,0,0.6)' }}>
           {reels.map((reel, idx) => (
             <div
               key={reel.id}
               className={`absolute inset-0 transition-opacity duration-300 ${idx === currentReel ? 'opacity-100' : 'opacity-0'}`}
-              style={{ borderRadius: '16px', overflow: 'hidden', boxShadow: '0 10px 40px rgba(0,0,0,0.6)' }}
             >
               {/* Video */}
               <video
@@ -443,7 +438,7 @@ const ReelsPage = () => {
                 <source src={reel.videoUrl} type="video/mp4" />
               </video>
 
-              {/* Desktop Mute Button - Top Right Inside Video */}
+              {/* Desktop Mute Button - Top Right Overlay */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -458,34 +453,50 @@ const ReelsPage = () => {
                 )}
               </button>
 
-              {/* Mute Icon Animation - center overlay for current reel */}
-              {idx === currentReel && muteIconAnimation?.show && (
-                <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
-                  <div className="bg-black/60 rounded-full p-4 animate-fade-in">
-                    {isMuted ? (
-                      <VolumeX size={48} className="text-white" />
-                    ) : (
-                      <Volume2 size={48} className="text-white" />
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Heart Animation - center overlay for current reel */}
-              {idx === currentReel && heartAnimation?.show && (
-                <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
+              {/* Right Side Actions - Overlay on Video */}
+              <div className="absolute right-3 flex flex-col items-center space-y-4 z-20" style={{ bottom: '20%' }}>
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    toggleLike(currentReel);
+                  }}
+                  className="flex flex-col items-center space-y-1"
+                >
                   <Heart
-                    size={80}
-                    className="text-red-500 fill-red-500 drop-shadow-lg animate-scale-in"
-                    strokeWidth={0}
+                    size={28}
+                    className={`${likedReels.has(currentReel) ? 'text-red-500 fill-red-500' : 'text-white'} drop-shadow-lg`}
+                    strokeWidth={likedReels.has(currentReel) ? 0 : 1.5}
                   />
-                </div>
-              )}
+                  <span className="text-white text-xs font-medium drop-shadow-lg">
+                    {formatNumber(reels[currentReel].likes + (likedReels.has(currentReel) ? 1 : 0))}
+                  </span>
+                </button>
 
-              {/* Desktop Caption Overlay - Bottom Left with Gradient */}
+                <button className="flex flex-col items-center space-y-1">
+                  <MessageCircle size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
+                  <span className="text-white text-xs font-medium drop-shadow-lg">
+                    {formatNumber(reels[currentReel].comments)}
+                  </span>
+                </button>
+
+                <button className="flex flex-col items-center space-y-1">
+                  <Send size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
+                  <span className="text-white text-xs font-medium drop-shadow-lg">
+                    {formatNumber(reels[currentReel].shares)}
+                  </span>
+                </button>
+
+                <MoreHorizontal size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
+
+                <button className="mt-2 w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-yellow-500 flex items-center justify-center border border-white">
+                  <Music size={16} className="text-white" />
+                </button>
+              </div>
+
+              {/* Caption Overlay - Bottom Left with Gradient */}
               <div className="absolute bottom-0 left-0 right-0 p-4 z-20"
                    style={{
-                     background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 40%, rgba(0,0,0,0.8) 100%)'
+                     background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%)'
                    }}>
                 <div className="flex items-center space-x-3 mb-2">
                   <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30">
@@ -512,6 +523,30 @@ const ReelsPage = () => {
                 </div>
               </div>
 
+              {/* Mute Icon Animation - center overlay for current reel */}
+              {idx === currentReel && muteIconAnimation?.show && (
+                <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
+                  <div className="bg-black/60 rounded-full p-4 animate-fade-in">
+                    {isMuted ? (
+                      <VolumeX size={48} className="text-white" />
+                    ) : (
+                      <Volume2 size={48} className="text-white" />
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Heart Animation - center overlay for current reel */}
+              {idx === currentReel && heartAnimation?.show && (
+                <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
+                  <Heart
+                    size={80}
+                    className="text-red-500 fill-red-500 drop-shadow-lg animate-scale-in"
+                    strokeWidth={0}
+                  />
+                </div>
+              )}
+
               {/* Progress Bar */}
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-30">
                 <div
@@ -523,46 +558,6 @@ const ReelsPage = () => {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Right Action Rail */}
-        <div className="flex flex-col items-center space-y-4">
-          <button
-            onClick={e => {
-              e.stopPropagation();
-              toggleLike(currentReel);
-            }}
-            className="flex flex-col items-center space-y-1"
-          >
-            <Heart
-              size={28}
-              className={`${likedReels.has(currentReel) ? 'text-red-500 fill-red-500' : 'text-white'} drop-shadow-lg`}
-              strokeWidth={likedReels.has(currentReel) ? 0 : 1.5}
-            />
-            <span className="text-white text-xs font-medium">
-              {formatNumber(reels[currentReel].likes + (likedReels.has(currentReel) ? 1 : 0))}
-            </span>
-          </button>
-
-          <button className="flex flex-col items-center space-y-1">
-            <MessageCircle size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
-            <span className="text-white text-xs font-medium">
-              {formatNumber(reels[currentReel].comments)}
-            </span>
-          </button>
-
-          <button className="flex flex-col items-center space-y-1">
-            <Send size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
-            <span className="text-white text-xs font-medium">
-              {formatNumber(reels[currentReel].shares)}
-            </span>
-          </button>
-
-          <MoreHorizontal size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
-
-          <button className="mt-4 w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-yellow-500 flex items-center justify-center border border-white">
-            <Music size={16} className="text-white" />
-          </button>
         </div>
       </div>
 
