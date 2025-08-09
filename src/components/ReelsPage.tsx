@@ -35,48 +35,171 @@ const ReelsPage = () => {
   const reels = [
     {
       id: 1,
-      title: 'Social Media Strategy Explained',
+      title: 'Latest Social Media Strategy',
       description:
-        'Learn how we create winning social media strategies that drive real results for our clients. Transform your business with proven digital marketing techniques that actually work! 🚀✨ #SocialMedia #Marketing #Strategy #DigitalMarketing #BusinessGrowth',
-      likes: 15420,
+        'Latest insights on social media marketing strategies that drive engagement and conversions. Watch how we transform brands through data-driven approaches! 🚀✨ #SocialMedia #Marketing #Strategy #DigitalMarketing #BusinessGrowth',
+      likes: 18420,
+      comments: 287,
+      shares: 142,
+      user: 'socialhive.agency',
+      avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      isFollowing: false,
+      audioTitle: 'Latest Trending Audio',
+      videoUrl: '/videos/47072fb1-0d9d-4b10-8e0b-347ecdeae27e.MP4'
+    },
+    {
+      id: 2,
+      title: 'Advanced Content Creation',
+      description:
+        'Advanced content creation techniques that convert viewers into customers. See our proven process in action! 🎬💡 #ContentCreation #BTS #Creative #VideoMarketing #ConversionOptimization',
+      likes: 16750,
       comments: 234,
+      shares: 98,
+      user: 'socialhive.agency',
+      avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      isFollowing: false,
+      audioTitle: 'Creative Process Mix',
+      videoUrl: '/videos/0715(3).mp4'
+    },
+    {
+      id: 3,
+      title: 'Client Transformation Story',
+      description:
+        'Amazing client transformation using our proven methodology. From struggling business to market leader in just months! 📈🎯 #Success #ROI #Results #BusinessGrowth #Transformation',
+      likes: 14890,
+      comments: 198,
+      shares: 76,
+      user: 'socialhive.agency',
+      avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      isFollowing: false,
+      audioTitle: 'Success Stories Audio',
+      videoUrl: '/videos/0710 (1).mp4'
+    },
+    {
+      id: 4,
+      title: 'Behind the Scenes Magic',
+      description:
+        'Behind the scenes of our creative process. Watch how we turn ideas into viral content that drives real business results! ✨🎥 #BTS #Creative #Process #ContentStrategy',
+      likes: 13240,
+      comments: 167,
+      shares: 54,
+      user: 'socialhive.agency',
+      avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      isFollowing: false,
+      audioTitle: 'Creative Vibes',
+      videoUrl: '/videos/0709(1).mp4'
+    },
+    {
+      id: 5,
+      title: 'Marketing Strategy Deep Dive',
+      description:
+        'Deep dive into our marketing strategies that have helped hundreds of businesses scale. Learn the secrets of successful campaigns! 🚀📊 #Marketing #Strategy #Growth #BusinessTips',
+      likes: 12670,
+      comments: 143,
+      shares: 67,
+      user: 'socialhive.agency',
+      avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      isFollowing: false,
+      audioTitle: 'Strategy Sessions',
+      videoUrl: '/videos/0703.mp4'
+    },
+    {
+      id: 6,
+      title: 'Creative Campaign Launch',
+      description:
+        'Launching a creative campaign that broke all engagement records. See the strategy and execution that made it possible! 🎯🔥 #Campaign #Creative #Launch #Engagement #Viral',
+      likes: 15430,
+      comments: 189,
       shares: 89,
       user: 'socialhive.agency',
       avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
       isFollowing: false,
-      audioTitle: 'Original Audio',
-      videoUrl:
-        'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+      audioTitle: 'Campaign Launch Mix',
+      videoUrl: '/videos/0630 (1)(3).mp4'
     },
     {
-      id: 2,
-      title: 'Content Creation Process',
+      id: 7,
+      title: 'Brand Storytelling Mastery',
       description:
-        'Behind the scenes of our content creation process - from concept to viral post. See how we craft engaging content that converts! 🎬💡 #ContentCreation #BTS #Creative #VideoMarketing',
-      likes: 12890,
-      comments: 187,
-      shares: 56,
+        'Mastering the art of brand storytelling through visual content. Transform your brand narrative into compelling stories! 📖✨ #Storytelling #Brand #Content #Narrative #Visual',
+      likes: 11890,
+      comments: 156,
+      shares: 78,
       user: 'socialhive.agency',
       avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
       isFollowing: false,
-      audioTitle: 'Trending Audio',
-      videoUrl:
-        'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
+      audioTitle: 'Storytelling Audio',
+      videoUrl: '/videos/0627 (1).mp4'
     },
     {
-      id: 3,
-      title: 'Client Success Story',
+      id: 8,
+      title: 'Digital Innovation Workshop',
       description:
-        'How we helped a local restaurant increase their sales by 300% in just 3 months through strategic social media marketing! 📈🍕 #Success #ROI #Results #RestaurantMarketing',
-      likes: 18750,
-      comments: 312,
-      shares: 145,
+        'Digital innovation workshop highlights. Discover cutting-edge techniques that are reshaping the marketing landscape! 💡🔬 #Innovation #Digital #Workshop #Tech #Future',
+      likes: 13560,
+      comments: 172,
+      shares: 95,
       user: 'socialhive.agency',
       avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
       isFollowing: false,
-      audioTitle: 'Success Stories Mix',
-      videoUrl:
-        'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
+      audioTitle: 'Innovation Sounds',
+      videoUrl: '/videos/0626(2).mp4'
+    },
+    {
+      id: 9,
+      title: 'Content Strategy Breakthrough',
+      description:
+        'Content strategy breakthrough session. Learn how we develop content that not only engages but converts at scale! 🎯📈 #Content #Strategy #Breakthrough #Conversion #Scale',
+      likes: 10420,
+      comments: 134,
+      shares: 62,
+      user: 'socialhive.agency',
+      avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      isFollowing: false,
+      audioTitle: 'Strategy Beats',
+      videoUrl: '/videos/0619 (2)(3).mp4'
+    },
+    {
+      id: 10,
+      title: 'Creative Process Unveiled',
+      description:
+        'Creative process unveiled - from brainstorming to final execution. See how great ideas become viral content! 🧠⚡ #Creative #Process #Brainstorming #Execution #Ideas',
+      likes: 9870,
+      comments: 118,
+      shares: 45,
+      user: 'socialhive.agency',
+      avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      isFollowing: false,
+      audioTitle: 'Creative Flow',
+      videoUrl: '/videos/0619 (2) (2).mp4'
+    },
+    {
+      id: 11,
+      title: 'Marketing Insights Session',
+      description:
+        'Marketing insights session revealing the trends and strategies shaping the future of digital marketing! 🔍📊 #Marketing #Insights #Trends #Future #Digital',
+      likes: 12340,
+      comments: 167,
+      shares: 83,
+      user: 'socialhive.agency',
+      avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      isFollowing: false,
+      audioTitle: 'Insights Mix',
+      videoUrl: '/videos/0617 (1)(3).MP4'
+    },
+    {
+      id: 12,
+      title: 'Foundation Building Strategy',
+      description:
+        'Foundation building strategy for long-term success. Learn the fundamentals that every successful business needs! 🏗️💪 #Foundation #Strategy #Success #Business #Fundamentals',
+      likes: 8960,
+      comments: 102,
+      shares: 38,
+      user: 'socialhive.agency',
+      avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      isFollowing: false,
+      audioTitle: 'Foundation Audio',
+      videoUrl: '/videos/0521.mp4'
     }
   ];
 
