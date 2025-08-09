@@ -532,16 +532,6 @@ const ReelsPage = () => {
         </div>
       </div>
 
-      {/* Bottom Navigation */}
-      <div className="h-14 bg-black border-t border-gray-800/50 flex items-center justify-around px-4 z-50">
-        <Home size={24} className="text-white" strokeWidth={1.5} />
-        <Search size={24} className="text-white" strokeWidth={1.5} />
-        <Plus size={24} className="text-white" strokeWidth={1.5} />
-        <div className="w-6 h-6 bg-white rounded flex items-center justify-center">
-          <Play size={16} className="text-black" fill="black" />
-        </div>
-        <User size={24} className="text-white" strokeWidth={1.5} />
-      </div>
     </div>
   );
 };
