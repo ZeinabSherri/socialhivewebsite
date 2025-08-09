@@ -14,142 +14,139 @@ const ExplorePage = () => {
   const projects = [
     {
       id: 1,
-      title: 'Restaurant Chain Campaign',
-      industry: 'Restaurants',
-      type: 'Post',
-      thumbnail: 'https://images.unsplash.com/photo-1517022812141-23620dba5c23',
-      description: 'Increased online orders by 300% for a local restaurant chain through targeted social media campaigns.',
-      results: '300% increase in online orders, 2.5M reach, 15% engagement rate',
-      client: 'Bella Vista Restaurants'
+      title: 'Latest Social Media Strategy',
+      industry: 'Strategy',
+      type: 'Reel',
+      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      videoUrl: '/videos/47072fb1-0d9d-4b10-8e0b-347ecdeae27e.MP4',
+      description: 'Latest insights on social media marketing strategies that drive engagement and conversions.',
+      results: '300% increase in engagement, 2.5M reach, 15% conversion rate',
+      client: 'SocialHive Agency'
     },
     {
       id: 2,
-      title: 'Beauty Brand Launch',
-      industry: 'Beauty',
+      title: 'Advanced Content Creation',
+      industry: 'Content',
       type: 'Reel',
-      thumbnail: 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7',
-      videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
-      description: 'Successfully launched a new beauty brand with viral content strategy.',
+      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      videoUrl: '/videos/0715(3).mp4',
+      description: 'Advanced content creation techniques that convert viewers into customers.',
       results: '5M+ views, 25K new followers, 180% sales increase',
-      client: 'Glow Beauty Co.'
+      client: 'SocialHive Agency'
     },
     {
       id: 3,
-      title: 'Medical Clinic Growth',
-      industry: 'Clinics',
-      type: 'Post',
-      thumbnail: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-      description: 'Helped a medical clinic establish trusted online presence and increase patient bookings.',
-      results: '400% increase in online bookings, 95% positive reviews',
-      client: 'HealthFirst Clinic'
+      title: 'Client Transformation Story',
+      industry: 'Success',
+      type: 'Reel',
+      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      videoUrl: '/videos/0710 (1).mp4',
+      description: 'Amazing client transformation using our proven methodology.',
+      results: '400% increase in ROI, 95% client satisfaction',
+      client: 'SocialHive Agency'
     },
     {
       id: 4,
-      title: 'E-commerce Success Story',
-      industry: 'E-Commerce',
-      type: 'Post',
-      thumbnail: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085',
-      description: 'Transformed an e-commerce store with data-driven marketing strategies.',
-      results: '250% ROI, 1.8M impressions, 12% conversion rate',
-      client: 'TechGadgets Pro'
+      title: 'Behind the Scenes Magic',
+      industry: 'Creative',
+      type: 'Reel',
+      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      videoUrl: '/videos/0709(1).mp4',
+      description: 'Behind the scenes of our creative process.',
+      results: '250% engagement boost, 1.8M impressions, 12% conversion rate',
+      client: 'SocialHive Agency'
     },
     {
       id: 5,
-      title: 'Real Estate Portfolio',
-      industry: 'Real Estate',
+      title: 'Marketing Strategy Deep Dive',
+      industry: 'Marketing',
       type: 'Reel',
-      thumbnail: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625',
-      videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
-      description: 'Generated quality leads for luxury real estate properties through premium content.',
+      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      videoUrl: '/videos/0703.mp4',
+      description: 'Deep dive into our marketing strategies that have helped hundreds of businesses scale.',
       results: '150 qualified leads, 85% lead quality score, $2M in sales',
-      client: 'Luxury Estates Group'
+      client: 'SocialHive Agency'
     },
     {
       id: 6,
-      title: 'Educational Platform Growth',
-      industry: 'Education',
-      type: 'Post',
-      thumbnail: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b',
-      description: 'Boosted enrollment for online education platform with engaging video content.',
+      title: 'Creative Campaign Launch',
+      industry: 'Campaign',
+      type: 'Reel',
+      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      videoUrl: '/videos/0630 (1)(3).mp4',
+      description: 'Launching a creative campaign that broke all engagement records.',
       results: '500% enrollment increase, 3.2M video views',
-      client: 'LearnTech Academy'
+      client: 'SocialHive Agency'
     },
     {
       id: 7,
-      title: 'Fashion Brand Viral',
-      industry: 'Fashion',
+      title: 'Brand Storytelling Mastery',
+      industry: 'Branding',
       type: 'Reel',
-      thumbnail: 'https://images.unsplash.com/photo-1445205170230-053b83016050',
-      videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
-      description: 'Created viral fashion content that boosted brand awareness.',
+      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      videoUrl: '/videos/0627 (1).mp4',
+      description: 'Mastering the art of brand storytelling through visual content.',
       results: '10M+ views, 50K new followers, 300% engagement',
-      client: 'Style Forward'
+      client: 'SocialHive Agency'
     },
     {
       id: 8,
-      title: 'Tech Startup Launch',
-      industry: 'Technology',
-      type: 'Post',
-      thumbnail: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c',
-      description: 'Launched a tech startup with strategic social media presence.',
+      title: 'Digital Innovation Workshop',
+      industry: 'Innovation',
+      type: 'Reel',
+      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      videoUrl: '/videos/0626(2).mp4',
+      description: 'Digital innovation workshop highlights.',
       results: '1M impressions, 500 sign-ups, 25% conversion',
-      client: 'InnovateTech'
+      client: 'SocialHive Agency'
     },
     {
       id: 9,
-      title: 'Fitness Studio Growth',
-      industry: 'Fitness',
+      title: 'Content Strategy Breakthrough',
+      industry: 'Strategy',
       type: 'Reel',
-      thumbnail: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b',
-      videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
-      description: 'Helped fitness studio double their membership through engaging reels.',
+      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      videoUrl: '/videos/0619 (2)(3).mp4',
+      description: 'Content strategy breakthrough session.',
       results: '200% membership increase, 3M reel views',
-      client: 'FitLife Studios'
+      client: 'SocialHive Agency'
     },
-    // New posts for industries that only had reels
     {
       id: 10,
-      title: 'Beauty Salon Campaign',
-      industry: 'Beauty',
-      type: 'Post',
-      thumbnail: 'https://images.unsplash.com/photo-1560066984-138dadb4c035',
-      description: 'Increased bookings for beauty salon through stunning before/after posts.',
+      title: 'Creative Process Unveiled',
+      industry: 'Creative',
+      type: 'Reel',
+      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      videoUrl: '/videos/0619 (2) (2).mp4',
+      description: 'Creative process unveiled - from brainstorming to final execution.',
       results: '400% booking increase, 150K impressions, 18% engagement rate',
-      client: 'Glamour Beauty Salon'
+      client: 'SocialHive Agency'
     },
     {
       id: 11,
-      title: 'Luxury Property Sales',
-      industry: 'Real Estate',
-      type: 'Post',
-      thumbnail: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9',
-      description: 'Sold luxury properties through high-quality photography and targeted ads.',
-      results: '$5M in property sales, 200 qualified leads, 75% conversion rate',
-      client: 'Elite Real Estate'
+      title: 'Marketing Insights Session',
+      industry: 'Marketing',
+      type: 'Reel',
+      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      videoUrl: '/videos/0617 (1)(3).MP4',
+      description: 'Marketing insights session revealing the trends and strategies.',
+      results: '$5M in revenue growth, 200 qualified leads, 75% conversion rate',
+      client: 'SocialHive Agency'
     },
     {
       id: 12,
-      title: 'Fashion Brand Growth',
-      industry: 'Fashion',
-      type: 'Post',
-      thumbnail: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8',
-      description: 'Built fashion brand awareness through styled photoshoots and influencer partnerships.',
+      title: 'Foundation Building Strategy',
+      industry: 'Foundation',
+      type: 'Reel',
+      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      videoUrl: '/videos/0521.mp4',
+      description: 'Foundation building strategy for long-term success.',
       results: '600% follower growth, $200K in sales, 22% engagement rate',
-      client: 'Urban Fashion Co.'
-    },
-    {
-      id: 13,
-      title: 'Fitness Center Marketing',
-      industry: 'Fitness',
-      type: 'Post',
-      thumbnail: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48',
-      description: 'Attracted new members through motivational content and success stories.',
-      results: '350% membership growth, 1.2M reach, 500 new sign-ups',
-      client: 'PowerFit Gym'
+      client: 'SocialHive Agency'
     }
   ];
 
-  const filters = ['Best results', 'Restaurants', 'Beauty', 'Clinics', 'E-Commerce', 'Real Estate', 'Education', 'Fashion', 'Technology', 'Fitness'];
+  const filters = ['Best results', 'Strategy', 'Content', 'Success', 'Creative', 'Marketing', 'Campaign', 'Branding', 'Innovation', 'Foundation'];
 
   const filteredProjects = activeFilter === 'Best results' 
     ? projects.filter(project => project.type === 'Reel')
