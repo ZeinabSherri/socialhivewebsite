@@ -78,8 +78,23 @@ const PostCard: React.FC<PostCardProps> = ({
     setLastTap(now)
   }
 
-  const toggleSound = (e: React.MouseEvent) => {
+  const toggleSound = async (e: React.MouseEvent) => {
     e.stopPropagation()
+    const videos = document.querySelectorAll('video')
+    videos.forEach(async (video) => {
+      if (videoMuted) {
+        // Unmuting - need to trigger play with sound
+        video.muted = false
+        try {
+          await video.play()
+        } catch (error) {
+          console.log('Video play failed:', error)
+        }
+      } else {
+        // Muting
+        video.muted = true
+      }
+    })
     setVideoMuted(m => !m)
   }
 
