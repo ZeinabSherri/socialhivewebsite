@@ -14,142 +14,50 @@ const ExplorePage = () => {
   const projects = [
     {
       id: 1,
-      title: 'Latest Social Media Strategy',
+      title: 'Brand Strategy Portfolio',
       industry: 'Strategy',
-      type: 'Reel',
-      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
-      videoUrl: '/videos/47072fb1-0d9d-4b10-8e0b-347ecdeae27e.MP4',
-      description: 'Latest insights on social media marketing strategies that drive engagement and conversions.',
-      results: '300% increase in engagement, 2.5M reach, 15% conversion rate',
+      type: 'Post',
+      thumbnail: '/images/IMG-20250728-WA0026.jpg',
+      description: 'Comprehensive brand strategy showcasing our methodology and results.',
+      results: '300% increase in brand awareness, 15% conversion rate',
       client: 'SocialHive Agency'
     },
     {
       id: 2,
-      title: 'Advanced Content Creation',
-      industry: 'Content',
-      type: 'Reel',
-      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
-      videoUrl: '/videos/0715(3).mp4',
-      description: 'Advanced content creation techniques that convert viewers into customers.',
-      results: '5M+ views, 25K new followers, 180% sales increase',
+      title: 'Creative Design Showcase',
+      industry: 'Creative',
+      type: 'Post',
+      thumbnail: '/images/IMG-20250728-WA0027.jpg',
+      description: 'Creative design portfolio highlighting our visual storytelling capabilities.',
+      results: '250% engagement boost, 1.8M impressions',
       client: 'SocialHive Agency'
     },
     {
       id: 3,
-      title: 'Client Transformation Story',
-      industry: 'Success',
-      type: 'Reel',
-      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
-      videoUrl: '/videos/0710 (1).mp4',
-      description: 'Amazing client transformation using our proven methodology.',
-      results: '400% increase in ROI, 95% client satisfaction',
+      title: 'Marketing Success Story',
+      industry: 'Marketing',
+      type: 'Post',
+      thumbnail: '/images/IMG-20250728-WA0028.jpg',
+      description: 'Marketing campaign that delivered exceptional results for our client.',
+      results: '150 qualified leads, 85% lead quality score',
       client: 'SocialHive Agency'
     },
     {
       id: 4,
-      title: 'Behind the Scenes Magic',
-      industry: 'Creative',
-      type: 'Reel',
-      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
-      videoUrl: '/videos/0709(1).mp4',
-      description: 'Behind the scenes of our creative process.',
-      results: '250% engagement boost, 1.8M impressions, 12% conversion rate',
-      client: 'SocialHive Agency'
-    },
-    {
-      id: 5,
-      title: 'Marketing Strategy Deep Dive',
-      industry: 'Marketing',
-      type: 'Reel',
-      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
-      videoUrl: '/videos/0703.mp4',
-      description: 'Deep dive into our marketing strategies that have helped hundreds of businesses scale.',
-      results: '150 qualified leads, 85% lead quality score, $2M in sales',
-      client: 'SocialHive Agency'
-    },
-    {
-      id: 6,
-      title: 'Creative Campaign Launch',
-      industry: 'Campaign',
-      type: 'Reel',
-      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
-      videoUrl: '/videos/0630 (1)(3).mp4',
-      description: 'Launching a creative campaign that broke all engagement records.',
-      results: '500% enrollment increase, 3.2M video views',
-      client: 'SocialHive Agency'
-    },
-    {
-      id: 7,
-      title: 'Brand Storytelling Mastery',
-      industry: 'Branding',
-      type: 'Reel',
-      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
-      videoUrl: '/videos/0627 (1).mp4',
-      description: 'Mastering the art of brand storytelling through visual content.',
-      results: '10M+ views, 50K new followers, 300% engagement',
-      client: 'SocialHive Agency'
-    },
-    {
-      id: 8,
-      title: 'Digital Innovation Workshop',
+      title: 'Digital Innovation Case Study',
       industry: 'Innovation',
-      type: 'Reel',
-      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
-      videoUrl: '/videos/0626(2).mp4',
-      description: 'Digital innovation workshop highlights.',
+      type: 'Post',
+      thumbnail: '/images/IMG-20250728-WA0029.jpg',
+      description: 'Innovation in digital marketing strategies and implementation.',
       results: '1M impressions, 500 sign-ups, 25% conversion',
-      client: 'SocialHive Agency'
-    },
-    {
-      id: 9,
-      title: 'Content Strategy Breakthrough',
-      industry: 'Strategy',
-      type: 'Reel',
-      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
-      videoUrl: '/videos/0619 (2)(3).mp4',
-      description: 'Content strategy breakthrough session.',
-      results: '200% membership increase, 3M reel views',
-      client: 'SocialHive Agency'
-    },
-    {
-      id: 10,
-      title: 'Creative Process Unveiled',
-      industry: 'Creative',
-      type: 'Reel',
-      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
-      videoUrl: '/videos/0619 (2) (2).mp4',
-      description: 'Creative process unveiled - from brainstorming to final execution.',
-      results: '400% booking increase, 150K impressions, 18% engagement rate',
-      client: 'SocialHive Agency'
-    },
-    {
-      id: 11,
-      title: 'Marketing Insights Session',
-      industry: 'Marketing',
-      type: 'Reel',
-      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
-      videoUrl: '/videos/0617 (1)(3).MP4',
-      description: 'Marketing insights session revealing the trends and strategies.',
-      results: '$5M in revenue growth, 200 qualified leads, 75% conversion rate',
-      client: 'SocialHive Agency'
-    },
-    {
-      id: 12,
-      title: 'Foundation Building Strategy',
-      industry: 'Foundation',
-      type: 'Reel',
-      thumbnail: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
-      videoUrl: '/videos/0521.mp4',
-      description: 'Foundation building strategy for long-term success.',
-      results: '600% follower growth, $200K in sales, 22% engagement rate',
       client: 'SocialHive Agency'
     }
   ];
 
-  const filters = ['Best results', 'Strategy', 'Content', 'Success', 'Creative', 'Marketing', 'Campaign', 'Branding', 'Innovation', 'Foundation'];
+  const filters = ['Best results', 'Strategy', 'Creative', 'Marketing', 'Innovation'];
 
   const filteredProjects = activeFilter === 'Best results' 
-    ? projects.filter(project => project.type === 'Reel')
+    ? projects
     : projects.filter(project => project.industry === activeFilter);
 
   const reels = filteredProjects.filter(project => project.type === 'Reel');
@@ -203,49 +111,6 @@ const ExplorePage = () => {
   }, [filteredProjects]);
 
   const renderGridItem = (project: any, index: number) => {
-    const isReel = project.type === 'Reel';
-    
-    if (isReel) {
-      return (
-      <div
-        key={project.id}
-        onClick={() => handleProjectClick(project)}
-        className="aspect-[9/16] bg-gray-900 cursor-pointer hover:opacity-80 transition-opacity relative group overflow-hidden rounded-sm"
-      >
-          <video
-            ref={(el) => (videoRefs.current[project.id] = el)}
-            src={project.videoUrl}
-            poster={project.thumbnail}
-            className="w-full h-full object-cover"
-            loop
-            muted
-            playsInline
-          />
-          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
-            <div className="absolute top-2 left-2">
-              <Play size={16} className="text-white" fill="white" />
-            </div>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleMute(project.id);
-              }}
-              className="absolute top-2 right-2 bg-black bg-opacity-50 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              {mutedVideos.has(project.id) ? (
-                <VolumeX size={16} className="text-white" />
-              ) : (
-                <Volume2 size={16} className="text-white" />
-              )}
-            </button>
-            <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-50 px-2 py-1 rounded">
-              {project.type}
-            </span>
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div
         key={project.id}
