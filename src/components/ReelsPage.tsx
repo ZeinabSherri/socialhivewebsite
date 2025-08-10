@@ -31,7 +31,11 @@ const ReelsPage = () => {
   const isNavigatingRef = useRef(false);
   const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const tapCountRef = useRef(0);
-  const pressStateRef = useRef<{ isPressed: boolean; wasPlaying: boolean }>({ isPressed: false, wasPlaying: false });
+  const pressStateRef = useRef<{
+    isPressed: boolean;
+    wasPlaying: boolean;
+    holdTimeout?: ReturnType<typeof setTimeout>;
+  }>({ isPressed: false, wasPlaying: false });
 
   const reels = [
     {
@@ -175,26 +179,36 @@ const ReelsPage = () => {
   const handlePressStart = (e: React.PointerEvent | React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const vid = videoRefs.current[currentReel];
     if (!vid || pressStateRef.current.isPressed) return;
-    
+
     pressStateRef.current.isPressed = true;
     pressStateRef.current.wasPlaying = !vid.paused;
-    vid.pause();
+
+    // Only pause if held for 300ms
+    pressStateRef.current.holdTimeout = setTimeout(() => {
+      if (pressStateRef.current.isPressed) vid.pause();
+    }, 300);
   };
 
   const handlePressEnd = (e: React.PointerEvent | React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const vid = videoRefs.current[currentReel];
-    if (!vid || !pressStateRef.current.isPressed) return;
-    
-    pressStateRef.current.isPressed = false;
-    if (pressStateRef.current.wasPlaying) {
-      vid.play().catch(console.error);
+    if (!vid) return;
+
+    // Cancel pending long-press pause
+    if (pressStateRef.current.holdTimeout) {
+      clearTimeout(pressStateRef.current.holdTimeout);
+      pressStateRef.current.holdTimeout = undefined;
     }
+
+    const shouldResume = pressStateRef.current.isPressed && pressStateRef.current.wasPlaying;
+    pressStateRef.current.isPressed = false;
+
+    if (shouldResume) vid.play().catch(console.error);
   };
 
   const handleVideoClick = (e: React.MouseEvent | React.TouchEvent) => {
@@ -222,28 +236,40 @@ const ReelsPage = () => {
     }, 250);
   };
 
+  // A) Handle reel change / play state (NO isMuted here)
   useEffect(() => {
     const vid = videoRefs.current[currentReel];
     if (!vid) return;
-    vid.currentTime = 0;
-    vid.muted = isMuted;
+
+    // start current reel
     setProgress(0);
     if (isPlaying) vid.play().catch(console.error);
+
+    // pause + reset others
     videoRefs.current.forEach((v, i) => {
       if (v && i !== currentReel) {
         v.pause();
         v.currentTime = 0;
       }
     });
+
     if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
     progressIntervalRef.current = setInterval(updateProgress, 100);
+
     const onEnded = () => navigateToReel(currentReel + 1);
     vid.addEventListener('ended', onEnded);
+
     return () => {
-      vid.removeEventListener('ended', onEnded);
+      vid?.removeEventListener('ended', onEnded);
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
     };
-  }, [currentReel, isPlaying, isMuted, navigateToReel, updateProgress]);
+  }, [currentReel, isPlaying, navigateToReel, updateProgress]);
+
+  // B) Mute state only (NO reset, NO playtime change)
+  useEffect(() => {
+    const vid = videoRefs.current[currentReel];
+    if (vid) vid.muted = isMuted;
+  }, [isMuted, currentReel]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
