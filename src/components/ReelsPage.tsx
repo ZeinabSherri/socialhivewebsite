@@ -444,13 +444,18 @@ const ReelsPage = () => {
 
       {/* Desktop Layout */}
       <div className="hidden lg:block bg-black min-h-screen">
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="relative w-[420px] h-[min(86vh,900px)] aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl">
-            {reels.map((reel, idx) => (
-              <div
-                key={reel.id}
-                className={`absolute inset-0 bg-black ${idx === currentReel ? 'block' : 'hidden'}`}
-              >
+        <div
+          ref={containerRef}
+          className="h-screen overflow-y-auto scrollbar-hidden"
+          style={{ scrollSnapType: 'y mandatory', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {reels.map((reel, idx) => (
+            <section
+              key={reel.id}
+              className="min-h-screen flex items-center justify-center"
+              style={{ scrollSnapAlign: 'center', scrollSnapStop: 'always' }}
+            >
+              <div className="relative w-[420px] h-[min(86vh,900px)] aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl bg-black">
                 {/* Video */}
                 <video
                   ref={el => (videoRefs.current[idx] = el)}
@@ -472,31 +477,56 @@ const ReelsPage = () => {
                   <source src={reel.videoUrl} type="video/mp4" />
                 </video>
 
-                {/* Mute Icon Animation - center overlay for current reel */}
+                {/* Mute Icon Animation */}
                 {idx === currentReel && muteIconAnimation?.show && (
                   <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
                     <div className="bg-black/60 rounded-full p-4 animate-fade-in">
-                      {isMuted ? (
-                        <VolumeX size={48} className="text-white" />
-                      ) : (
-                        <Volume2 size={48} className="text-white" />
-                      )}
+                      {isMuted ? <VolumeX size={48} className="text-white" /> : <Volume2 size={48} className="text-white" />}
                     </div>
                   </div>
                 )}
 
-                {/* Heart Animation - center overlay for current reel */}
+                {/* Heart Animation */}
                 {idx === currentReel && heartAnimation?.show && (
                   <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
-                    <Heart
-                      size={80}
-                      className="text-red-500 fill-red-500 drop-shadow-lg animate-scale-in"
-                      strokeWidth={0}
-                    />
+                    <Heart size={80} className="text-red-500 fill-red-500 drop-shadow-lg animate-scale-in" strokeWidth={0} />
                   </div>
                 )}
 
-                {/* Profile & Caption Overlay */}
+                {/* Right-side Actions (overlay, same as mobile) */}
+                <div className="absolute right-3 bottom-24 flex flex-col space-y-6 z-20 pointer-events-auto">
+                  <button
+                    onClick={e => { e.stopPropagation(); toggleLike(idx); }}
+                    className="flex flex-col items-center space-y-1"
+                  >
+                    <Heart
+                      size={28}
+                      className={`${likedReels.has(idx) ? 'text-red-500 fill-red-500' : 'text-white'} drop-shadow-lg`}
+                      strokeWidth={likedReels.has(idx) ? 0 : 1.5}
+                    />
+                    <span className="text-white text-xs font-medium drop-shadow-lg">
+                      {formatNumber(reel.likes + (likedReels.has(idx) ? 1 : 0))}
+                    </span>
+                  </button>
+
+                  <button className="flex flex-col items-center space-y-1">
+                    <MessageCircle size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
+                    <span className="text-white text-xs font-medium drop-shadow-lg">{formatNumber(reel.comments)}</span>
+                  </button>
+
+                  <button className="flex flex-col items-center space-y-1">
+                    <Send size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
+                    <span className="text-white text-xs font-medium drop-shadow-lg">{formatNumber(reel.shares)}</span>
+                  </button>
+
+                  <MoreHorizontal size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
+
+                  <button className="mt-4 w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-yellow-500 flex items-center justify-center border border-white">
+                    <Music size={16} className="text-white" />
+                  </button>
+                </div>
+
+                {/* Profile & Caption Overlay (unchanged) */}
                 <div className="absolute bottom-6 left-4 right-4 z-20 pt-8">
                   <div className="flex items-center space-x-3 mb-2">
                     <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30">
@@ -517,64 +547,17 @@ const ReelsPage = () => {
 
                   <div className="flex items-center space-x-2 pb-2">
                     <Music size={12} className="text-white" />
-                    <span className="text-white text-xs">
-                      {reel.user} • {reel.audioTitle}
-                    </span>
+                    <span className="text-white text-xs">{reel.user} • {reel.audioTitle}</span>
                   </div>
                 </div>
 
                 {/* Progress Bar */}
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-30">
-                  <div
-                    className="h-full bg-white transition-all ease-linear"
-                    style={{
-                      width: `${idx === currentReel ? progress : 0}%`
-                    }}
-                  />
+                  <div className="h-full bg-white transition-all ease-linear" style={{ width: `${idx === currentReel ? progress : 0}%` }} />
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* Desktop Right Side Actions */}
-          <div className="absolute right-[-80px] top-1/2 transform -translate-y-1/2 flex flex-col space-y-6 z-20">
-            <button
-              onClick={e => {
-                e.stopPropagation();
-                toggleLike(currentReel);
-              }}
-              className="flex flex-col items-center space-y-1"
-            >
-              <Heart
-                size={28}
-                className={`${likedReels.has(currentReel) ? 'text-red-500 fill-red-500' : 'text-white'} drop-shadow-lg`}
-                strokeWidth={likedReels.has(currentReel) ? 0 : 1.5}
-              />
-              <span className="text-white text-xs font-medium drop-shadow-lg">
-                {formatNumber(reels[currentReel].likes + (likedReels.has(currentReel) ? 1 : 0))}
-              </span>
-            </button>
-
-            <button className="flex flex-col items-center space-y-1">
-              <MessageCircle size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
-              <span className="text-white text-xs font-medium drop-shadow-lg">
-                {formatNumber(reels[currentReel].comments)}
-              </span>
-            </button>
-
-            <button className="flex flex-col items-center space-y-1">
-              <Send size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
-              <span className="text-white text-xs font-medium drop-shadow-lg">
-                {formatNumber(reels[currentReel].shares)}
-              </span>
-            </button>
-
-            <MoreHorizontal size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
-
-            <button className="mt-4 w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-yellow-500 flex items-center justify-center border border-white">
-              <Music size={16} className="text-white" />
-            </button>
-          </div>
+            </section>
+          ))}
         </div>
       </div>
     </>
