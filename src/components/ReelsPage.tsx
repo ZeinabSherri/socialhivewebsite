@@ -329,22 +329,24 @@ const ReelsPage = () => {
             height: 'calc(100vh - 44px)',
             scrollSnapType: 'y mandatory',
             scrollbarWidth: 'none',
-            msOverflowStyle: 'none'
+            msOverflowStyle: 'none',
+            WebkitOverflowScrolling: 'touch'
           }}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
           <div className="relative">
             {reels.map((reel, idx) => (
-              <div
+              <section
                 key={reel.id}
-                className="relative bg-black flex-shrink-0 h-full"
+                className="relative bg-black flex-shrink-0 min-h-[calc(100vh-44px)]"
                 style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
               >
                 {/* Video */}
                 <video
                   ref={el => (videoRefs.current[idx] = el)}
-                  className="w-full h-full object-cover cursor-pointer"
+                  className="w-full h-full object-cover cursor-pointer block"
+                  style={{ WebkitTransform: 'translateZ(0)' }}
                   loop
                   muted
                   playsInline
@@ -387,7 +389,7 @@ const ReelsPage = () => {
               )}
 
                 {/* Right Side Actions */}
-                <div className="absolute right-3 bottom-24 flex flex-col space-y-6 z-20">
+                <div className="absolute right-3 bottom-24 flex flex-col space-y-6 z-20 pointer-events-auto">
                 <button
                   onClick={e => {
                     e.stopPropagation();
@@ -462,7 +464,7 @@ const ReelsPage = () => {
                     }}
                   />
                 </div>
-              </div>
+              </section>
             ))}
           </div>
         </div>
