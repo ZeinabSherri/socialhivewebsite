@@ -324,10 +324,9 @@ const ReelsPage = () => {
         {/* Mobile Scrollable Reels Area */}
         <div
           ref={containerRef}
-          className="relative w-full overflow-y-auto scrollbar-hidden"
+          className="relative w-full overflow-y-auto scrollbar-hidden overscroll-contain snap-y snap-mandatory"
           style={{
-            height: 'calc(100vh - 44px)',
-            scrollSnapType: 'y mandatory',
+            height: 'calc(100dvh - 44px)',
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
             WebkitOverflowScrolling: 'touch'
@@ -335,34 +334,33 @@ const ReelsPage = () => {
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          <div className="relative">
-            {reels.map((reel, idx) => (
-              <section
-                key={reel.id}
-                className="relative bg-black flex-shrink-0 min-h-[calc(100vh-44px)]"
-                style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
+          {reels.map((reel, idx) => (
+            <section
+              key={reel.id}
+              className="relative bg-black h-[calc(100dvh-44px)] w-full flex items-center justify-center snap-start"
+              style={{ scrollSnapStop: 'always' }}
+            >
+              {/* Video */}
+              <video
+                ref={el => (videoRefs.current[idx] = el)}
+                className="block w-full h-full object-cover cursor-pointer"
+                style={{ WebkitTransform: 'translateZ(0)' }}
+                loop
+                muted
+                playsInline
+                preload="metadata"
+                onClick={handleVideoClick}
+                onPointerDown={handlePressStart}
+                onPointerUp={handlePressEnd}
+                onPointerLeave={handlePressEnd}
+                onMouseDown={handlePressStart}
+                onMouseUp={handlePressEnd}
+                onMouseLeave={handlePressEnd}
+                onTouchStart={handlePressStart}
+                onTouchEnd={handlePressEnd}
               >
-                {/* Video */}
-                <video
-                  ref={el => (videoRefs.current[idx] = el)}
-                  className="w-full h-full object-cover cursor-pointer block"
-                  style={{ WebkitTransform: 'translateZ(0)' }}
-                  loop
-                  muted
-                  playsInline
-                  preload="metadata"
-                  onClick={handleVideoClick}
-                  onPointerDown={handlePressStart}
-                  onPointerUp={handlePressEnd}
-                  onPointerLeave={handlePressEnd}
-                  onMouseDown={handlePressStart}
-                  onMouseUp={handlePressEnd}
-                  onMouseLeave={handlePressEnd}
-                  onTouchStart={handlePressStart}
-                  onTouchEnd={handlePressEnd}
-                >
-                  <source src={reel.videoUrl} type="video/mp4" />
-                </video>
+                <source src={reel.videoUrl} type="video/mp4" />
+              </video>
 
               {/* Mute Icon Animation - center overlay for current reel */}
               {idx === currentReel && muteIconAnimation?.show && (
@@ -466,7 +464,6 @@ const ReelsPage = () => {
                 </div>
               </section>
             ))}
-          </div>
         </div>
       </div>
 
