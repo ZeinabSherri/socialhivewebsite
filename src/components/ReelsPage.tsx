@@ -50,7 +50,7 @@ const ReelsPage = () => {
       avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
       isFollowing: false,
       audioTitle: 'Latest Trending Audio',
-      videoUrl: '/videos/47072fb1-0d9d-4b10-8e0b-347ecdeae27e.MP4'
+      videoUrl: '/videos/0521.mp4'
     },
     {
       id: 2,
@@ -64,7 +64,7 @@ const ReelsPage = () => {
       avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
       isFollowing: false,
       audioTitle: 'Creative Process Mix',
-      videoUrl: '/videos/0715(3).mp4'
+      videoUrl: '/videos/0703.mp4'
     }
   ];
 
