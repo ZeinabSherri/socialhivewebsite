@@ -108,7 +108,7 @@ const ReelsPage = () => {
 
     // Get viewport height with fallback
     const viewportHeight = (window as any).visualViewport?.height || window.innerHeight;
-    const headerHeight = header.offsetHeight;
+    const headerHeight = header.getBoundingClientRect().height;
     const calculatedHeight = viewportHeight - headerHeight;
     
     setReelViewportHeight(calculatedHeight);
@@ -307,8 +307,11 @@ const ReelsPage = () => {
     const handleOrientationChange = () => {
       setTimeout(() => calculateReelHeight(), 100);
     };
+    const handlePageShow = () => calculateReelHeight();
     
     // Add event listeners
+    window.addEventListener('load', handleResize);
+    window.addEventListener('pageshow', handlePageShow);
     window.addEventListener('resize', handleResize);
     window.addEventListener('orientationchange', handleOrientationChange);
     
@@ -318,6 +321,8 @@ const ReelsPage = () => {
     }
     
     return () => {
+      window.removeEventListener('load', handleResize);
+      window.removeEventListener('pageshow', handlePageShow);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', handleOrientationChange);
       if ((window as any).visualViewport) {
@@ -402,12 +407,10 @@ const ReelsPage = () => {
               {/* Video */}
               <video
                 ref={el => (videoRefs.current[idx] = el)}
-                className="w-full h-full cursor-pointer"
+                className="absolute inset-0 w-full h-full object-cover cursor-pointer"
                 style={{ 
                   WebkitTransform: 'translateZ(0)',
-                  objectFit: 'fill',
-                  width: '100%',
-                  height: '100%'
+                  objectPosition: 'center center'
                 }}
                 loop
                 muted
