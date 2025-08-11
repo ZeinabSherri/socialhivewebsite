@@ -26,6 +26,7 @@ const ReelsPage = () => {
   const [muteIconAnimation, setMuteIconAnimation] = useState<{ show: boolean } | null>(null);
   const [heartAnimation, setHeartAnimation] = useState<{ show: boolean } | null>(null);
   const [reelViewportHeight, setReelViewportHeight] = useState(0);
+  const [bottomNavHeight, setBottomNavHeight] = useState(0);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -106,12 +107,20 @@ const ReelsPage = () => {
     const header = headerRef.current;
     if (!header) return;
 
+    // Measure bottom navigation bar
+    const bottomNav = document.querySelector('nav[class*="fixed bottom-0"]') as HTMLElement;
+    const bottomNavHeight = bottomNav ? bottomNav.getBoundingClientRect().height : 64; // fallback 64px
+    setBottomNavHeight(bottomNavHeight);
+
     // Get viewport height with fallback
     const viewportHeight = (window as any).visualViewport?.height || window.innerHeight;
     const headerHeight = header.getBoundingClientRect().height;
-    const calculatedHeight = viewportHeight - headerHeight;
+    const safeBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-b').replace('px', '')) || 0;
     
-    setReelViewportHeight(calculatedHeight);
+    // Calculate: visibleH - headerHeight - bottomNavHeight - safeBottom
+    const calculatedHeight = viewportHeight - headerHeight - bottomNavHeight - safeBottom;
+    
+    setReelViewportHeight(Math.max(calculatedHeight, 200)); // minimum 200px
   }, []);
 
   const navigateToReel = useCallback(
@@ -457,7 +466,7 @@ const ReelsPage = () => {
               <div
                 className="absolute right-3 flex flex-col space-y-5 z-20 pointer-events-auto"
                 style={{ 
-                  bottom: `calc(var(--safe-b) + 120px)`,
+                  bottom: `${bottomNavHeight + 96}px`,
                   transform: 'translateY(-50%)',
                   top: '50%'
                 }}
@@ -503,7 +512,7 @@ const ReelsPage = () => {
               {/* Profile & Caption Overlay */}
               <div
                 className="absolute left-4 right-20 z-20"
-                style={{ bottom: `calc(var(--safe-b) + 20px)` }}
+                style={{ bottom: `${bottomNavHeight + 16}px` }}
               >
                 <div className="flex items-center space-x-3 mb-2">
                   <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30">
@@ -535,7 +544,7 @@ const ReelsPage = () => {
               {/* Progress Bar */}
               <div
                 className="absolute left-0 right-0 h-1 bg-white/20 z-30"
-                style={{ bottom: 'var(--safe-b)' }}
+                style={{ bottom: `${bottomNavHeight}px` }}
               >
                 <div
                   className="h-full bg-white transition-all ease-linear"
