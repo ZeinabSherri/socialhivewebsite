@@ -25,8 +25,10 @@ const ReelsPage = () => {
   const [isMuted, setIsMuted] = useState(true);
   const [muteIconAnimation, setMuteIconAnimation] = useState<{ show: boolean } | null>(null);
   const [heartAnimation, setHeartAnimation] = useState<{ show: boolean } | null>(null);
+  const [reelViewportHeight, setReelViewportHeight] = useState(0);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isNavigatingRef = useRef(false);
   const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -99,6 +101,19 @@ const ReelsPage = () => {
     return words.slice(0, 15).join(' ') + '...';
   };
 
+  // Runtime viewport height calculation
+  const calculateReelHeight = useCallback(() => {
+    const header = headerRef.current;
+    if (!header) return;
+
+    // Get viewport height with fallback
+    const viewportHeight = (window as any).visualViewport?.height || window.innerHeight;
+    const headerHeight = header.offsetHeight;
+    const calculatedHeight = viewportHeight - headerHeight;
+    
+    setReelViewportHeight(calculatedHeight);
+  }, []);
+
   const navigateToReel = useCallback(
     (newIndex: number) => {
       if (isNavigatingRef.current) return;
@@ -109,15 +124,15 @@ const ReelsPage = () => {
       setCurrentReel(target);
       setProgress(0);
       const c = containerRef.current;
-      if (c) {
+      if (c && reelViewportHeight > 0) {
         c.scrollTo({
-          top: target * c.clientHeight,
+          top: target * reelViewportHeight,
           behavior: 'smooth'
         });
       }
       setTimeout(() => (isNavigatingRef.current = false), 300);
     },
-    [reels.length]
+    [reels.length, reelViewportHeight]
   );
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -284,17 +299,43 @@ const ReelsPage = () => {
     return () => window.removeEventListener('keydown', onKey);
   }, [currentReel, navigateToReel]);
 
+  // Runtime height calculation and viewport event listeners
+  useEffect(() => {
+    calculateReelHeight();
+    
+    const handleResize = () => calculateReelHeight();
+    const handleOrientationChange = () => {
+      setTimeout(() => calculateReelHeight(), 100);
+    };
+    
+    // Add event listeners
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleOrientationChange);
+    
+    // Visual Viewport API for better mobile support
+    if ((window as any).visualViewport) {
+      (window as any).visualViewport.addEventListener('resize', handleResize);
+    }
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleOrientationChange);
+      if ((window as any).visualViewport) {
+        (window as any).visualViewport.removeEventListener('resize', handleResize);
+      }
+    };
+  }, [calculateReelHeight]);
+
   // Auto-play videos when scrolling into view
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container || reelViewportHeight === 0) return;
 
     const handleScroll = () => {
       if (isNavigatingRef.current) return;
       
-      const containerHeight = container.clientHeight;
       const scrollTop = container.scrollTop;
-      const newIndex = Math.round(scrollTop / containerHeight);
+      const newIndex = Math.round(scrollTop / reelViewportHeight);
       
       if (newIndex !== currentReel && newIndex >= 0 && newIndex < reels.length) {
         setCurrentReel(newIndex);
@@ -304,7 +345,7 @@ const ReelsPage = () => {
 
     container.addEventListener('scroll', handleScroll, { passive: true });
     return () => container.removeEventListener('scroll', handleScroll);
-  }, [currentReel, reels.length]);
+  }, [currentReel, reels.length, reelViewportHeight]);
 
   return (
     <>
@@ -318,6 +359,7 @@ const ReelsPage = () => {
       <div className="lg:hidden w-screen bg-black overflow-hidden fixed inset-0 flex flex-col">
         {/* Header */}
         <div 
+          ref={headerRef}
           className="bg-black flex items-center justify-between px-4 z-50 border-b border-gray-800"
           style={{ 
             height: 'calc(44px + var(--safe-t))', 
@@ -338,8 +380,9 @@ const ReelsPage = () => {
         {/* Mobile Scrollable Reels Area */}
         <div
           ref={containerRef}
-          className="relative w-full overflow-y-auto scrollbar-hidden overscroll-contain snap-y snap-mandatory flex-1"
+          className="relative w-full overflow-y-auto scrollbar-hidden overscroll-contain snap-y snap-mandatory"
           style={{
+            height: reelViewportHeight > 0 ? `${reelViewportHeight}px` : '100%',
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
             WebkitOverflowScrolling: 'touch'
@@ -350,9 +393,9 @@ const ReelsPage = () => {
           {reels.map((reel, idx) => (
             <section
               key={reel.id}
-              className="relative bg-black w-full flex items-center justify-center snap-start snap-always"
+              className="relative bg-black w-full snap-start snap-always"
               style={{ 
-                height: 'calc(100svh - 44px - var(--safe-t))',
+                height: reelViewportHeight > 0 ? `${reelViewportHeight}px` : '100vh',
                 scrollSnapStop: 'always' 
               }}
             >
