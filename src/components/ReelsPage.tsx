@@ -387,7 +387,10 @@ const ReelsPage = () => {
               )}
 
                 {/* Right Side Actions */}
-                <div className="absolute right-3 bottom-24 flex flex-col space-y-6 z-20 pointer-events-auto">
+                <div
+                  className="absolute right-3 flex flex-col space-y-6 z-20 pointer-events-auto"
+                  style={{ bottom: 'calc(env(safe-area-inset-bottom) + 96px)' }}
+                >
                 <button
                   onClick={e => {
                     e.stopPropagation();
@@ -427,7 +430,10 @@ const ReelsPage = () => {
               </div>
 
                 {/* Profile & Caption Overlay */}
-                <div className="absolute bottom-6 left-4 right-20 z-20 pt-8">
+                <div
+                  className="absolute left-4 right-20 z-20 pt-8"
+                  style={{ bottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}
+                >
                 <div className="flex items-center space-x-3 mb-2">
                   <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30">
                     <img src={reel.avatar} alt="" className="w-full h-full object-cover" />
@@ -436,7 +442,7 @@ const ReelsPage = () => {
                   <span className="text-white text-sm font-semibold">• Follow</span>
                 </div>
 
-                <p className="text-white text-sm leading-5 max-w-xs mb-2">
+                <p className="text-white text-sm leading-5 max-w-xs mb-2 max-h-24 overflow-y-auto pr-2">
                   {truncateText(reel.description, expandedCaptions.has(idx))}
                   {reel.description.split(' ').length > 15 && (
                     <button onClick={() => toggleCaption(idx)} className="text-gray-300 ml-1 font-medium">
@@ -454,7 +460,10 @@ const ReelsPage = () => {
               </div>
 
                 {/* Progress Bar */}
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-30">
+                <div
+                  className="absolute left-0 right-0 h-1 bg-white/20 z-30"
+                  style={{ bottom: 'env(safe-area-inset-bottom)' }}
+                >
                   <div
                     className="h-full bg-white transition-all ease-linear"
                     style={{
