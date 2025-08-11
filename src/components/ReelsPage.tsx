@@ -405,11 +405,15 @@ const ReelsPage = () => {
                 </div>
               )}
 
-                {/* Right Side Actions */}
-                 <div
-                   className="absolute right-3 flex flex-col space-y-6 z-20 pointer-events-auto"
-                   style={{ bottom: 'max(96px, calc(var(--safe-b) + 96px))' }}
-                 >
+              {/* Right Side Actions */}
+              <div
+                className="absolute right-3 flex flex-col space-y-5 z-20 pointer-events-auto"
+                style={{ 
+                  bottom: `calc(var(--safe-b) + 120px)`,
+                  transform: 'translateY(-50%)',
+                  top: '50%'
+                }}
+              >
                 <button
                   onClick={e => {
                     e.stopPropagation();
@@ -443,16 +447,16 @@ const ReelsPage = () => {
 
                 <MoreHorizontal size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
 
-                <button className="mt-4 w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-yellow-500 flex items-center justify-center border border-white">
+                <button className="mt-2 w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-yellow-500 flex items-center justify-center border border-white">
                   <Music size={16} className="text-white" />
                 </button>
               </div>
 
-                {/* Profile & Caption Overlay */}
-                 <div
-                   className="absolute left-4 right-20 z-20 pt-8"
-                   style={{ bottom: 'max(16px, calc(var(--safe-b) + 16px))' }}
-                 >
+              {/* Profile & Caption Overlay */}
+              <div
+                className="absolute left-4 right-20 z-20"
+                style={{ bottom: `calc(var(--safe-b) + 20px)` }}
+              >
                 <div className="flex items-center space-x-3 mb-2">
                   <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30">
                     <img src={reel.avatar} alt="" className="w-full h-full object-cover" />
@@ -461,16 +465,18 @@ const ReelsPage = () => {
                   <span className="text-white text-sm font-semibold">• Follow</span>
                 </div>
 
-                <p className="text-white text-sm leading-5 max-w-xs mb-2 max-h-24 overflow-y-auto pr-2">
-                  {truncateText(reel.description, expandedCaptions.has(idx))}
-                  {reel.description.split(' ').length > 15 && (
-                    <button onClick={() => toggleCaption(idx)} className="text-gray-300 ml-1 font-medium">
-                      {expandedCaptions.has(idx) ? 'less' : 'more'}
-                    </button>
-                  )}
-                </p>
+                <div className={`${expandedCaptions.has(idx) ? 'max-h-32 overflow-y-auto' : 'max-h-16'} transition-all duration-300`}>
+                  <p className="text-white text-sm leading-5 max-w-xs mb-2 pr-2">
+                    {truncateText(reel.description, expandedCaptions.has(idx))}
+                    {reel.description.split(' ').length > 15 && (
+                      <button onClick={() => toggleCaption(idx)} className="text-gray-300 ml-1 font-medium">
+                        {expandedCaptions.has(idx) ? 'less' : 'more'}
+                      </button>
+                    )}
+                  </p>
+                </div>
 
-                <div className="flex items-center space-x-2 pb-2">
+                <div className="flex items-center space-x-2">
                   <Music size={12} className="text-white" />
                   <span className="text-white text-xs">
                     {reel.user} • {reel.audioTitle}
@@ -478,18 +484,18 @@ const ReelsPage = () => {
                 </div>
               </div>
 
-                {/* Progress Bar */}
-                 <div
-                   className="absolute left-0 right-0 h-1 bg-white/20 z-30"
-                   style={{ bottom: 'var(--safe-b)' }}
-                 >
-                  <div
-                    className="h-full bg-white transition-all ease-linear"
-                    style={{
-                      width: `${idx === currentReel ? progress : 0}%`
-                    }}
-                  />
-                </div>
+              {/* Progress Bar */}
+              <div
+                className="absolute left-0 right-0 h-1 bg-white/20 z-30"
+                style={{ bottom: 'var(--safe-b)' }}
+              >
+                <div
+                  className="h-full bg-white transition-all ease-linear"
+                  style={{
+                    width: `${idx === currentReel ? progress : 0}%`
+                  }}
+                />
+              </div>
               </section>
             ))}
         </div>
