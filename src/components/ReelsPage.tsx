@@ -308,6 +308,7 @@ const ReelsPage = () => {
 
   return (
     <>
+      <style>{`:root { --safe-b: env(safe-area-inset-bottom, 0px); }`}</style>
       {/* Mobile Layout */}
       <div className="lg:hidden w-screen bg-black overflow-hidden fixed inset-0 flex flex-col">
         {/* Header */}
@@ -326,10 +327,11 @@ const ReelsPage = () => {
           ref={containerRef}
           className="relative w-full overflow-y-auto scrollbar-hidden overscroll-contain snap-y snap-mandatory"
           style={{
-            height: 'calc(100dvh - 44px)',
+            height: 'calc(100svh - 44px)',
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
-            WebkitOverflowScrolling: 'touch'
+            WebkitOverflowScrolling: 'touch',
+            paddingBottom: 'max(16px, calc(var(--safe-b) + 16px))'
           }}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
@@ -337,7 +339,7 @@ const ReelsPage = () => {
           {reels.map((reel, idx) => (
             <section
               key={reel.id}
-              className="relative bg-black h-[calc(100dvh-44px)] w-full flex items-center justify-center snap-start"
+              className="relative bg-black h-[calc(100svh-44px)] w-full flex items-center justify-center snap-start"
               style={{ scrollSnapStop: 'always' }}
             >
               {/* Video */}
@@ -387,10 +389,10 @@ const ReelsPage = () => {
               )}
 
                 {/* Right Side Actions */}
-                <div
-                  className="absolute right-3 flex flex-col space-y-6 z-20 pointer-events-auto"
-                  style={{ bottom: 'calc(env(safe-area-inset-bottom) + 96px)' }}
-                >
+                 <div
+                   className="absolute right-3 flex flex-col space-y-6 z-20 pointer-events-auto"
+                   style={{ bottom: 'max(96px, calc(var(--safe-b) + 96px))' }}
+                 >
                 <button
                   onClick={e => {
                     e.stopPropagation();
@@ -430,10 +432,10 @@ const ReelsPage = () => {
               </div>
 
                 {/* Profile & Caption Overlay */}
-                <div
-                  className="absolute left-4 right-20 z-20 pt-8"
-                  style={{ bottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}
-                >
+                 <div
+                   className="absolute left-4 right-20 z-20 pt-8"
+                   style={{ bottom: 'max(16px, calc(var(--safe-b) + 16px))' }}
+                 >
                 <div className="flex items-center space-x-3 mb-2">
                   <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30">
                     <img src={reel.avatar} alt="" className="w-full h-full object-cover" />
@@ -460,10 +462,10 @@ const ReelsPage = () => {
               </div>
 
                 {/* Progress Bar */}
-                <div
-                  className="absolute left-0 right-0 h-1 bg-white/20 z-30"
-                  style={{ bottom: 'env(safe-area-inset-bottom)' }}
-                >
+                 <div
+                   className="absolute left-0 right-0 h-1 bg-white/20 z-30"
+                   style={{ bottom: 'var(--safe-b)' }}
+                 >
                   <div
                     className="h-full bg-white transition-all ease-linear"
                     style={{
