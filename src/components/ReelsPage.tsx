@@ -308,11 +308,24 @@ const ReelsPage = () => {
 
   return (
     <>
-      <style>{`:root { --safe-b: env(safe-area-inset-bottom, 0px); }`}</style>
+      <style>{`:root { 
+        --safe-t: env(safe-area-inset-top, 0px); 
+        --safe-b: env(safe-area-inset-bottom, 0px); 
+        --safe-l: env(safe-area-inset-left, 0px); 
+        --safe-r: env(safe-area-inset-right, 0px); 
+      }`}</style>
       {/* Mobile Layout */}
       <div className="lg:hidden w-screen bg-black overflow-hidden fixed inset-0 flex flex-col">
         {/* Header */}
-        <div className="h-11 bg-black flex items-center justify-between px-4 z-50 border-b border-gray-800">
+        <div 
+          className="bg-black flex items-center justify-between px-4 z-50 border-b border-gray-800"
+          style={{ 
+            height: 'calc(44px + var(--safe-t))', 
+            paddingTop: 'var(--safe-t)',
+            paddingLeft: 'max(16px, calc(var(--safe-l) + 16px))',
+            paddingRight: 'max(16px, calc(var(--safe-r) + 16px))'
+          }}
+        >
           <div className="flex items-center space-x-2">
             <span className="text-white font-semibold text-lg">Reels</span>
             <ChevronDown size={20} className="text-white" />
@@ -325,13 +338,11 @@ const ReelsPage = () => {
         {/* Mobile Scrollable Reels Area */}
         <div
           ref={containerRef}
-          className="relative w-full overflow-y-auto scrollbar-hidden overscroll-contain snap-y snap-mandatory"
+          className="relative w-full overflow-y-auto scrollbar-hidden overscroll-contain snap-y snap-mandatory flex-1"
           style={{
-            height: 'calc(100svh - 44px)',
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
-            WebkitOverflowScrolling: 'touch',
-            paddingBottom: 'max(16px, calc(var(--safe-b) + 16px))'
+            WebkitOverflowScrolling: 'touch'
           }}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
@@ -339,14 +350,20 @@ const ReelsPage = () => {
           {reels.map((reel, idx) => (
             <section
               key={reel.id}
-              className="relative bg-black h-[calc(100svh-44px)] w-full flex items-center justify-center snap-start"
-              style={{ scrollSnapStop: 'always' }}
+              className="relative bg-black w-full flex items-center justify-center snap-start snap-always"
+              style={{ 
+                height: 'calc(100svh - 44px - var(--safe-t))',
+                scrollSnapStop: 'always' 
+              }}
             >
               {/* Video */}
               <video
                 ref={el => (videoRefs.current[idx] = el)}
-                className="block w-full h-full object-cover cursor-pointer"
-                style={{ WebkitTransform: 'translateZ(0)' }}
+                className="absolute inset-0 w-full h-full object-cover cursor-pointer"
+                style={{ 
+                  WebkitTransform: 'translateZ(0)',
+                  objectPosition: 'center center'
+                }}
                 loop
                 muted
                 playsInline
