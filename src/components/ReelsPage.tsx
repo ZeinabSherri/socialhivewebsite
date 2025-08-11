@@ -402,10 +402,12 @@ const ReelsPage = () => {
               {/* Video */}
               <video
                 ref={el => (videoRefs.current[idx] = el)}
-                className="absolute inset-0 w-full h-full object-contain cursor-pointer bg-black"
+                className="w-full h-full cursor-pointer"
                 style={{ 
                   WebkitTransform: 'translateZ(0)',
-                  objectPosition: 'center center'
+                  objectFit: 'fill',
+                  width: '100%',
+                  height: '100%'
                 }}
                 loop
                 muted
