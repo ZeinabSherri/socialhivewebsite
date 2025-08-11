@@ -402,7 +402,7 @@ const ReelsPage = () => {
               {/* Video */}
               <video
                 ref={el => (videoRefs.current[idx] = el)}
-                className="absolute inset-0 w-full h-full object-cover cursor-pointer"
+                className="absolute inset-0 w-full h-full object-contain cursor-pointer bg-black"
                 style={{ 
                   WebkitTransform: 'translateZ(0)',
                   objectPosition: 'center center'
