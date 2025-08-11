@@ -88,12 +88,18 @@ const Index = () => {
         )}
 
         {/* Main Content */}
-        <main className="pb-16">
+        <main className={activeTab === 'reels' && !showAddPage ? '' : 'pb-16'}>
           {renderContent()}
         </main>
 
-        {/* Bottom Navigation - always visible */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-800 px-4 py-2">
+        {/* Bottom Navigation - always visible except for reels page */}
+        {!(activeTab === 'reels' && !showAddPage) && (
+          <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-800 px-4 py-2 z-50"
+               style={{
+                 paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))',
+                 paddingLeft: 'max(16px, calc(env(safe-area-inset-left, 0px) + 16px))',
+                 paddingRight: 'max(16px, calc(env(safe-area-inset-right, 0px) + 16px))'
+               }}>
           <div className="max-w-md mx-auto flex justify-around">
             <button 
               onClick={() => {
@@ -138,7 +144,8 @@ const Index = () => {
               <User size={24} />
             </button>
           </div>
-        </nav>
+          </nav>
+        )}
       </div>
     </div>
   );

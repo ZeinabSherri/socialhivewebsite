@@ -107,20 +107,16 @@ const ReelsPage = () => {
     const header = headerRef.current;
     if (!header) return;
 
-    // Measure bottom navigation bar
-    const bottomNav = document.querySelector('nav[class*="fixed bottom-0"]') as HTMLElement;
-    const bottomNavHeight = bottomNav ? bottomNav.getBoundingClientRect().height : 64; // fallback 64px
-    setBottomNavHeight(bottomNavHeight);
-
     // Get viewport height with fallback
     const viewportHeight = (window as any).visualViewport?.height || window.innerHeight;
     const headerHeight = header.getBoundingClientRect().height;
     const safeBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-b').replace('px', '')) || 0;
     
-    // Calculate: visibleH - headerHeight - bottomNavHeight - safeBottom
-    const calculatedHeight = viewportHeight - headerHeight - bottomNavHeight - safeBottom;
+    // Calculate: full viewport minus header and safe area (no bottom nav in reels)
+    const calculatedHeight = viewportHeight - headerHeight - safeBottom;
     
     setReelViewportHeight(Math.max(calculatedHeight, 200)); // minimum 200px
+    setBottomNavHeight(0); // No bottom nav on reels page
   }, []);
 
   const navigateToReel = useCallback(
@@ -260,14 +256,24 @@ const ReelsPage = () => {
     }, 250);
   };
 
-  // A) Handle reel change / play state (NO isMuted here)
+  // A) Handle reel change / play state and autoplay
   useEffect(() => {
     const vid = videoRefs.current[currentReel];
     if (!vid) return;
 
-    // start current reel
+    // start current reel with autoplay (muted)
     setProgress(0);
-    if (isPlaying) vid.play().catch(console.error);
+    vid.muted = true;
+    setIsMuted(true);
+    
+    // Attempt autoplay
+    const playPromise = vid.play();
+    if (playPromise) {
+      playPromise.catch(() => {
+        // Autoplay blocked, will start on first user interaction
+        setIsPlaying(false);
+      });
+    }
 
     // pause + reset others
     videoRefs.current.forEach((v, i) => {
@@ -287,7 +293,7 @@ const ReelsPage = () => {
       vid?.removeEventListener('ended', onEnded);
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
     };
-  }, [currentReel, isPlaying, navigateToReel, updateProgress]);
+  }, [currentReel, navigateToReel, updateProgress]);
 
   // B) Mute state only (NO reset, NO playtime change)
   useEffect(() => {
@@ -422,8 +428,9 @@ const ReelsPage = () => {
                   objectPosition: 'center center'
                 }}
                 loop
-                muted
+                muted={true}
                 playsInline
+                webkit-playsinline="true"
                 preload="metadata"
                 onClick={handleVideoClick}
                 onPointerDown={handlePressStart}
@@ -466,7 +473,7 @@ const ReelsPage = () => {
               <div
                 className="absolute right-3 flex flex-col space-y-5 z-20 pointer-events-auto"
                 style={{ 
-                  bottom: `${bottomNavHeight + 96}px`,
+                  bottom: 'calc(var(--safe-b) + 96px)',
                   transform: 'translateY(-50%)',
                   top: '50%'
                 }}
@@ -512,7 +519,7 @@ const ReelsPage = () => {
               {/* Profile & Caption Overlay */}
               <div
                 className="absolute left-4 right-20 z-20"
-                style={{ bottom: `${bottomNavHeight + 16}px` }}
+                style={{ bottom: 'calc(var(--safe-b) + 16px)' }}
               >
                 <div className="flex items-center space-x-3 mb-2">
                   <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30">
@@ -544,7 +551,7 @@ const ReelsPage = () => {
               {/* Progress Bar */}
               <div
                 className="absolute left-0 right-0 h-1 bg-white/20 z-30"
-                style={{ bottom: `${bottomNavHeight}px` }}
+                style={{ bottom: 'var(--safe-b)' }}
               >
                 <div
                   className="h-full bg-white transition-all ease-linear"
