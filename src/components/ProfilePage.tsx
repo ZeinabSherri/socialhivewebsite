@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Grid, Play, Tag, Settings, ChevronDown, X } from 'lucide-react';
+import { Grid, Play, Tag, Settings, ChevronDown, X, MessageCircle } from 'lucide-react';
 import VerificationBadge from './VerificationBadge';
 import PostCard from './PostCard';
 import PostHoverStats from './PostHoverStats';
@@ -232,7 +232,8 @@ const ProfilePage = ({
           <button onClick={() => setShowProfileSelector(!showProfileSelector)} className="flex-1 bg-yellow-400 text-black font-semibold py-2 rounded-md transition-all duration-300 hover:scale-105 hover:bg-yellow-300 active:scale-95 animate-move hover:animate-none">
             Switch Accounts
           </button>
-          <button onClick={handleContactClick} className="flex-1 text-white font-semibold py-2 rounded-md bg-lime-600 hover:bg-lime-500">
+          <button onClick={handleContactClick} className="flex-1 text-white font-semibold py-2 rounded-md bg-[#25D366] hover:bg-[#20b858] flex items-center justify-center gap-1">
+            <MessageCircle size={16} />
             Message
           </button>
           <button className="bg-gray-800 text-white p-2 rounded-md">
