@@ -93,7 +93,7 @@ const Index = () => {
         </main>
 
         {/* Bottom Navigation - always visible */}
-        {!showAddPage && (
+        {(
           <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-800 px-4 py-2 z-50"
                style={{
                  paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))',
