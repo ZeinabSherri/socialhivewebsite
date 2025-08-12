@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { Grid, Play, Tag, Settings, ChevronDown, X, MessageCircle } from 'lucide-react';
+import { Grid, Play, Tag, Settings, ChevronDown, X } from 'lucide-react';
 import VerificationBadge from './VerificationBadge';
 import PostCard from './PostCard';
 import PostHoverStats from './PostHoverStats';
+import WhatsAppIcon from './WhatsAppIcon';
 import { useCounterAnimation } from '../hooks/useCounterAnimation';
 interface ProfilePageProps {
   onNavigateToContact?: () => void;
@@ -252,7 +253,7 @@ const ProfilePage = ({
             Switch Accounts
           </button>
           <button onClick={handleContactClick} className="flex-1 text-white font-semibold py-2 rounded-md bg-[#25D366] hover:bg-[#20b858] flex items-center justify-center gap-1">
-            <MessageCircle size={16} />
+            <WhatsAppIcon size={16} />
             Message
           </button>
           <div className="relative" ref={dropdownRef}>

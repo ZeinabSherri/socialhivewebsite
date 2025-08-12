@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Mail, Phone, MessageCircle, X } from 'lucide-react';
+import { Mail, Phone, X } from 'lucide-react';
+import WhatsAppIcon from './WhatsAppIcon';
 interface AddPostPageProps {
   onBack: () => void;
 }
@@ -107,7 +108,7 @@ Looking forward to hearing from you!`;
           {/* Submit Button */}
           <div className="pt-4">
             <button type="submit" className="w-full text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20b858]">
-              <MessageCircle size={20} />
+              <WhatsAppIcon size={20} />
               Send Message
             </button>
           </div>
