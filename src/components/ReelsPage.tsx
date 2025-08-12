@@ -112,11 +112,15 @@ const ReelsPage = () => {
     const headerHeight = header.getBoundingClientRect().height;
     const safeBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-b').replace('px', '')) || 0;
     
-    // Calculate: full viewport minus header and safe area (no bottom nav in reels)
-    const calculatedHeight = viewportHeight - headerHeight - safeBottom;
+    // Calculate bottom nav height (nav bar + safe area)
+    const bottomNavEl = document.querySelector('nav[class*="fixed bottom-0"]') as HTMLElement;
+    const bottomNavHeightCalc = bottomNavEl ? bottomNavEl.getBoundingClientRect().height : 64; // fallback 64px
+    setBottomNavHeight(bottomNavHeightCalc);
+    
+    // Calculate: full viewport minus header, bottom nav, and safe area
+    const calculatedHeight = viewportHeight - headerHeight - bottomNavHeightCalc;
     
     setReelViewportHeight(Math.max(calculatedHeight, 200)); // minimum 200px
-    setBottomNavHeight(0); // No bottom nav on reels page
   }, []);
 
   const navigateToReel = useCallback(
@@ -473,7 +477,7 @@ const ReelsPage = () => {
               <div
                 className="absolute right-3 flex flex-col space-y-5 z-20 pointer-events-auto"
                 style={{ 
-                  bottom: 'calc(var(--safe-b) + 96px)',
+                  bottom: `${bottomNavHeight + 96}px`,
                   transform: 'translateY(-50%)',
                   top: '50%'
                 }}
@@ -519,7 +523,7 @@ const ReelsPage = () => {
               {/* Profile & Caption Overlay */}
               <div
                 className="absolute left-4 right-20 z-20"
-                style={{ bottom: 'calc(var(--safe-b) + 16px)' }}
+                style={{ bottom: `${bottomNavHeight + 16}px` }}
               >
                 <div className="flex items-center space-x-3 mb-2">
                   <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30">
@@ -551,7 +555,7 @@ const ReelsPage = () => {
               {/* Progress Bar */}
               <div
                 className="absolute left-0 right-0 h-1 bg-white/20 z-30"
-                style={{ bottom: 'var(--safe-b)' }}
+                style={{ bottom: `${bottomNavHeight}px` }}
               >
                 <div
                   className="h-full bg-white transition-all ease-linear"
