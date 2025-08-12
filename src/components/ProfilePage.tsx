@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Grid, Play, Tag, Settings, ChevronDown, X, MessageCircle } from 'lucide-react';
 import VerificationBadge from './VerificationBadge';
 import PostCard from './PostCard';
@@ -16,6 +16,8 @@ const ProfilePage = ({
   const [showPostsFeed, setShowPostsFeed] = useState(false);
   const [selectedPostIndex, setSelectedPostIndex] = useState(0);
   const [hoveredPostId, setHoveredPostId] = useState<number | null>(null);
+  const [showRecommendationsDropdown, setShowRecommendationsDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const profileOptions = [{
     id: 'agency',
     name: 'Agency',
@@ -168,6 +170,23 @@ const ProfilePage = ({
   const handleLike = (postId: number) => {
     // Handle like functionality if needed
   };
+
+  // Handle outside click for recommendations dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowRecommendationsDropdown(false);
+      }
+    };
+
+    if (showRecommendationsDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showRecommendationsDropdown]);
   return <div className="max-w-md mx-auto">
       {/* Profile Header */}
       <div className="p-4">
@@ -228,7 +247,7 @@ const ProfilePage = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex space-x-2 mb-6">
+        <div className="flex space-x-2 mb-6 relative">
           <button onClick={() => setShowProfileSelector(!showProfileSelector)} className="flex-1 bg-yellow-400 text-black font-semibold py-2 rounded-md transition-all duration-300 hover:scale-105 hover:bg-yellow-300 active:scale-95 animate-move hover:animate-none">
             Switch Accounts
           </button>
@@ -236,9 +255,23 @@ const ProfilePage = ({
             <MessageCircle size={16} />
             Message
           </button>
-          <button className="bg-gray-800 text-white p-2 rounded-md">
-            <ChevronDown size={20} />
-          </button>
+          <div className="relative" ref={dropdownRef}>
+            <button 
+              onClick={() => setShowRecommendationsDropdown(!showRecommendationsDropdown)}
+              className="bg-gray-800 text-white p-2 rounded-md hover:bg-gray-700 transition-colors"
+            >
+              <ChevronDown size={20} />
+            </button>
+            
+            {/* Recommendations Dropdown */}
+            {showRecommendationsDropdown && (
+              <div className="absolute top-full right-0 mt-2 w-48 bg-gray-900 rounded-lg shadow-lg z-20 border border-gray-700">
+                <div className="p-4 text-center">
+                  <p className="text-yellow-400 font-medium">No recommendations — only us!</p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Highlights */}
