@@ -420,30 +420,35 @@ const ReelsPage = () => {
               }}
             >
               {/* Video */}
-              <video
-                ref={el => (videoRefs.current[idx] = el)}
-                className="absolute inset-0 w-full h-full object-cover cursor-pointer"
-                style={{ 
-                  WebkitTransform: 'translateZ(0)',
-                  objectPosition: 'center center'
-                }}
-                loop
-                muted={true}
-                playsInline
-                webkit-playsinline="true"
-                preload="metadata"
-                onClick={handleVideoClick}
-                onPointerDown={handlePressStart}
-                onPointerUp={handlePressEnd}
-                onPointerLeave={handlePressEnd}
-                onMouseDown={handlePressStart}
-                onMouseUp={handlePressEnd}
-                onMouseLeave={handlePressEnd}
-                onTouchStart={handlePressStart}
-                onTouchEnd={handlePressEnd}
-              >
-                <source src={reel.videoUrl} type="video/mp4" />
-              </video>
+                <video
+                  ref={el => (videoRefs.current[idx] = el)}
+                  className="absolute inset-0 w-full h-full object-cover cursor-pointer"
+                  style={{ 
+                    WebkitTransform: 'translateZ(0)',
+                    objectPosition: 'center center'
+                  }}
+                  loop
+                  muted
+                  playsInline
+                  controls={false}
+                  preload="auto"
+                  crossOrigin="anonymous"
+                  onClick={handleVideoClick}
+                  onPointerDown={handlePressStart}
+                  onPointerUp={handlePressEnd}
+                  onPointerLeave={handlePressEnd}
+                  onMouseDown={handlePressStart}
+                  onMouseUp={handlePressEnd}
+                  onMouseLeave={handlePressEnd}
+                  onTouchStart={handlePressStart}
+                  onTouchEnd={handlePressEnd}
+                  onLoadStart={() => console.log(`Loading video ${idx}:`, reel.videoUrl)}
+                  onCanPlay={() => console.log(`Video ${idx} can play`)}
+                  onError={(e) => console.error(`Video ${idx} error:`, e, reel.videoUrl)}
+                >
+                  <source src={reel.videoUrl} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
 
               {/* Mute Icon Animation - center overlay for current reel */}
               {idx === currentReel && muteIconAnimation?.show && (
