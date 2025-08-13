@@ -43,23 +43,23 @@ const ReelsPage = () => {
   const reels = [
     {
       id: 1,
-      title: 'Latest Social Media Strategy',
+      title: 'Social Media Analytics',
       description:
-        'Latest insights on social media marketing strategies that drive engagement and conversions. Watch how we transform brands through data-driven approaches! 🚀✨ #SocialMedia #Marketing #Strategy #DigitalMarketing #BusinessGrowth',
+        'Transform your social media presence with data-driven insights and analytics. See how we track performance and optimize content for maximum engagement! 📊✨ #Analytics #SocialMedia #DataDriven #Performance',
       likes: 18420,
       comments: 287,
       shares: 142,
       user: 'socialhive.agency',
       avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
       isFollowing: false,
-      audioTitle: 'Latest Trending Audio',
-      videoUrl: '/videos/0521.mp4'
+      audioTitle: 'Analytics Trending Audio',
+      videoUrl: '/videos/demo-social-analytics.jpg'
     },
     {
       id: 2,
-      title: 'Advanced Content Creation',
+      title: 'Content Creation Process',
       description:
-        'Advanced content creation techniques that convert viewers into customers. See our proven process in action! 🎬💡 #ContentCreation #BTS #Creative #VideoMarketing #ConversionOptimization',
+        'Behind the scenes of our content creation process. From ideation to final production - see how we craft engaging content that converts! 🎬💡 #ContentCreation #BTS #Creative #VideoMarketing',
       likes: 16750,
       comments: 234,
       shares: 98,
@@ -67,7 +67,7 @@ const ReelsPage = () => {
       avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
       isFollowing: false,
       audioTitle: 'Creative Process Mix',
-      videoUrl: '/videos/0703.mp4'
+      videoUrl: '/videos/demo-content-creation.jpg'
     }
   ];
 
@@ -477,9 +477,7 @@ const ReelsPage = () => {
               <div
                 className="absolute right-3 flex flex-col space-y-5 z-20 pointer-events-auto"
                 style={{ 
-                  bottom: `${bottomNavHeight + 96}px`,
-                  transform: 'translateY(-50%)',
-                  top: '50%'
+                  bottom: `${bottomNavHeight + 120}px`
                 }}
               >
                 <button
