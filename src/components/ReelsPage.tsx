@@ -39,7 +39,7 @@ const ReelsPage = () => {
     holdTimeout?: ReturnType<typeof setTimeout>;
   }>({ isPressed: false, wasPlaying: false });
 
-  // Demo reels with working video URLs
+  // ---- Demo reels (replace with your /public/videos/* when ready)
   const reels = [
     {
       id: 1,
@@ -53,6 +53,7 @@ const ReelsPage = () => {
       avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
       isFollowing: false,
       audioTitle: 'Latest Trending Audio',
+      // Public demo MP4
       videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4'
     },
     {
@@ -67,21 +68,8 @@ const ReelsPage = () => {
       avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
       isFollowing: false,
       audioTitle: 'Creative Process Mix',
+      // Public demo MP4
       videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
-    },
-    {
-      id: 3,
-      title: 'Demo Reel #3',
-      description:
-        'Creative content that drives results. See our latest campaign in action! 🎯',
-      likes: 12500,
-      comments: 189,
-      shares: 76,
-      user: 'socialhive.agency',
-      avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
-      isFollowing: false,
-      audioTitle: 'Trending Mix',
-      videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4'
     }
   ];
 
@@ -338,7 +326,7 @@ const ReelsPage = () => {
       <style>{`:root{--safe-t: env(safe-area-inset-top,0px);--safe-b: env(safe-area-inset-bottom,0px);--safe-l: env(safe-area-inset-left,0px);--safe-r: env(safe-area-inset-right,0px);}`}</style>
 
       {/* ========== MOBILE ========== */}
-      <div className="lg:hidden w-screen bg-black overflow-hidden fixed inset-0 flex flex-col" style={{ paddingBottom: '72px' }}>
+      <div className="lg:hidden w-screen bg-black overflow-hidden fixed inset-0 flex flex-col">
         {/* Header */}
         <div
           ref={headerRef}
@@ -384,16 +372,8 @@ const ReelsPage = () => {
                 onPointerDown={handlePressStart} onPointerUp={handlePressEnd} onPointerLeave={handlePressEnd}
                 onMouseDown={handlePressStart} onMouseUp={handlePressEnd} onMouseLeave={handlePressEnd}
                 onTouchStart={handlePressStart} onTouchEnd={handlePressEnd}
-                onError={(e) => {
-                  console.log('Video failed to load:', reel.videoUrl);
-                  e.currentTarget.style.display = 'none';
-                }}
-                onLoadedData={() => {
-                  console.log('Video loaded successfully:', reel.videoUrl);
-                }}
               >
                 <source src={reel.videoUrl} type="video/mp4" />
-                Your browser does not support the video tag.
               </video>
 
               {/* Mute Icon Animation */}
@@ -413,66 +393,55 @@ const ReelsPage = () => {
               )}
 
               {/* Right Actions */}
-              <div className="absolute right-3 bottom-32 flex flex-col space-y-6 z-20 pointer-events-auto">
+              <div
+                className="absolute right-3 flex flex-col space-y-5 z-20 pointer-events-auto"
+                style={{ bottom: `${bottomNavHeight + safeBottom + 72}px` }}
+              >
                 <button onClick={(e) => { e.stopPropagation(); toggleLike(idx); }} className="flex flex-col items-center space-y-1">
-                  <div className="w-12 h-12 flex items-center justify-center">
-                    <Heart size={32} className={`${likedReels.has(idx) ? 'text-red-500 fill-red-500' : 'text-white'} drop-shadow-2xl`} strokeWidth={likedReels.has(idx) ? 0 : 2} />
-                  </div>
-                  <span className="text-white text-xs font-semibold drop-shadow-2xl">{formatNumber(reel.likes + (likedReels.has(idx) ? 1 : 0))}</span>
+                  <Heart size={28} className={`${likedReels.has(idx) ? 'text-red-500 fill-red-500' : 'text-white'} drop-shadow-lg`} strokeWidth={likedReels.has(idx) ? 0 : 1.5} />
+                  <span className="text-white text-xs font-medium drop-shadow-lg">{formatNumber(reel.likes + (likedReels.has(idx) ? 1 : 0))}</span>
                 </button>
                 <button className="flex flex-col items-center space-y-1">
-                  <div className="w-12 h-12 flex items-center justify-center">
-                    <MessageCircle size={32} className="text-white drop-shadow-2xl" strokeWidth={2} />
-                  </div>
-                  <span className="text-white text-xs font-semibold drop-shadow-2xl">{formatNumber(reel.comments)}</span>
+                  <MessageCircle size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
+                  <span className="text-white text-xs font-medium drop-shadow-lg">{formatNumber(reel.comments)}</span>
                 </button>
                 <button className="flex flex-col items-center space-y-1">
-                  <div className="w-12 h-12 flex items-center justify-center">
-                    <Send size={30} className="text-white drop-shadow-2xl" strokeWidth={2} />
-                  </div>
-                  <span className="text-white text-xs font-semibold drop-shadow-2xl">{formatNumber(reel.shares)}</span>
+                  <Send size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
+                  <span className="text-white text-xs font-medium drop-shadow-lg">{formatNumber(reel.shares)}</span>
                 </button>
-                <button className="flex flex-col items-center">
-                  <MoreHorizontal size={32} className="text-white drop-shadow-2xl" strokeWidth={2} />
-                </button>
-                <button className="w-12 h-12 rounded-full overflow-hidden border-2 border-white">
-                  <img 
-                    src={reel.avatar} 
-                    alt="Profile" 
-                    className="w-full h-full object-cover"
-                  />
+                <MoreHorizontal size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
+                <button className="mt-2 w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-yellow-500 flex items-center justify-center border border-white">
+                  <Music size={16} className="text-white" />
                 </button>
               </div>
 
-              {/* Bottom User Info */}
-              <div className="absolute left-4 right-20 bottom-24 z-20">
-                <div className="text-white space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <img src={reel.avatar} alt="Profile" className="w-10 h-10 rounded-full border-2 border-white" />
-                    <span className="font-semibold text-base">{reel.user}</span>
-                    {!reel.isFollowing && (
-                      <button className="text-white text-sm font-semibold px-4 py-1.5 border border-white rounded-md hover:bg-white hover:text-black transition-colors">
-                        Follow
+              {/* Caption */}
+              <div
+                className="absolute left-4 right-20 z-20"
+                style={{ bottom: `${bottomNavHeight + safeBottom + 8}px` }}
+              >
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30">
+                    <img src={reel.avatar} alt="" className="w-full h-full object-cover" />
+                  </div>
+                  <span className="text-white font-semibold text-sm">{reel.user}</span>
+                  <span className="text-white text-sm font-semibold">• Follow</span>
+                </div>
+
+                <div className={`${expandedCaptions.has(idx) ? 'max-h-32 overflow-y-auto' : 'max-h-16'} transition-all duration-300`}>
+                  <p className="text-white text-sm leading-5 max-w-xs mb-2 pr-2">
+                    {truncateText(reel.description, expandedCaptions.has(idx))}
+                    {reel.description.split(' ').length > 15 && (
+                      <button onClick={() => toggleCaption(idx)} className="text-gray-300 ml-1 font-medium">
+                        {expandedCaptions.has(idx) ? 'less' : 'more'}
                       </button>
                     )}
-                  </div>
-                  <p
-                    className="text-sm leading-relaxed pr-4"
-                    dangerouslySetInnerHTML={{
-                      __html: truncateText(reel.description, expandedCaptions.has(idx))
-                        .replace(/([#@]\w+)/g, '<span style="color: #60a5fa;">$1</span>')
-                        .replace(/(\p{Emoji})/gu, '<span style="font-size: 1.1em;">$1</span>')
-                    }}
-                  />
-                  {reel.description.split(' ').length > 15 && (
-                    <button onClick={() => toggleCaption(idx)} className="text-gray-300 text-sm">
-                      {expandedCaptions.has(idx) ? 'Show less' : 'more'}
-                    </button>
-                  )}
-                  <div className="flex items-center space-x-2 text-sm">
-                    <Music size={16} className="text-white" />
-                    <span className="text-gray-200">ng Jeezy • Soul Survivor</span>
-                  </div>
+                  </p>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Music size={12} className="text-white" />
+                  <span className="text-white text-xs">{reel.user} • {reel.audioTitle}</span>
                 </div>
               </div>
 
@@ -510,16 +479,8 @@ const ReelsPage = () => {
                   onPointerDown={handlePressStart} onPointerUp={handlePressEnd} onPointerLeave={handlePressEnd}
                   onMouseDown={handlePressStart} onMouseUp={handlePressEnd} onMouseLeave={handlePressEnd}
                   onTouchStart={handlePressStart} onTouchEnd={handlePressEnd}
-                  onError={(e) => {
-                    console.log('Video failed to load:', reel.videoUrl);
-                    e.currentTarget.style.display = 'none';
-                  }}
-                  onLoadedData={() => {
-                    console.log('Video loaded successfully:', reel.videoUrl);
-                  }}
                 >
                   <source src={reel.videoUrl} type="video/mp4" />
-                  Your browser does not support the video tag.
                 </video>
 
                 {idx === currentReel && muteIconAnimation?.show && (
