@@ -39,7 +39,7 @@ const ReelsPage = () => {
     holdTimeout?: ReturnType<typeof setTimeout>;
   }>({ isPressed: false, wasPlaying: false });
 
-  // ---- Demo reels (replace with your /public/videos/* when ready)
+  // Demo reels using local video files
   const reels = [
     {
       id: 1,
@@ -53,8 +53,7 @@ const ReelsPage = () => {
       avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
       isFollowing: false,
       audioTitle: 'Latest Trending Audio',
-      // Public demo MP4
-      videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4'
+      videoUrl: '/videos/0521.mp4'
     },
     {
       id: 2,
@@ -68,8 +67,21 @@ const ReelsPage = () => {
       avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
       isFollowing: false,
       audioTitle: 'Creative Process Mix',
-      // Public demo MP4
-      videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+      videoUrl: '/videos/0617 (1)(3).MP4'
+    },
+    {
+      id: 3,
+      title: 'Demo Reel #3',
+      description:
+        'Creative content that drives results. See our latest campaign in action! 🎯',
+      likes: 12500,
+      comments: 189,
+      shares: 76,
+      user: 'socialhive.agency',
+      avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+      isFollowing: false,
+      audioTitle: 'Trending Mix',
+      videoUrl: '/videos/0619 (2) (2).mp4'
     }
   ];
 
@@ -372,8 +384,16 @@ const ReelsPage = () => {
                 onPointerDown={handlePressStart} onPointerUp={handlePressEnd} onPointerLeave={handlePressEnd}
                 onMouseDown={handlePressStart} onMouseUp={handlePressEnd} onMouseLeave={handlePressEnd}
                 onTouchStart={handlePressStart} onTouchEnd={handlePressEnd}
+                onError={(e) => {
+                  console.log('Video failed to load:', reel.videoUrl);
+                  e.currentTarget.style.display = 'none';
+                }}
+                onLoadedData={() => {
+                  console.log('Video loaded successfully:', reel.videoUrl);
+                }}
               >
                 <source src={reel.videoUrl} type="video/mp4" />
+                Your browser does not support the video tag.
               </video>
 
               {/* Mute Icon Animation */}
@@ -479,8 +499,16 @@ const ReelsPage = () => {
                   onPointerDown={handlePressStart} onPointerUp={handlePressEnd} onPointerLeave={handlePressEnd}
                   onMouseDown={handlePressStart} onMouseUp={handlePressEnd} onMouseLeave={handlePressEnd}
                   onTouchStart={handlePressStart} onTouchEnd={handlePressEnd}
+                  onError={(e) => {
+                    console.log('Video failed to load:', reel.videoUrl);
+                    e.currentTarget.style.display = 'none';
+                  }}
+                  onLoadedData={() => {
+                    console.log('Video loaded successfully:', reel.videoUrl);
+                  }}
                 >
                   <source src={reel.videoUrl} type="video/mp4" />
+                  Your browser does not support the video tag.
                 </video>
 
                 {idx === currentReel && muteIconAnimation?.show && (
