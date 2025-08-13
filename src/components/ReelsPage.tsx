@@ -39,7 +39,7 @@ const ReelsPage = () => {
     holdTimeout?: ReturnType<typeof setTimeout>;
   }>({ isPressed: false, wasPlaying: false });
 
-  // Demo reels using local video files
+  // Demo reels with working video URLs
   const reels = [
     {
       id: 1,
@@ -53,7 +53,7 @@ const ReelsPage = () => {
       avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
       isFollowing: false,
       audioTitle: 'Latest Trending Audio',
-      videoUrl: '/videos/0521.mp4'
+      videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4'
     },
     {
       id: 2,
@@ -67,7 +67,7 @@ const ReelsPage = () => {
       avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
       isFollowing: false,
       audioTitle: 'Creative Process Mix',
-      videoUrl: '/videos/0617 (1)(3).MP4'
+      videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
     },
     {
       id: 3,
@@ -81,7 +81,7 @@ const ReelsPage = () => {
       avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
       isFollowing: false,
       audioTitle: 'Trending Mix',
-      videoUrl: '/videos/0619 (2) (2).mp4'
+      videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4'
     }
   ];
 
@@ -338,7 +338,7 @@ const ReelsPage = () => {
       <style>{`:root{--safe-t: env(safe-area-inset-top,0px);--safe-b: env(safe-area-inset-bottom,0px);--safe-l: env(safe-area-inset-left,0px);--safe-r: env(safe-area-inset-right,0px);}`}</style>
 
       {/* ========== MOBILE ========== */}
-      <div className="lg:hidden w-screen bg-black overflow-hidden fixed inset-0 flex flex-col">
+      <div className="lg:hidden w-screen bg-black overflow-hidden fixed inset-0 flex flex-col" style={{ paddingBottom: '72px' }}>
         {/* Header */}
         <div
           ref={headerRef}
