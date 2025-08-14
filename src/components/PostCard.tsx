@@ -185,7 +185,7 @@ const PostCard: React.FC<PostCardProps> = ({
       ) : post.image ? (
         <div
           className={`relative bg-gray-900 ${
-            post.image.includes('feel') || post.image.includes('25ec1bb1') 
+            post.image.includes('feel') || post.image.includes('25ec1bb1') || post.image.includes('c5e80336')
               ? 'overflow-visible pb-20' 
               : 'aspect-[4/5]'
           }`}
@@ -195,7 +195,7 @@ const PostCard: React.FC<PostCardProps> = ({
           <img
             src={post.image}
             className={`w-full rounded-lg ${
-              post.image.includes('feel') || post.image.includes('25ec1bb1')
+              post.image.includes('feel') || post.image.includes('25ec1bb1') || post.image.includes('c5e80336')
                 ? 'object-contain h-auto'
                 : 'h-full object-cover'
             }`}
@@ -208,7 +208,7 @@ const PostCard: React.FC<PostCardProps> = ({
 
   return (
     <div className={`bg-black border-b border-gray-800 max-w-md mx-auto rounded-lg relative ${
-      post.image?.includes('feel') || post.image?.includes('25ec1bb1') ? 'overflow-visible' : 'overflow-hidden'
+      post.image?.includes('feel') || post.image?.includes('25ec1bb1') || post.image?.includes('c5e80336') ? 'overflow-visible' : 'overflow-hidden'
     }`}>
       {/* header */}
       <div className="flex items-center justify-between p-3">
@@ -244,7 +244,7 @@ const PostCard: React.FC<PostCardProps> = ({
 
       {/* actions / likes / caption / comments - overlaid for dripping burger */}
       <div className={`p-3 ${
-        post.image?.includes('feel') || post.image?.includes('25ec1bb1') 
+        post.image?.includes('feel') || post.image?.includes('25ec1bb1') || post.image?.includes('c5e80336')
           ? 'absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent pt-16' 
           : ''
       }`}>
@@ -314,7 +314,7 @@ const PostCard: React.FC<PostCardProps> = ({
       </div>
       
       {/* Caption and comments below the dripping image */}
-      {(post.image?.includes('feel') || post.image?.includes('25ec1bb1')) && (
+      {(post.image?.includes('feel') || post.image?.includes('25ec1bb1') || post.image?.includes('c5e80336')) && (
         <div className="p-3 bg-black">
           <div className="text-sm mb-2">
             <span
