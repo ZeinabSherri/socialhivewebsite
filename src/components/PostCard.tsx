@@ -12,7 +12,6 @@ import {
 } from 'lucide-react'
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar'
 import VerificationBadge from './VerificationBadge'
-import DrippingHoney from './DrippingHoney'
 
 interface Comment {
   id: number
@@ -57,12 +56,28 @@ const PostCard: React.FC<PostCardProps> = ({
   post,
   onLike,
   onUsernameClick,
-  isFirstPost = false
 }) => {
   const [showFullCaption, setShowFullCaption] = useState(false)
   const [showLoveIcon, setShowLoveIcon]     = useState(false)
   const [lastTap, setLastTap]               = useState(0)
   const [videoMuted, setVideoMuted]         = useState(true)
+
+  // Only the burger post gets the overlay (adjust this condition if needed)
+  const isBurgerPost = post.id === 9
+  const BURGER_OVERLAY_SRC = '/images/burger-only.png'
+
+ // === TUNING KNOBS (safe UI-only) ==========================================
+// Background vertical object-position (percentage from TOP).
+// Higher number -> background sits LOWER in the frame.
+const BG_POS_Y = 15   // try 42–48 if you want it even lower
+
+// Burger overlay tuning:
+const BURGER_WIDTH_PCT = 65  // smaller burger (try 78–82 range)
+const BURGER_BOTTOM_PX = -100 // still drips into actions, but a bit higher than before
+const BURGER_X_PX = 80       // nudges to the right (increase if you want it more right)
+const BURGER_SCALE = 0.98    // tiny downscale for fine-tuning (leave 1 if you prefer)
+// ==========================================================================
+
 
   const truncate = (text:string, max=100) =>
     text.length <= max ? text : text.slice(0,max) + '...'
@@ -82,36 +97,32 @@ const PostCard: React.FC<PostCardProps> = ({
     e.stopPropagation()
     const videos = document.querySelectorAll('video')
     videos.forEach(async (video) => {
-      if (videoMuted) {
-        // Unmuting - need to trigger play with sound
-        video.muted = false
-        try {
-          await video.play()
-        } catch (error) {
-          console.log('Video play failed:', error)
-        }
-      } else {
-        // Muting
-        video.muted = true
+      video.muted = !videoMuted
+      if (!videoMuted) return
+      try {
+        await video.play()
+      } catch {
+        /* ignore */
       }
     })
     setVideoMuted(m => !m)
   }
 
+  const carouselProps = {
+    responsive,
+    infinite: true,
+    arrows: true,
+    swipeable: true,
+    draggable: true,
+    containerClass: 'carousel-container',
+    itemClass: 'carousel-item',
+    renderDotsOutside: true,
+  }
+
   const renderMedia = () => (
     <div className="relative overflow-visible">
-      {/* only one drip overlay per post */}
-      {isFirstPost && <DrippingHoney />}
-
-      {/* carousel / single media */}
       {post.media && post.media.length > 0 ? (
-        <Carousel
-          responsive={responsive}
-          infinite arrows swipeable draggable
-          containerClass="carousel-container"
-          itemClass="carousel-item"
-          renderDotsOutside
-        >
+        <Carousel {...carouselProps}>
           {post.media.map((m,i) => (
             <div
               key={i}
@@ -140,13 +151,11 @@ const PostCard: React.FC<PostCardProps> = ({
                     onClick={toggleSound}
                     className="absolute bottom-3 right-3 bg-black/70 text-white p-2 rounded-full z-20"
                   >
-                    {videoMuted
-                      ? <VolumeX size={18}/>
-                      : <Volume2 size={18}/>}
+                    {videoMuted ? <VolumeX size={18}/> : <Volume2 size={18}/>}
                   </button>
                 </div>
               )}
-              {/* heart animation */}
+
               {showLoveIcon && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
                   <Heart
@@ -160,13 +169,7 @@ const PostCard: React.FC<PostCardProps> = ({
           ))}
         </Carousel>
       ) : post.images && post.images.length > 0 ? (
-        <Carousel
-          responsive={responsive}
-          infinite arrows swipeable draggable
-          containerClass="carousel-container"
-          itemClass="carousel-item"
-          renderDotsOutside
-        >
+        <Carousel {...carouselProps}>
           {post.images.map((url,i) => (
             <div
               key={i}
@@ -184,18 +187,36 @@ const PostCard: React.FC<PostCardProps> = ({
         </Carousel>
       ) : post.image ? (
         <div
-          className="relative bg-gray-900"
+          className="relative aspect-[4/5]"
           onClick={handleDoubleTap}
           onTouchEnd={handleDoubleTap}
         >
+          {/* background-only image, with adjustable vertical object-position */}
           <img
             src={post.image}
-            className="w-full rounded-lg object-contain"
+            className="w-full h-full object-cover rounded-lg"
             loading="lazy"
+            style={{ objectPosition: `center ${BG_POS_Y}%` }}
           />
-          {/* heart animation */}
+
+          {/* burger overlay (above everything, allowed to hang into the actions) */}
+          {isBurgerPost && (
+            <img
+              src={BURGER_OVERLAY_SRC}
+              alt=""
+              className="absolute max-w-none pointer-events-none z-30"
+              style={{
+                width: `${BURGER_WIDTH_PCT}%`,
+                left: '50%',
+                bottom: BURGER_BOTTOM_PX,
+                transform: `translateX(calc(-50% + ${BURGER_X_PX}px)) scale(${BURGER_SCALE})`,
+                transformOrigin: 'bottom center',
+              }}
+            />
+          )}
+
           {showLoveIcon && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-40">
               <Heart
                 size={120}
                 className="text-red-500 fill-red-500"
@@ -239,25 +260,22 @@ const PostCard: React.FC<PostCardProps> = ({
         <MoreHorizontal size={20} className="text-gray-400 hover:text-white"/>
       </div>
 
-      {/* media + drip */}
+      {/* media */}
       {renderMedia()}
 
-      {/* actions / likes / caption / comments */}
-      <div className="p-3">
+      {/* actions / likes / caption / comments
+          z-10 so the burger overlay (z-30) stays on top of these, like the mock */}
+      <div className="px-3 pt-2 relative z-10">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-4">
             <button
               onClick={onLike}
-              className={`transition-colors ${
-                post.isLiked
-                  ? 'text-red-500'
-                  : 'text-white hover:text-gray-300'
-              }`}
+              className={`transition-colors ${post.isLiked ? 'text-red-500' : 'text-white hover:text-gray-300'}`}
             >
               <Heart size={24} fill={post.isLiked ? 'currentColor' : 'none'} />
             </button>
             <MessageCircle size={24} className="text-white hover:text-gray-300"/>
-            <Send          size={24} className="text-white hover:text-gray-300"/>
+            <Send size={24} className="text-white hover:text-gray-300"/>
           </div>
           <Bookmark size={24} className="text-white hover:text-gray-300"/>
         </div>
