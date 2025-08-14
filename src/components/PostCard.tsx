@@ -184,32 +184,32 @@ const PostCard: React.FC<PostCardProps> = ({
         </Carousel>
       ) : post.image ? (
         <div
-          className={`relative bg-gray-900 ${
-            post.image.includes('feel') || post.image.includes('25ec1bb1') || post.image.includes('c5e80336')
-              ? 'overflow-visible pb-20' 
-              : 'aspect-[4/5]'
-          }`}
+          className="relative bg-gray-900"
           onClick={handleDoubleTap}
           onTouchEnd={handleDoubleTap}
         >
           <img
             src={post.image}
-            className={`w-full rounded-lg ${
-              post.image.includes('feel') || post.image.includes('25ec1bb1') || post.image.includes('c5e80336')
-                ? 'object-contain h-auto'
-                : 'h-full object-cover'
-            }`}
+            className="w-full rounded-lg object-contain"
             loading="lazy"
           />
+          {/* heart animation */}
+          {showLoveIcon && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+              <Heart
+                size={120}
+                className="text-red-500 fill-red-500"
+                style={{ animation: 'instagram-heart 1s ease-out forwards' }}
+              />
+            </div>
+          )}
         </div>
       ) : null}
     </div>
   )
 
   return (
-    <div className={`bg-black border-b border-gray-800 max-w-md mx-auto rounded-lg relative ${
-      post.image?.includes('feel') || post.image?.includes('25ec1bb1') || post.image?.includes('c5e80336') ? 'overflow-visible' : 'overflow-hidden'
-    }`}>
+    <div className="bg-black border-b border-gray-800 max-w-md mx-auto rounded-lg overflow-visible">
       {/* header */}
       <div className="flex items-center justify-between p-3">
         <div className="flex items-center space-x-3">
@@ -242,12 +242,8 @@ const PostCard: React.FC<PostCardProps> = ({
       {/* media + drip */}
       {renderMedia()}
 
-      {/* actions / likes / caption / comments - overlaid for dripping burger */}
-      <div className={`p-3 ${
-        post.image?.includes('feel') || post.image?.includes('25ec1bb1') || post.image?.includes('c5e80336')
-          ? 'absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent pt-16' 
-          : ''
-      }`}>
+      {/* actions / likes / caption / comments */}
+      <div className="p-3">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-4">
             <button
@@ -312,53 +308,6 @@ const PostCard: React.FC<PostCardProps> = ({
           ))}
         </div>
       </div>
-      
-      {/* Caption and comments below the dripping image */}
-      {(post.image?.includes('feel') || post.image?.includes('25ec1bb1') || post.image?.includes('c5e80336')) && (
-        <div className="p-3 bg-black">
-          <div className="text-sm mb-2">
-            <span
-              className="font-semibold cursor-pointer hover:underline"
-              onClick={onUsernameClick}
-            >
-              {post.username}
-            </span>
-            <span className="text-gray-100 ml-1">
-              {showFullCaption ? post.caption : truncate(post.caption)}
-            </span>
-            {post.caption.length > 100 && (
-              <button
-                onClick={() => setShowFullCaption(f => !f)}
-                className="text-gray-400 ml-1 hover:text-gray-300"
-              >
-                {showFullCaption ? 'less' : 'more'}
-              </button>
-            )}
-          </div>
-
-          <div className="mt-2 space-y-1">
-            {post.staticComments.map(c => (
-              <div key={c.id} className="flex items-start space-x-3 group">
-                <div className="flex-1 min-w-0">
-                  <p className="text-white text-sm leading-5 break-words">
-                    <span className="font-semibold hover:underline cursor-pointer">
-                      {c.username}
-                    </span>{' '}
-                    <span className="text-gray-200">{c.text}</span>
-                  </p>
-                  <div className="flex items-center space-x-4 mt-1 text-gray-400 text-xs">
-                    <button>2h</button>
-                    <button>Reply</button>
-                    <button className="opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Heart size={12} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   )
 }
