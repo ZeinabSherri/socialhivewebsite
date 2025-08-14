@@ -99,7 +99,7 @@ const PostCard: React.FC<PostCardProps> = ({
   }
 
   const renderMedia = () => (
-    <div className="relative overflow-hidden">
+    <div className="relative overflow-visible">
       {/* only one drip overlay per post */}
       {isFirstPost && <DrippingHoney />}
 
@@ -184,13 +184,21 @@ const PostCard: React.FC<PostCardProps> = ({
         </Carousel>
       ) : post.image ? (
         <div
-          className="relative aspect-[4/5] bg-gray-900"
+          className={`relative bg-gray-900 ${
+            post.image.includes('feel-the-flavour') 
+              ? 'overflow-visible' 
+              : 'aspect-[4/5]'
+          }`}
           onClick={handleDoubleTap}
           onTouchEnd={handleDoubleTap}
         >
           <img
             src={post.image}
-            className="w-full h-full object-cover rounded-lg"
+            className={`w-full rounded-lg ${
+              post.image.includes('feel-the-flavour')
+                ? 'object-contain'
+                : 'h-full object-cover'
+            }`}
             loading="lazy"
           />
         </div>
@@ -199,7 +207,9 @@ const PostCard: React.FC<PostCardProps> = ({
   )
 
   return (
-    <div className="bg-black border-b border-gray-800 max-w-md mx-auto rounded-lg overflow-hidden">
+    <div className={`bg-black border-b border-gray-800 max-w-md mx-auto rounded-lg ${
+      post.image?.includes('feel-the-flavour') ? 'overflow-visible' : 'overflow-hidden'
+    }`}>
       {/* header */}
       <div className="flex items-center justify-between p-3">
         <div className="flex items-center space-x-3">

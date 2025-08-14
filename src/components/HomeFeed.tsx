@@ -214,6 +214,22 @@ const HomeFeed: React.FC<{ onNavigateToProfile?: () => void }> = ({
         },
       ],
     },
+    {
+      id: 9,
+      username: "socialhive.agency",
+      userAvatar: "/lovable-uploads/social-hive-logo.png",
+      timestamp: "8h",
+      image: "/images/feel-the-flavour-post.png",
+      caption: "Savor the taste, feel the drip. 🍔🍯",
+      likes: 1450,
+      comments: 3,
+      isLiked: false,
+      staticComments: [
+        { id: 1, username: "foodie_lover", text: "Now I'm hungry! 🤤" },
+        { id: 2, username: "chefqueen", text: "Looks delicious!" },
+        { id: 3, username: "buzzbite", text: "That honey drizzle 🔥🐝" },
+      ],
+    },
   ]);
 
   const postRefs = useRef<React.RefObject<HTMLDivElement>[]>([]);
