@@ -219,7 +219,7 @@ const HomeFeed: React.FC<{ onNavigateToProfile?: () => void }> = ({
       username: "socialhive.agency",
       userAvatar: "/lovable-uploads/social-hive-logo.png",
       timestamp: "8h",
-      image: "/images/feel-the-flavour-post.png",
+      image: "/lovable-uploads/c1ada3ab-ed9b-4318-9643-e5c92a3c915d.png",
       caption: "Savor the taste, feel the drip. 🍔🍯",
       likes: 1450,
       comments: 3,
