@@ -104,9 +104,9 @@ const ReelsPage = () => {
    * Lower-the-UI tweaks (feel closer to Instagram)
    * Increase these if you still want everything a tad lower.
    */
-  const ACTIONS_BOTTOM_OFFSET = 112; // px above the bottom nav
-  const TEXT_BOTTOM_OFFSET = 16; // px above the bottom nav
-  const HEADER_HEIGHT = 44; // visual IG header height (we calculate safe inset below)
+  const ACTIONS_BOTTOM_OFFSET = 72; // px above the bottom nav
+  const TEXT_BOTTOM_OFFSET = 4; // px above the bottom nav
+  const HEADER_HEIGHT = 40; // visual IG header height (we calculate safe inset below)
 
   // Caption helpers
 const toggleCaption = (idx: number) => {
@@ -469,10 +469,10 @@ const toggleLike = (idx: number) => {
               )}
 
               {/* Right action rail (lower) */}
-              <div
-                className="absolute right-3 flex flex-col space-y-5 z-30"
-                style={{ bottom: `${bottomNavHeight + ACTIONS_BOTTOM_OFFSET}px` }}
-              >
+             <div
+  className="absolute right-3 flex flex-col space-y-5 z-20 pointer-events-auto"
+  style={{ bottom: `${bottomNavHeight + ACTIONS_BOTTOM_OFFSET}px` }}
+>
                 <button
                   onClick={e => {
                     e.stopPropagation();
@@ -529,9 +529,9 @@ const toggleLike = (idx: number) => {
 
               {/* Profile & Caption (lower) */}
               <div
-                className="absolute left-4 right-20 z-30"
-                style={{ bottom: `${bottomNavHeight + TEXT_BOTTOM_OFFSET}px` }}
-              >
+  className="absolute left-4 right-20 z-20"
+  style={{ bottom: `${bottomNavHeight + TEXT_BOTTOM_OFFSET}px` }}
+>
                 <div className="flex items-center space-x-3 mb-2">
                   <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30">
                     <img
