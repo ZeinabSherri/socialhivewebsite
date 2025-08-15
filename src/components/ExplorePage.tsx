@@ -2,12 +2,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { Play, Volume2, VolumeX, X } from 'lucide-react';
 import PostCard from './PostCard';
+import ReelModal from './ReelModal';
 
 const ExplorePage = () => {
+  const [selectedProject, setSelectedProject] = useState<any>(null);
   const [selectedProjectIndex, setSelectedProjectIndex] = useState<number>(0);
   const [activeFilter, setActiveFilter] = useState('Best results');
   const [mutedVideos, setMutedVideos] = useState<Set<number>>(new Set());
   const [showPostsFeed, setShowPostsFeed] = useState(false);
+  const [showReelModal, setShowReelModal] = useState(false);
   const videoRefs = useRef<{ [key: number]: HTMLVideoElement | null }>({});
 
   const allProjects = {
@@ -209,12 +212,30 @@ const ExplorePage = () => {
 
   const filteredProjects = allProjects[activeFilter as keyof typeof allProjects] || [];
 
-  const reels = filteredProjects.filter(project => project.type === 'Reel');
-  const posts = filteredProjects.filter(project => project.type === 'Post');
+  const reels = filteredProjects.filter(project => project.mediaType === 'video');
+  const posts = filteredProjects.filter(project => project.mediaType === 'image');
 
-  const handleProjectClick = (index: number) => {
+  const handleProjectClick = (project: any, index: number) => {
+    setSelectedProject(project);
     setSelectedProjectIndex(index);
-    setShowPostsFeed(true);
+    
+    if (project.mediaType === 'video') {
+      setShowReelModal(true);
+    } else {
+      setShowPostsFeed(true);
+    }
+  };
+
+  const handleReelNavigate = (direction: 'prev' | 'next') => {
+    if (!selectedProject) return;
+
+    const currentIndex = reels.findIndex(p => p.id === selectedProject.id);
+    
+    if (direction === 'prev' && currentIndex > 0) {
+      setSelectedProject(reels[currentIndex - 1]);
+    } else if (direction === 'next' && currentIndex < reels.length - 1) {
+      setSelectedProject(reels[currentIndex + 1]);
+    }
   };
 
   const handleLike = (postId: number) => {
@@ -249,7 +270,7 @@ const ExplorePage = () => {
     return (
       <div
         key={project.id}
-        onClick={() => handleProjectClick(index)}
+        onClick={() => handleProjectClick(project, index)}
         className="aspect-square bg-gray-900 cursor-pointer hover:opacity-80 transition-opacity relative group overflow-hidden rounded-sm"
       >
         {project.mediaType === 'video' ? (
@@ -380,6 +401,22 @@ const ExplorePage = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Reel Modal */}
+      {showReelModal && selectedProject && (
+        <ReelModal
+          reel={{
+            ...selectedProject,
+            videoUrl: selectedProject.thumbnail
+          }}
+          allReels={reels.map(reel => ({
+            ...reel,
+            videoUrl: reel.thumbnail
+          }))}
+          onClose={() => setShowReelModal(false)}
+          onNavigate={handleReelNavigate}
+        />
       )}
     </div>
   );
