@@ -45,6 +45,8 @@ interface PostCardProps {
   post: Post
   onLike: () => void
   onUsernameClick?: () => void
+  onReelClick?: () => void
+  onPostClick?: () => void
   isFirstPost?: boolean
 }
 
@@ -58,6 +60,8 @@ const PostCard: React.FC<PostCardProps> = ({
   post,
   onLike,
   onUsernameClick,
+  onReelClick,
+  onPostClick,
   isFirstPost = false, // ⬅️ default; used to conditionally show honey overlay
 }) => {
   const [showFullCaption, setShowFullCaption] = useState(false)
@@ -132,8 +136,22 @@ const PostCard: React.FC<PostCardProps> = ({
             <div
               key={i}
               className="aspect-[4/5] bg-gray-900 relative"
-              onClick={handleDoubleTap}
-              onTouchEnd={handleDoubleTap}
+              onClick={(e) => {
+                handleDoubleTap(e)
+                if (m.type === 'video' && onReelClick) {
+                  onReelClick()
+                } else if (m.type === 'image' && onPostClick) {
+                  onPostClick()
+                }
+              }}
+              onTouchEnd={(e) => {
+                handleDoubleTap(e)
+                if (m.type === 'video' && onReelClick) {
+                  onReelClick()
+                } else if (m.type === 'image' && onPostClick) {
+                  onPostClick()
+                }
+              }}
             >
               {m.type === 'image' ? (
                 <img
@@ -167,8 +185,14 @@ const PostCard: React.FC<PostCardProps> = ({
             <div
               key={i}
               className="aspect-[4/5] bg-gray-900 relative"
-              onClick={handleDoubleTap}
-              onTouchEnd={handleDoubleTap}
+              onClick={(e) => {
+                handleDoubleTap(e)
+                if (onPostClick) onPostClick()
+              }}
+              onTouchEnd={(e) => {
+                handleDoubleTap(e)
+                if (onPostClick) onPostClick()
+              }}
             >
               <img
                 src={url}
@@ -181,8 +205,14 @@ const PostCard: React.FC<PostCardProps> = ({
       ) : post.image ? (
         <div
           className="relative aspect-[4/5]"
-          onClick={handleDoubleTap}
-          onTouchEnd={handleDoubleTap}
+          onClick={(e) => {
+            handleDoubleTap(e)
+            if (onPostClick) onPostClick()
+          }}
+          onTouchEnd={(e) => {
+            handleDoubleTap(e)
+            if (onPostClick) onPostClick()
+          }}
         >
           {/* background-only image, with adjustable vertical object-position */}
           <img
