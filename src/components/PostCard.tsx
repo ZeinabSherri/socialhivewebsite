@@ -142,23 +142,11 @@ const PostCard: React.FC<PostCardProps> = ({
                   loading="lazy"
                 />
               ) : (
-                <div className="relative w-full h-full">
-                  <video
-                    autoPlay
-                    muted={videoMuted}
-                    loop
-                    playsInline
-                    className="w-full h-full object-cover rounded-lg"
-                  >
-                    <source src={m.url} type="video/mp4" />
-                  </video>
-                  <button
-                    onClick={toggleSound}
-                    className="absolute bottom-3 right-3 bg-black/70 text-white p-2 rounded-full z-20"
-                  >
-                    {videoMuted ? <VolumeX size={18}/> : <Volume2 size={18}/>}
-                  </button>
-                </div>
+                <img
+                  src={m.url}
+                  className="w-full h-full object-cover rounded-lg"
+                  loading="lazy"
+                />
               )}
 
               {showLoveIcon && (
