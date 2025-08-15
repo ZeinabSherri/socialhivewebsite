@@ -4,6 +4,7 @@ import VerificationBadge from './VerificationBadge';
 import PostCard from './PostCard';
 import PostHoverStats from './PostHoverStats';
 import WhatsAppIcon from './WhatsAppIcon';
+import ReelModal from './ReelModal';
 import { useCounterAnimation } from '../hooks/useCounterAnimation';
 interface ProfilePageProps {
   onNavigateToContact?: () => void;
@@ -16,6 +17,8 @@ const ProfilePage = ({
   const [showProfileSelector, setShowProfileSelector] = useState(false);
   const [showPostsFeed, setShowPostsFeed] = useState(false);
   const [selectedPostIndex, setSelectedPostIndex] = useState(0);
+  const [selectedReel, setSelectedReel] = useState<any>(null);
+  const [showReelModal, setShowReelModal] = useState(false);
   const [hoveredPostId, setHoveredPostId] = useState<number | null>(null);
   const [showRecommendationsDropdown, setShowRecommendationsDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -164,9 +167,27 @@ const ProfilePage = ({
       onNavigateToContact();
     }
   };
-  const handlePostClick = (index: number) => {
-    setSelectedPostIndex(index);
-    setShowPostsFeed(true);
+  const handlePostClick = (post: any, index: number) => {
+    if (post.type === 'reel') {
+      setSelectedReel(post);
+      setShowReelModal(true);
+    } else {
+      setSelectedPostIndex(index);
+      setShowPostsFeed(true);
+    }
+  };
+
+  const handleReelNavigate = (direction: 'prev' | 'next') => {
+    if (!selectedReel) return;
+    
+    const reels = posts.filter(p => p.type === 'reel');
+    const currentIndex = reels.findIndex(r => r.id === selectedReel.id);
+    
+    if (direction === 'prev' && currentIndex > 0) {
+      setSelectedReel(reels[currentIndex - 1]);
+    } else if (direction === 'next' && currentIndex < reels.length - 1) {
+      setSelectedReel(reels[currentIndex + 1]);
+    }
   };
   const handleLike = (postId: number) => {
     // Handle like functionality if needed
@@ -297,7 +318,7 @@ const ProfilePage = ({
       </div>
 
       <div className="grid grid-cols-3 gap-1">
-        {posts.filter(post => activeTab === 'posts' ? post.type === 'post' : post.type === 'reel').map((post, index) => <div key={post.id} className="aspect-square bg-gray-900 relative cursor-pointer group" onClick={() => handlePostClick(index)} onMouseEnter={() => setHoveredPostId(post.id)} onMouseLeave={() => setHoveredPostId(null)}>
+        {posts.filter(post => activeTab === 'posts' ? post.type === 'post' : post.type === 'reel').map((post, index) => <div key={post.id} className="aspect-square bg-gray-900 relative cursor-pointer group" onClick={() => handlePostClick(post, index)} onMouseEnter={() => setHoveredPostId(post.id)} onMouseLeave={() => setHoveredPostId(null)}>
             <img src={post.image} alt={`Post ${post.id}`} className="w-full h-full object-cover transition-opacity duration-200 group-hover:opacity-80" />
             {post.type === 'reel' && <div className="absolute top-2 right-2">
                 <Play size={16} className="text-white" />
@@ -321,10 +342,26 @@ const ProfilePage = ({
           
           <div className="flex-1 overflow-y-auto">
             <div className="max-w-md mx-auto space-y-0">
-              {posts.slice(selectedPostIndex).map(post => <PostCard key={post.id} post={post} onLike={() => handleLike(post.id)} onUsernameClick={() => {}} />)}
+              {posts.filter(p => p.type === 'post').slice(selectedPostIndex).map(post => <PostCard key={post.id} post={post} onLike={() => handleLike(post.id)} onUsernameClick={() => {}} />)}
             </div>
           </div>
         </div>}
+
+      {/* Reel Modal */}
+      {showReelModal && selectedReel && (
+        <ReelModal
+          reel={{
+            ...selectedReel,
+            videoUrl: selectedReel.image
+          }}
+          allReels={posts.filter(p => p.type === 'reel').map(reel => ({
+            ...reel,
+            videoUrl: reel.image
+          }))}
+          onClose={() => setShowReelModal(false)}
+          onNavigate={handleReelNavigate}
+        />
+      )}
     </div>;
 };
 export default ProfilePage;
