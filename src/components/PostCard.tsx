@@ -45,8 +45,6 @@ interface PostCardProps {
   post: Post
   onLike: () => void
   onUsernameClick?: () => void
-  onReelClick?: () => void
-  onPostClick?: () => void
   isFirstPost?: boolean
 }
 
@@ -60,8 +58,6 @@ const PostCard: React.FC<PostCardProps> = ({
   post,
   onLike,
   onUsernameClick,
-  onReelClick,
-  onPostClick,
   isFirstPost = false, // ⬅️ default; used to conditionally show honey overlay
 }) => {
   const [showFullCaption, setShowFullCaption] = useState(false)
@@ -136,22 +132,8 @@ const PostCard: React.FC<PostCardProps> = ({
             <div
               key={i}
               className="aspect-[4/5] bg-gray-900 relative"
-              onClick={(e) => {
-                handleDoubleTap(e)
-                if (m.type === 'video' && onReelClick) {
-                  onReelClick()
-                } else if (m.type === 'image' && onPostClick) {
-                  onPostClick()
-                }
-              }}
-              onTouchEnd={(e) => {
-                handleDoubleTap(e)
-                if (m.type === 'video' && onReelClick) {
-                  onReelClick()
-                } else if (m.type === 'image' && onPostClick) {
-                  onPostClick()
-                }
-              }}
+              onClick={handleDoubleTap}
+              onTouchEnd={handleDoubleTap}
             >
               {m.type === 'image' ? (
                 <img
@@ -160,11 +142,23 @@ const PostCard: React.FC<PostCardProps> = ({
                   loading="lazy"
                 />
               ) : (
-                <img
-                  src={m.url}
-                  className="w-full h-full object-cover rounded-lg"
-                  loading="lazy"
-                />
+                <div className="relative w-full h-full">
+                  <video
+                    autoPlay
+                    muted={videoMuted}
+                    loop
+                    playsInline
+                    className="w-full h-full object-cover rounded-lg"
+                  >
+                    <source src={m.url} type="video/mp4" />
+                  </video>
+                  <button
+                    onClick={toggleSound}
+                    className="absolute bottom-3 right-3 bg-black/70 text-white p-2 rounded-full z-20"
+                  >
+                    {videoMuted ? <VolumeX size={18}/> : <Volume2 size={18}/>}
+                  </button>
+                </div>
               )}
 
               {showLoveIcon && (
@@ -185,14 +179,8 @@ const PostCard: React.FC<PostCardProps> = ({
             <div
               key={i}
               className="aspect-[4/5] bg-gray-900 relative"
-              onClick={(e) => {
-                handleDoubleTap(e)
-                if (onPostClick) onPostClick()
-              }}
-              onTouchEnd={(e) => {
-                handleDoubleTap(e)
-                if (onPostClick) onPostClick()
-              }}
+              onClick={handleDoubleTap}
+              onTouchEnd={handleDoubleTap}
             >
               <img
                 src={url}
@@ -205,14 +193,8 @@ const PostCard: React.FC<PostCardProps> = ({
       ) : post.image ? (
         <div
           className="relative aspect-[4/5]"
-          onClick={(e) => {
-            handleDoubleTap(e)
-            if (onPostClick) onPostClick()
-          }}
-          onTouchEnd={(e) => {
-            handleDoubleTap(e)
-            if (onPostClick) onPostClick()
-          }}
+          onClick={handleDoubleTap}
+          onTouchEnd={handleDoubleTap}
         >
           {/* background-only image, with adjustable vertical object-position */}
           <img
