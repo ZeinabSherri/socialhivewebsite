@@ -1,13 +1,16 @@
 
 import { useState, useRef, useEffect } from 'react';
-import { Play, Volume2, VolumeX } from 'lucide-react';
-import InstagramPostModal from './InstagramPostModal';
+import { Play, Volume2, VolumeX, X } from 'lucide-react';
+import PostCard from './PostCard';
+import ReelModal from './ReelModal';
 
 const ExplorePage = () => {
   const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [selectedProjectIndex, setSelectedProjectIndex] = useState<number>(0);
   const [activeFilter, setActiveFilter] = useState('Best results');
   const [mutedVideos, setMutedVideos] = useState<Set<number>>(new Set());
-  const [modalType, setModalType] = useState<'reel' | 'post' | null>(null);
+  const [showPostsFeed, setShowPostsFeed] = useState(false);
+  const [showReelModal, setShowReelModal] = useState(false);
   const videoRefs = useRef<{ [key: number]: HTMLVideoElement | null }>({});
 
   const allProjects = {
@@ -209,30 +212,34 @@ const ExplorePage = () => {
 
   const filteredProjects = allProjects[activeFilter as keyof typeof allProjects] || [];
 
-  const reels = filteredProjects.filter(project => project.type === 'Reel');
-  const posts = filteredProjects.filter(project => project.type === 'Post');
+  const reels = filteredProjects.filter(project => project.mediaType === 'video');
+  const posts = filteredProjects.filter(project => project.mediaType === 'image');
 
-  const handleProjectClick = (project: any) => {
+  const handleProjectClick = (project: any, index: number) => {
     setSelectedProject(project);
-    setModalType(project.type === 'Reel' ? 'reel' : 'post');
-  };
-
-  const handleModalNavigate = (direction: 'prev' | 'next') => {
-    if (!selectedProject) return;
-
-    const currentList = selectedProject.type === 'Reel' ? reels : posts;
-    const currentIndex = currentList.findIndex(p => p.id === selectedProject.id);
+    setSelectedProjectIndex(index);
     
-    if (direction === 'prev' && currentIndex > 0) {
-      setSelectedProject(currentList[currentIndex - 1]);
-    } else if (direction === 'next' && currentIndex < currentList.length - 1) {
-      setSelectedProject(currentList[currentIndex + 1]);
+    if (project.mediaType === 'video') {
+      setShowReelModal(true);
+    } else {
+      setShowPostsFeed(true);
     }
   };
 
-  const closeModal = () => {
-    setSelectedProject(null);
-    setModalType(null);
+  const handleReelNavigate = (direction: 'prev' | 'next') => {
+    if (!selectedProject) return;
+
+    const currentIndex = reels.findIndex(p => p.id === selectedProject.id);
+    
+    if (direction === 'prev' && currentIndex > 0) {
+      setSelectedProject(reels[currentIndex - 1]);
+    } else if (direction === 'next' && currentIndex < reels.length - 1) {
+      setSelectedProject(reels[currentIndex + 1]);
+    }
+  };
+
+  const handleLike = (postId: number) => {
+    // Handle like functionality if needed
   };
 
   const toggleMute = (videoId: number) => {
@@ -263,7 +270,7 @@ const ExplorePage = () => {
     return (
       <div
         key={project.id}
-        onClick={() => handleProjectClick(project)}
+        onClick={() => handleProjectClick(project, index)}
         className="aspect-square bg-gray-900 cursor-pointer hover:opacity-80 transition-opacity relative group overflow-hidden rounded-sm"
       >
         {project.mediaType === 'video' ? (
@@ -357,13 +364,58 @@ const ExplorePage = () => {
         </div>
       </div>
 
-      {/* Instagram-style Post Modal */}
-      {selectedProject && modalType === 'post' && (
-        <InstagramPostModal
-          post={selectedProject}
-          allPosts={filteredProjects}
-          onClose={closeModal}
-          onNavigate={handleModalNavigate}
+      {/* Posts Feed Modal */}
+      {showPostsFeed && (
+        <div className="fixed inset-0 bg-black bg-opacity-95 z-50 flex flex-col">
+          <div className="flex items-center justify-between p-4 border-b border-gray-800">
+            <h2 className="text-lg font-semibold">Posts</h2>
+            <button onClick={() => setShowPostsFeed(false)} className="text-gray-400 hover:text-white p-2">
+              <X size={24} />
+            </button>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto">
+            <div className="max-w-md mx-auto space-y-0">
+              {filteredProjects.slice(selectedProjectIndex).map((project, index) => (
+                <PostCard 
+                  key={project.id} 
+                  post={{
+                    id: project.id,
+                    username: project.client,
+                    userAvatar: '/images/socialhive.png',
+                    timestamp: '2h',
+                    image: project.thumbnail,
+                    caption: project.description,
+                    likes: project.likes,
+                    comments: project.comments,
+                    isLiked: false,
+                    staticComments: [
+                      { id: 1, username: 'user1', text: 'Amazing work! 🔥' },
+                      { id: 2, username: 'user2', text: 'Love this! 💛' }
+                    ]
+                  }} 
+                  onLike={() => handleLike(project.id)} 
+                  onUsernameClick={() => {}} 
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reel Modal */}
+      {showReelModal && selectedProject && (
+        <ReelModal
+          reel={{
+            ...selectedProject,
+            videoUrl: selectedProject.thumbnail
+          }}
+          allReels={reels.map(reel => ({
+            ...reel,
+            videoUrl: reel.thumbnail
+          }))}
+          onClose={() => setShowReelModal(false)}
+          onNavigate={handleReelNavigate}
         />
       )}
     </div>
