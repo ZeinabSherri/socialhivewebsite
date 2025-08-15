@@ -46,7 +46,12 @@ const RightSidebar = () => {
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-yellow-400 to-yellow-600 p-0.5">
             <div className="w-full h-full rounded-full bg-black overflow-hidden flex items-center justify-center">
-              <span className="text-xl">🐝</span>
+              <img
+      src="images/socialhive.png"        // put the file in /public
+      alt="Social Hive"
+      className="w-full h-full object-contain"
+      loading="lazy"
+    />
             </div>
           </div>
           <div className="flex-1">

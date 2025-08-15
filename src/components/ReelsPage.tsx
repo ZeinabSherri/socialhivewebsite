@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   Heart,
   MessageCircle,
@@ -6,95 +6,120 @@ import {
   MoreHorizontal,
   ChevronDown,
   Camera,
-  Home,
-  Search,
-  Plus,
-  Play,
-  User,
   Music,
   Volume2,
-  VolumeX
+  VolumeX,
 } from 'lucide-react';
 
+/**
+ * Small helpers/types
+ */
+type Reel = {
+  id: number;
+  description: string;
+  likes: number;
+  comments: number;
+  shares: number;
+  user: string;
+  avatar: string;
+  audioTitle: string;
+  videoUrl: string;
+  poster?: string;
+};
+
+const formatNumber = (num: number): string => {
+  if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + 'M';
+  if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K';
+  return num.toString();
+};
+
 const ReelsPage = () => {
+  /**
+   * Demo sources (lightweight videos)
+   * Place files at: public/videos/demo1.mp4 and public/videos/demo2.mp4
+   * Optional posters: public/videos/demo1.jpg, demo2.jpg
+   */
+  const reels = useMemo<Reel[]>(
+    () => [
+      {
+        id: 1,
+        description:
+          'Behind the scenes of our content creation process. From ideation to final production – see how we craft engaging content that converts! 🎬💡 #ContentCreation #BTS #Creative #VideoMarketing',
+        likes: 16800,
+        comments: 234,
+        shares: 98,
+        user: 'socialhive.agency',
+        avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+        audioTitle: 'Creative Process Mix',
+        videoUrl: '/videos/demo1.mp4',
+        poster: '/videos/demo1.jpg',
+      },
+      {
+        id: 2,
+        description:
+          'Transform your social media presence with data-driven insights. Track performance and optimize content for maximum engagement! 📊✨ #Analytics #DataDriven',
+        likes: 18420,
+        comments: 287,
+        shares: 142,
+        user: 'socialhive.agency',
+        avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+        audioTitle: 'Analytics Trending Audio',
+        videoUrl: '/videos/demo2.mp4',
+        poster: '/videos/demo2.jpg',
+      },
+    ],
+    []
+  );
+
+  // UI state
   const [currentReel, setCurrentReel] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
   const [likedReels, setLikedReels] = useState<Set<number>>(new Set());
-  const [expandedCaptions, setExpandedCaptions] = useState<Set<number>>(new Set());
+  const [expandedCaptions, setExpandedCaptions] = useState<Set<number>>(
+    new Set()
+  );
   const [isMuted, setIsMuted] = useState(true);
-  const [muteIconAnimation, setMuteIconAnimation] = useState<{ show: boolean } | null>(null);
-  const [heartAnimation, setHeartAnimation] = useState<{ show: boolean } | null>(null);
+  const [muteIconAnimation, setMuteIconAnimation] = useState(false);
+  const [heartAnimation, setHeartAnimation] = useState(false);
+
+  // Layout state
   const [reelViewportHeight, setReelViewportHeight] = useState(0);
   const [bottomNavHeight, setBottomNavHeight] = useState(0);
+
+  // Refs
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
-  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const progressIntervalRef = useRef<number | null>(null);
   const isNavigatingRef = useRef(false);
-  const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const tapTimeoutRef = useRef<number | null>(null);
   const tapCountRef = useRef(0);
   const pressStateRef = useRef<{
     isPressed: boolean;
     wasPlaying: boolean;
-    holdTimeout?: ReturnType<typeof setTimeout>;
+    holdTimeout?: number;
   }>({ isPressed: false, wasPlaying: false });
 
-  const reels = [
-    {
-      id: 1,
-      title: 'Social Media Analytics',
-      description:
-        'Transform your social media presence with data-driven insights and analytics. See how we track performance and optimize content for maximum engagement! 📊✨ #Analytics #SocialMedia #DataDriven #Performance',
-      likes: 18420,
-      comments: 287,
-      shares: 142,
-      user: 'socialhive.agency',
-      avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
-      isFollowing: false,
-      audioTitle: 'Analytics Trending Audio',
-      videoUrl: '/videos/demo-social-analytics.jpg'
-    },
-    {
-      id: 2,
-      title: 'Content Creation Process',
-      description:
-        'Behind the scenes of our content creation process. From ideation to final production - see how we craft engaging content that converts! 🎬💡 #ContentCreation #BTS #Creative #VideoMarketing',
-      likes: 16750,
-      comments: 234,
-      shares: 98,
-      user: 'socialhive.agency',
-      avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
-      isFollowing: false,
-      audioTitle: 'Creative Process Mix',
-      videoUrl: '/videos/demo-content-creation.jpg'
+  /**
+   * Lower-the-UI tweaks (feel closer to Instagram)
+   * Increase these if you still want everything a tad lower.
+   */
+  const ACTIONS_BOTTOM_OFFSET = 112; // px above the bottom nav
+  const TEXT_BOTTOM_OFFSET = 16; // px above the bottom nav
+  const HEADER_HEIGHT = 44; // visual IG header height (we calculate safe inset below)
+
+  // Caption helpers
+const toggleCaption = (idx: number) => {
+  setExpandedCaptions((prev) => {
+    const s = new Set(prev);
+    if (s.has(idx)) {
+      s.delete(idx);
+    } else {
+      s.add(idx);
     }
-  ];
-
-  const formatNumber = (num: number): string => {
-    if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + 'M';
-    if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K';
-    return num.toString();
-  };
-
-  const toggleLike = (index: number) => {
-    setLikedReels(prev => {
-      const s = new Set(prev);
-      if (s.has(index)) s.delete(index);
-      else s.add(index);
-      return s;
-    });
-  };
-
-  const toggleCaption = (index: number) => {
-    setExpandedCaptions(prev => {
-      const s = new Set(prev);
-      if (s.has(index)) s.delete(index);
-      else s.add(index);
-      return s;
-    });
-  };
-
+    return s;
+  });
+};
   const truncateText = (text: string, isExpanded: boolean) => {
     if (isExpanded) return text;
     const words = text.split(' ');
@@ -102,65 +127,91 @@ const ReelsPage = () => {
     return words.slice(0, 15).join(' ') + '...';
   };
 
-  // Runtime viewport height calculation
+  // Like helpers
+const toggleLike = (idx: number) => {
+  setLikedReels((prev) => {
+    const s = new Set(prev);
+    if (s.has(idx)) {
+      s.delete(idx);
+    } else {
+      s.add(idx);
+    }
+    return s;
+  });
+};
+  const showHeartAnimation = () => {
+    setHeartAnimation(true);
+    toggleLike(currentReel);
+    window.setTimeout(() => setHeartAnimation(false), 900);
+  };
+
+  // Calculate viewport height minus header + bottom nav
   const calculateReelHeight = useCallback(() => {
     const header = headerRef.current;
     if (!header) return;
 
-    // Get viewport height with fallback
-    const viewportHeight = (window as any).visualViewport?.height || window.innerHeight;
-    const headerHeight = header.getBoundingClientRect().height;
-    const safeBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-b').replace('px', '')) || 0;
-    
-    // Calculate bottom nav height (nav bar + safe area)
-    const bottomNavEl = document.querySelector('nav[class*="fixed bottom-0"]') as HTMLElement;
-    const bottomNavHeightCalc = bottomNavEl ? bottomNavEl.getBoundingClientRect().height : 64; // fallback 64px
-    setBottomNavHeight(bottomNavHeightCalc);
-    
-    // Calculate: full viewport minus header, bottom nav, and safe area
-    const calculatedHeight = viewportHeight - headerHeight - bottomNavHeightCalc;
-    
-    setReelViewportHeight(Math.max(calculatedHeight, 200)); // minimum 200px
+    const viewportHeight =
+      window.visualViewport?.height ?? window.innerHeight;
+
+    const headerRect = header.getBoundingClientRect();
+    const headerHeight = headerRect.height;
+
+    // Try to detect a bottom nav (your app) and measure it
+    const bottomNavEl = document.querySelector(
+      'nav[class*="fixed"][class*="bottom-0"]'
+    ) as HTMLElement | null;
+    const bottomNavCalculated = bottomNavEl
+      ? bottomNavEl.getBoundingClientRect().height
+      : 64; // fallback
+
+    setBottomNavHeight(bottomNavCalculated);
+
+    const h = Math.max(viewportHeight - headerHeight - bottomNavCalculated, 240);
+    setReelViewportHeight(h);
   }, []);
 
+  // Navigate reels
   const navigateToReel = useCallback(
     (newIndex: number) => {
       if (isNavigatingRef.current) return;
       let target = newIndex;
       if (newIndex < 0) target = reels.length - 1;
       if (newIndex >= reels.length) target = 0;
+
       isNavigatingRef.current = true;
       setCurrentReel(target);
       setProgress(0);
+
       const c = containerRef.current;
       if (c && reelViewportHeight > 0) {
-        c.scrollTo({
-          top: target * reelViewportHeight,
-          behavior: 'smooth'
-        });
+        c.scrollTo({ top: target * reelViewportHeight, behavior: 'smooth' });
       }
-      setTimeout(() => (isNavigatingRef.current = false), 300);
+      window.setTimeout(() => (isNavigatingRef.current = false), 300);
     },
     [reels.length, reelViewportHeight]
   );
 
+  // Touch navigation
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    const y = e.touches[0].clientY;
-    containerRef.current?.setAttribute('data-start-y', `${y}`);
+    containerRef.current?.setAttribute('data-start-y', `${e.touches[0].clientY}`);
   }, []);
 
   const handleTouchEnd = useCallback(
     (e: React.TouchEvent) => {
-      const startY = parseFloat(containerRef.current?.getAttribute('data-start-y') || '0');
+      const startY = parseFloat(
+        containerRef.current?.getAttribute('data-start-y') || '0'
+      );
       const endY = e.changedTouches[0].clientY;
       const diff = startY - endY;
       if (Math.abs(diff) > 50) {
-        diff > 0 ? navigateToReel(currentReel + 1) : navigateToReel(currentReel - 1);
+        // ✅ single call; fixes "no-unused-expressions"
+        navigateToReel(diff > 0 ? currentReel + 1 : currentReel - 1);
       }
     },
     [currentReel, navigateToReel]
   );
 
+  // Progress updater
   const updateProgress = useCallback(() => {
     const vid = videoRefs.current[currentReel];
     if (vid?.duration) {
@@ -168,118 +219,93 @@ const ReelsPage = () => {
     }
   }, [currentReel]);
 
-  const toggleMute = () => {
+  // Toggle mute (single tap)
+  const toggleMute = useCallback(() => {
     const vid = videoRefs.current[currentReel];
     if (!vid) return;
-    
-    // Preserve playback position and state
-    const currentTime = vid.currentTime;
-    const wasPaused = vid.paused;
-    
-    // Toggle mute without restarting
+
+    const t = vid.currentTime;
+    const paused = vid.paused;
+
     vid.muted = !vid.muted;
     setIsMuted(vid.muted);
-    
-    // Restore playback state
-    if (!wasPaused) vid.play().catch(console.error);
-    vid.currentTime = currentTime;
-    
-    // Show mute icon animation in center
-    setMuteIconAnimation({ show: true });
-    setTimeout(() => {
-      setMuteIconAnimation(null);
-    }, 800);
-  };
 
-  const showHeartAnimation = () => {
-    setHeartAnimation({ show: true });
-    toggleLike(currentReel);
-    
-    setTimeout(() => {
-      setHeartAnimation(null);
-    }, 1000);
-  };
+    if (!paused) vid.play().catch(() => {});
+    vid.currentTime = t;
 
-  const handlePressStart = (e: React.PointerEvent | React.MouseEvent | React.TouchEvent) => {
+    setMuteIconAnimation(true);
+    window.setTimeout(() => setMuteIconAnimation(false), 800);
+  }, [currentReel]);
+
+  // Press & hold pause
+  const handlePressStart = (
+    e: React.PointerEvent | React.MouseEvent | React.TouchEvent
+  ) => {
     e.preventDefault();
     e.stopPropagation();
-
     const vid = videoRefs.current[currentReel];
     if (!vid || pressStateRef.current.isPressed) return;
 
     pressStateRef.current.isPressed = true;
     pressStateRef.current.wasPlaying = !vid.paused;
 
-    // Only pause if held for 300ms
-    pressStateRef.current.holdTimeout = setTimeout(() => {
+    pressStateRef.current.holdTimeout = window.setTimeout(() => {
       if (pressStateRef.current.isPressed) vid.pause();
     }, 300);
   };
 
-  const handlePressEnd = (e: React.PointerEvent | React.MouseEvent | React.TouchEvent) => {
+  const handlePressEnd = (
+    e: React.PointerEvent | React.MouseEvent | React.TouchEvent
+  ) => {
     e.preventDefault();
     e.stopPropagation();
 
     const vid = videoRefs.current[currentReel];
     if (!vid) return;
 
-    // Cancel pending long-press pause
     if (pressStateRef.current.holdTimeout) {
-      clearTimeout(pressStateRef.current.holdTimeout);
+      window.clearTimeout(pressStateRef.current.holdTimeout);
       pressStateRef.current.holdTimeout = undefined;
     }
+    const shouldResume =
+      pressStateRef.current.isPressed && pressStateRef.current.wasPlaying;
 
-    const shouldResume = pressStateRef.current.isPressed && pressStateRef.current.wasPlaying;
     pressStateRef.current.isPressed = false;
-
-    if (shouldResume) vid.play().catch(console.error);
+    if (shouldResume) vid.play().catch(() => {});
   };
 
-  const handleVideoClick = (e: React.MouseEvent | React.TouchEvent) => {
+  // Tap handler (single = mute, double = like)
+  const handleVideoClick = (
+    e: React.MouseEvent | React.TouchEvent
+  ) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    // Only handle tap if not in press state
     if (pressStateRef.current.isPressed) return;
-    
+
     tapCountRef.current += 1;
-    
-    if (tapTimeoutRef.current) {
-      clearTimeout(tapTimeoutRef.current);
-    }
-    
-    tapTimeoutRef.current = setTimeout(() => {
-      if (tapCountRef.current === 1) {
-        // Single tap - toggle mute and show icon
-        toggleMute();
-      } else if (tapCountRef.current === 2) {
-        // Double tap - like and show heart
-        showHeartAnimation();
-      }
+    if (tapTimeoutRef.current) window.clearTimeout(tapTimeoutRef.current);
+
+    tapTimeoutRef.current = window.setTimeout(() => {
+      if (tapCountRef.current === 1) toggleMute();
+      else if (tapCountRef.current === 2) showHeartAnimation();
       tapCountRef.current = 0;
     }, 250);
   };
 
-  // A) Handle reel change / play state and autoplay
+  /**
+   * When the current reel changes, start it (muted) and reset others.
+   */
   useEffect(() => {
     const vid = videoRefs.current[currentReel];
     if (!vid) return;
 
-    // start current reel with autoplay (muted)
     setProgress(0);
     vid.muted = true;
     setIsMuted(true);
-    
-    // Attempt autoplay
-    const playPromise = vid.play();
-    if (playPromise) {
-      playPromise.catch(() => {
-        // Autoplay blocked, will start on first user interaction
-        setIsPlaying(false);
-      });
-    }
 
-    // pause + reset others
+    const p = vid.play();
+    if (p) p.catch(() => {}); // ignore autoplay block; user taps will start
+
     videoRefs.current.forEach((v, i) => {
       if (v && i !== currentReel) {
         v.pause();
@@ -287,129 +313,100 @@ const ReelsPage = () => {
       }
     });
 
-    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-    progressIntervalRef.current = setInterval(updateProgress, 100);
+    if (progressIntervalRef.current)
+      window.clearInterval(progressIntervalRef.current);
+    progressIntervalRef.current = window.setInterval(updateProgress, 100);
 
     const onEnded = () => navigateToReel(currentReel + 1);
     vid.addEventListener('ended', onEnded);
 
     return () => {
-      vid?.removeEventListener('ended', onEnded);
-      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      vid.removeEventListener('ended', onEnded);
+      if (progressIntervalRef.current)
+        window.clearInterval(progressIntervalRef.current);
     };
   }, [currentReel, navigateToReel, updateProgress]);
 
-  // B) Mute state only (NO reset, NO playtime change)
+  // Keep video element's muted prop in sync
   useEffect(() => {
     const vid = videoRefs.current[currentReel];
     if (vid) vid.muted = isMuted;
   }, [isMuted, currentReel]);
 
+  // Height + viewport listeners
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowUp') navigateToReel(currentReel - 1);
-      if (e.key === 'ArrowDown') navigateToReel(currentReel + 1);
-      if (e.key === ' ') {
-        e.preventDefault();
-        toggleMute();
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [currentReel, navigateToReel]);
-
-  // Runtime height calculation and viewport event listeners
-  useEffect(() => {
-    calculateReelHeight();
-    
     const handleResize = () => calculateReelHeight();
-    const handleOrientationChange = () => {
-      setTimeout(() => calculateReelHeight(), 100);
-    };
-    const handlePageShow = () => calculateReelHeight();
-    
-    // Add event listeners
-    window.addEventListener('load', handleResize);
-    window.addEventListener('pageshow', handlePageShow);
+    calculateReelHeight();
+
     window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', handleOrientationChange);
-    
-    // Visual Viewport API for better mobile support
-    if ((window as any).visualViewport) {
-      (window as any).visualViewport.addEventListener('resize', handleResize);
-    }
-    
+    window.addEventListener('orientationchange', handleResize);
+    window.addEventListener('pageshow', handleResize);
+    window.visualViewport?.addEventListener('resize', handleResize);
+
     return () => {
-      window.removeEventListener('load', handleResize);
-      window.removeEventListener('pageshow', handlePageShow);
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleOrientationChange);
-      if ((window as any).visualViewport) {
-        (window as any).visualViewport.removeEventListener('resize', handleResize);
-      }
+      window.removeEventListener('orientationchange', handleResize);
+      window.removeEventListener('pageshow', handleResize);
+      window.visualViewport?.removeEventListener('resize', handleResize);
     };
   }, [calculateReelHeight]);
 
-  // Auto-play videos when scrolling into view
+  // Scroll -> update reel index
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container || reelViewportHeight === 0) return;
+    const c = containerRef.current;
+    if (!c || reelViewportHeight === 0) return;
 
-    const handleScroll = () => {
+    const onScroll = () => {
       if (isNavigatingRef.current) return;
-      
-      const scrollTop = container.scrollTop;
-      const newIndex = Math.round(scrollTop / reelViewportHeight);
-      
+      const newIndex = Math.round(c.scrollTop / reelViewportHeight);
       if (newIndex !== currentReel && newIndex >= 0 && newIndex < reels.length) {
         setCurrentReel(newIndex);
         setProgress(0);
       }
     };
 
-    container.addEventListener('scroll', handleScroll, { passive: true });
-    return () => container.removeEventListener('scroll', handleScroll);
+    c.addEventListener('scroll', onScroll, { passive: true });
+    return () => c.removeEventListener('scroll', onScroll);
   }, [currentReel, reels.length, reelViewportHeight]);
 
   return (
     <>
-      <style>{`:root { 
-        --safe-t: env(safe-area-inset-top, 0px); 
-        --safe-b: env(safe-area-inset-bottom, 0px); 
-        --safe-l: env(safe-area-inset-left, 0px); 
-        --safe-r: env(safe-area-inset-right, 0px); 
-      }`}</style>
-      {/* Mobile Layout */}
-      <div className="lg:hidden w-screen bg-black overflow-hidden fixed inset-0 flex flex-col">
-        {/* Header */}
-        <div 
+      {/* Tiny helpers for fade/scale animations */}
+      <style>{`
+        .animate-fade-in { animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: scale(1); } }
+        .animate-scale-in { animation: pop .35s ease-out; }
+        @keyframes pop { 0% { transform: scale(.7); opacity: .2 } 60% { transform: scale(1.15); opacity: 1 } 100% { transform: scale(1); opacity: 1 } }
+      `}</style>
+
+      {/* MOBILE */}
+      <div className="lg:hidden fixed inset-0 bg-black flex flex-col">
+        {/* Header — overlay style like IG */}
+        <div
           ref={headerRef}
-          className="bg-black flex items-center justify-between px-4 z-50 border-b border-gray-800"
-          style={{ 
-            height: 'calc(44px + var(--safe-t))', 
-            paddingTop: 'var(--safe-t)',
-            paddingLeft: 'max(16px, calc(var(--safe-l) + 16px))',
-            paddingRight: 'max(16px, calc(var(--safe-r) + 16px))'
+          className="relative flex items-center justify-between px-4 z-40"
+          style={{
+            height: `calc(${HEADER_HEIGHT}px + env(safe-area-inset-top, 0px))`,
+            paddingTop: 'env(safe-area-inset-top, 0px)',
           }}
         >
-          <div className="flex items-center space-x-2">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-transparent pointer-events-none" />
+          <div className="relative flex items-center space-x-2">
             <span className="text-white font-semibold text-lg">Reels</span>
             <ChevronDown size={20} className="text-white" />
           </div>
-          <button className="text-white">
+          <button className="relative text-white">
             <Camera size={24} />
           </button>
         </div>
 
-        {/* Mobile Scrollable Reels Area */}
+        {/* Scroll container */}
         <div
           ref={containerRef}
-          className="relative w-full overflow-y-auto scrollbar-hidden overscroll-contain snap-y snap-mandatory"
+          className="relative w-full overflow-y-auto snap-y snap-mandatory scrollbar-hidden"
           style={{
-            height: reelViewportHeight > 0 ? `${reelViewportHeight}px` : '100%',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-            WebkitOverflowScrolling: 'touch'
+            height: reelViewportHeight > 0 ? `${reelViewportHeight}px` : '100vh',
+            WebkitOverflowScrolling: 'touch',
           }}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
@@ -418,24 +415,22 @@ const ReelsPage = () => {
             <section
               key={reel.id}
               className="relative bg-black w-full snap-start snap-always"
-              style={{ 
-                height: reelViewportHeight > 0 ? `${reelViewportHeight}px` : '100vh',
-                scrollSnapStop: 'always' 
+              style={{
+                height:
+                  reelViewportHeight > 0 ? `${reelViewportHeight}px` : '100vh',
+                scrollSnapStop: 'always',
               }}
             >
               {/* Video */}
               <video
                 ref={el => (videoRefs.current[idx] = el)}
-                className="absolute inset-0 w-full h-full object-cover cursor-pointer"
-                style={{ 
-                  WebkitTransform: 'translateZ(0)',
-                  objectPosition: 'center center'
-                }}
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ objectPosition: 'center center' }}
                 loop
-                muted={true}
+                muted
                 playsInline
-                webkit-playsinline="true"
                 preload="metadata"
+                poster={reel.poster}
                 onClick={handleVideoClick}
                 onPointerDown={handlePressStart}
                 onPointerUp={handlePressEnd}
@@ -449,8 +444,8 @@ const ReelsPage = () => {
                 <source src={reel.videoUrl} type="video/mp4" />
               </video>
 
-              {/* Mute Icon Animation - center overlay for current reel */}
-              {idx === currentReel && muteIconAnimation?.show && (
+              {/* Mute icon (center) */}
+              {idx === currentReel && muteIconAnimation && (
                 <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
                   <div className="bg-black/60 rounded-full p-4 animate-fade-in">
                     {isMuted ? (
@@ -462,23 +457,21 @@ const ReelsPage = () => {
                 </div>
               )}
 
-              {/* Heart Animation - center overlay for current reel */}
-              {idx === currentReel && heartAnimation?.show && (
+              {/* Heart pop (center) */}
+              {idx === currentReel && heartAnimation && (
                 <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
                   <Heart
-                    size={80}
+                    size={88}
                     className="text-red-500 fill-red-500 drop-shadow-lg animate-scale-in"
                     strokeWidth={0}
                   />
                 </div>
               )}
 
-              {/* Right Side Actions */}
+              {/* Right action rail (lower) */}
               <div
-                className="absolute right-3 flex flex-col space-y-5 z-20 pointer-events-auto"
-                style={{ 
-                  bottom: `${bottomNavHeight + 120}px`
-                }}
+                className="absolute right-3 flex flex-col space-y-5 z-30"
+                style={{ bottom: `${bottomNavHeight + ACTIONS_BOTTOM_OFFSET}px` }}
               >
                 <button
                   onClick={e => {
@@ -489,7 +482,11 @@ const ReelsPage = () => {
                 >
                   <Heart
                     size={28}
-                    className={`${likedReels.has(idx) ? 'text-red-500 fill-red-500' : 'text-white'} drop-shadow-lg`}
+                    className={`${
+                      likedReels.has(idx)
+                        ? 'text-red-500 fill-red-500'
+                        : 'text-white'
+                    } drop-shadow-lg`}
                     strokeWidth={likedReels.has(idx) ? 0 : 1.5}
                   />
                   <span className="text-white text-xs font-medium drop-shadow-lg">
@@ -498,44 +495,71 @@ const ReelsPage = () => {
                 </button>
 
                 <button className="flex flex-col items-center space-y-1">
-                  <MessageCircle size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
+                  <MessageCircle
+                    size={28}
+                    className="text-white drop-shadow-lg"
+                    strokeWidth={1.5}
+                  />
                   <span className="text-white text-xs font-medium drop-shadow-lg">
                     {formatNumber(reel.comments)}
                   </span>
                 </button>
 
                 <button className="flex flex-col items-center space-y-1">
-                  <Send size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
+                  <Send
+                    size={28}
+                    className="text-white drop-shadow-lg"
+                    strokeWidth={1.5}
+                  />
                   <span className="text-white text-xs font-medium drop-shadow-lg">
                     {formatNumber(reel.shares)}
                   </span>
                 </button>
 
-                <MoreHorizontal size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
+                <MoreHorizontal
+                  size={28}
+                  className="text-white drop-shadow-lg"
+                  strokeWidth={1.5}
+                />
 
                 <button className="mt-2 w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-yellow-500 flex items-center justify-center border border-white">
                   <Music size={16} className="text-white" />
                 </button>
               </div>
 
-              {/* Profile & Caption Overlay */}
+              {/* Profile & Caption (lower) */}
               <div
-                className="absolute left-4 right-20 z-20"
-                style={{ bottom: `${bottomNavHeight + 16}px` }}
+                className="absolute left-4 right-20 z-30"
+                style={{ bottom: `${bottomNavHeight + TEXT_BOTTOM_OFFSET}px` }}
               >
                 <div className="flex items-center space-x-3 mb-2">
                   <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30">
-                    <img src={reel.avatar} alt="" className="w-full h-full object-cover" />
+                    <img
+                      src={reel.avatar}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                  <span className="text-white font-semibold text-sm">{reel.user}</span>
+                  <span className="text-white font-semibold text-sm">
+                    {reel.user}
+                  </span>
                   <span className="text-white text-sm font-semibold">• Follow</span>
                 </div>
 
-                <div className={`${expandedCaptions.has(idx) ? 'max-h-32 overflow-y-auto' : 'max-h-16'} transition-all duration-300`}>
+                <div
+                  className={`${
+                    expandedCaptions.has(idx)
+                      ? 'max-h-32 overflow-y-auto'
+                      : 'max-h-16'
+                  } transition-all duration-300`}
+                >
                   <p className="text-white text-sm leading-5 max-w-xs mb-2 pr-2">
                     {truncateText(reel.description, expandedCaptions.has(idx))}
                     {reel.description.split(' ').length > 15 && (
-                      <button onClick={() => toggleCaption(idx)} className="text-gray-300 ml-1 font-medium">
+                      <button
+                        onClick={() => toggleCaption(idx)}
+                        className="text-gray-300 ml-1 font-medium"
+                      >
                         {expandedCaptions.has(idx) ? 'less' : 'more'}
                       </button>
                     )}
@@ -550,29 +574,27 @@ const ReelsPage = () => {
                 </div>
               </div>
 
-              {/* Progress Bar */}
+              {/* Progress bar (just above bottom nav) */}
               <div
                 className="absolute left-0 right-0 h-1 bg-white/20 z-30"
                 style={{ bottom: `${bottomNavHeight}px` }}
               >
                 <div
                   className="h-full bg-white transition-all ease-linear"
-                  style={{
-                    width: `${idx === currentReel ? progress : 0}%`
-                  }}
+                  style={{ width: `${idx === currentReel ? progress : 0}%` }}
                 />
               </div>
-              </section>
-            ))}
+            </section>
+          ))}
         </div>
       </div>
 
-      {/* Desktop Layout */}
+      {/* DESKTOP (kept simple) */}
       <div className="hidden lg:block bg-black min-h-screen">
         <div
           ref={containerRef}
           className="h-screen overflow-y-auto scrollbar-hidden"
-          style={{ scrollSnapType: 'y mandatory', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          style={{ scrollSnapType: 'y mandatory', scrollbarWidth: 'none' }}
         >
           {reels.map((reel, idx) => (
             <section
@@ -581,14 +603,14 @@ const ReelsPage = () => {
               style={{ scrollSnapAlign: 'center', scrollSnapStop: 'always' }}
             >
               <div className="relative w-[420px] h-[min(86vh,900px)] aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl bg-black">
-                {/* Video */}
                 <video
                   ref={el => (videoRefs.current[idx] = el)}
-                  className="w-full h-full object-cover cursor-pointer"
+                  className="w-full h-full object-cover"
                   loop
                   muted
                   playsInline
                   preload="metadata"
+                  poster={reel.poster}
                   onClick={handleVideoClick}
                   onPointerDown={handlePressStart}
                   onPointerUp={handlePressEnd}
@@ -602,31 +624,43 @@ const ReelsPage = () => {
                   <source src={reel.videoUrl} type="video/mp4" />
                 </video>
 
-                {/* Mute Icon Animation */}
-                {idx === currentReel && muteIconAnimation?.show && (
+                {idx === currentReel && muteIconAnimation && (
                   <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
                     <div className="bg-black/60 rounded-full p-4 animate-fade-in">
-                      {isMuted ? <VolumeX size={48} className="text-white" /> : <Volume2 size={48} className="text-white" />}
+                      {isMuted ? (
+                        <VolumeX size={48} className="text-white" />
+                      ) : (
+                        <Volume2 size={48} className="text-white" />
+                      )}
                     </div>
                   </div>
                 )}
 
-                {/* Heart Animation */}
-                {idx === currentReel && heartAnimation?.show && (
+                {idx === currentReel && heartAnimation && (
                   <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
-                    <Heart size={80} className="text-red-500 fill-red-500 drop-shadow-lg animate-scale-in" strokeWidth={0} />
+                    <Heart
+                      size={88}
+                      className="text-red-500 fill-red-500 drop-shadow-lg animate-scale-in"
+                      strokeWidth={0}
+                    />
                   </div>
                 )}
 
-                {/* Right-side Actions (overlay, same as mobile) */}
-                <div className="absolute right-3 bottom-24 flex flex-col space-y-6 z-20 pointer-events-auto">
+                <div className="absolute right-3 bottom-24 flex flex-col space-y-6 z-30">
                   <button
-                    onClick={e => { e.stopPropagation(); toggleLike(idx); }}
+                    onClick={e => {
+                      e.stopPropagation();
+                      toggleLike(idx);
+                    }}
                     className="flex flex-col items-center space-y-1"
                   >
                     <Heart
                       size={28}
-                      className={`${likedReels.has(idx) ? 'text-red-500 fill-red-500' : 'text-white'} drop-shadow-lg`}
+                      className={`${
+                        likedReels.has(idx)
+                          ? 'text-red-500 fill-red-500'
+                          : 'text-white'
+                      } drop-shadow-lg`}
                       strokeWidth={likedReels.has(idx) ? 0 : 1.5}
                     />
                     <span className="text-white text-xs font-medium drop-shadow-lg">
@@ -635,36 +669,62 @@ const ReelsPage = () => {
                   </button>
 
                   <button className="flex flex-col items-center space-y-1">
-                    <MessageCircle size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
-                    <span className="text-white text-xs font-medium drop-shadow-lg">{formatNumber(reel.comments)}</span>
+                    <MessageCircle
+                      size={28}
+                      className="text-white drop-shadow-lg"
+                      strokeWidth={1.5}
+                    />
+                    <span className="text-white text-xs font-medium drop-shadow-lg">
+                      {formatNumber(reel.comments)}
+                    </span>
                   </button>
 
                   <button className="flex flex-col items-center space-y-1">
-                    <Send size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
-                    <span className="text-white text-xs font-medium drop-shadow-lg">{formatNumber(reel.shares)}</span>
+                    <Send
+                      size={28}
+                      className="text-white drop-shadow-lg"
+                      strokeWidth={1.5}
+                    />
+                    <span className="text-white text-xs font-medium drop-shadow-lg">
+                      {formatNumber(reel.shares)}
+                    </span>
                   </button>
 
-                  <MoreHorizontal size={28} className="text-white drop-shadow-lg" strokeWidth={1.5} />
+                  <MoreHorizontal
+                    size={28}
+                    className="text-white drop-shadow-lg"
+                    strokeWidth={1.5}
+                  />
 
                   <button className="mt-4 w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-yellow-500 flex items-center justify-center border border-white">
                     <Music size={16} className="text-white" />
                   </button>
                 </div>
 
-                {/* Profile & Caption Overlay (unchanged) */}
-                <div className="absolute bottom-6 left-4 right-4 z-20 pt-8">
+                <div className="absolute bottom-6 left-4 right-4 z-30 pt-8">
                   <div className="flex items-center space-x-3 mb-2">
                     <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30">
-                      <img src={reel.avatar} alt="" className="w-full h-full object-cover" />
+                      <img
+                        src={reel.avatar}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                    <span className="text-white font-semibold text-sm">{reel.user}</span>
-                    <span className="text-white text-sm font-semibold">• Follow</span>
+                    <span className="text-white font-semibold text-sm">
+                      {reel.user}
+                    </span>
+                    <span className="text-white text-sm font-semibold">
+                      • Follow
+                    </span>
                   </div>
 
                   <p className="text-white text-sm leading-5 max-w-xs mb-2">
                     {truncateText(reel.description, expandedCaptions.has(idx))}
                     {reel.description.split(' ').length > 15 && (
-                      <button onClick={() => toggleCaption(idx)} className="text-gray-300 ml-1 font-medium">
+                      <button
+                        onClick={() => toggleCaption(idx)}
+                        className="text-gray-300 ml-1 font-medium"
+                      >
                         {expandedCaptions.has(idx) ? 'less' : 'more'}
                       </button>
                     )}
@@ -672,13 +732,17 @@ const ReelsPage = () => {
 
                   <div className="flex items-center space-x-2 pb-2">
                     <Music size={12} className="text-white" />
-                    <span className="text-white text-xs">{reel.user} • {reel.audioTitle}</span>
+                    <span className="text-white text-xs">
+                      {reel.user} • {reel.audioTitle}
+                    </span>
                   </div>
                 </div>
 
-                {/* Progress Bar */}
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-30">
-                  <div className="h-full bg-white transition-all ease-linear" style={{ width: `${idx === currentReel ? progress : 0}%` }} />
+                  <div
+                    className="h-full bg-white transition-all ease-linear"
+                    style={{ width: `${idx === currentReel ? progress : 0}%` }}
+                  />
                 </div>
               </div>
             </section>

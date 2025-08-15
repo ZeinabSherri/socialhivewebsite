@@ -1,3 +1,4 @@
+// PostCard.tsx
 import React, { useState } from 'react'
 import Carousel from 'react-multi-carousel'
 import 'react-multi-carousel/lib/styles.css'
@@ -12,6 +13,7 @@ import {
 } from 'lucide-react'
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar'
 import VerificationBadge from './VerificationBadge'
+import DrippingHoney from './DrippingHoney' // ⬅️ bring back the honey overlay
 
 interface Comment {
   id: number
@@ -56,6 +58,7 @@ const PostCard: React.FC<PostCardProps> = ({
   post,
   onLike,
   onUsernameClick,
+  isFirstPost = false, // ⬅️ default; used to conditionally show honey overlay
 }) => {
   const [showFullCaption, setShowFullCaption] = useState(false)
   const [showLoveIcon, setShowLoveIcon]     = useState(false)
@@ -66,18 +69,17 @@ const PostCard: React.FC<PostCardProps> = ({
   const isBurgerPost = post.id === 9
   const BURGER_OVERLAY_SRC = '/images/burger-only.png'
 
- // === TUNING KNOBS (safe UI-only) ==========================================
-// Background vertical object-position (percentage from TOP).
-// Higher number -> background sits LOWER in the frame.
-const BG_POS_Y = 15   // try 42–48 if you want it even lower
+  // === TUNING KNOBS (safe UI-only) ==========================================
+  // Background vertical object-position (percentage from TOP).
+  // Higher number -> background sits LOWER in the frame.
+  const BG_POS_Y = 15   // try 42–48 if you want it even lower
 
-// Burger overlay tuning:
-const BURGER_WIDTH_PCT = 65  // smaller burger (try 78–82 range)
-const BURGER_BOTTOM_PX = -100 // still drips into actions, but a bit higher than before
-const BURGER_X_PX = 80       // nudges to the right (increase if you want it more right)
-const BURGER_SCALE = 0.98    // tiny downscale for fine-tuning (leave 1 if you prefer)
-// ==========================================================================
-
+  // Burger overlay tuning:
+  const BURGER_WIDTH_PCT = 65   // smaller burger (try 78–82 range)
+  const BURGER_BOTTOM_PX = -100 // still drips into actions, but a bit higher than before
+  const BURGER_X_PX = 80        // nudges to the right (increase if you want it more right)
+  const BURGER_SCALE = 0.98     // tiny downscale for fine-tuning (leave 1 if you prefer)
+  // ==========================================================================
 
   const truncate = (text:string, max=100) =>
     text.length <= max ? text : text.slice(0,max) + '...'
@@ -100,9 +102,9 @@ const BURGER_SCALE = 0.98    // tiny downscale for fine-tuning (leave 1 if you p
       video.muted = !videoMuted
       if (!videoMuted) return
       try {
-        await video.play()
+        await (video as HTMLVideoElement).play()
       } catch {
-        /* ignore */
+        /* no-op */
       }
     })
     setVideoMuted(m => !m)
@@ -121,6 +123,9 @@ const BURGER_SCALE = 0.98    // tiny downscale for fine-tuning (leave 1 if you p
 
   const renderMedia = () => (
     <div className="relative overflow-visible">
+      {/* Honey overlay sits at the very top of the media area */}
+      {isFirstPost && <DrippingHoney />}
+
       {post.media && post.media.length > 0 ? (
         <Carousel {...carouselProps}>
           {post.media.map((m,i) => (
