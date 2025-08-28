@@ -1,4 +1,3 @@
-// PostCard.tsx
 import React, { useState } from 'react'
 import Carousel from 'react-multi-carousel'
 import 'react-multi-carousel/lib/styles.css'
@@ -13,7 +12,7 @@ import {
 } from 'lucide-react'
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar'
 import VerificationBadge from './VerificationBadge'
-import DrippingHoney from './DrippingHoney' // ⬅️ bring back the honey overlay
+import DrippingHoney from './DrippingHoney' // ⬅️ re-added
 
 interface Comment {
   id: number
@@ -54,32 +53,52 @@ const responsive = {
   mobile:  { breakpoint: { max: 464,  min: 0   },  items: 1 },
 }
 
+/** iOS/Safari-safe helper: unmute and keep playback in the SAME gesture */
+function unmuteAndPlay(video: HTMLVideoElement) {
+  try {
+    video.muted = false
+    video.defaultMuted = false
+    video.removeAttribute('muted')
+
+    video.playsInline = true
+    video.setAttribute('playsinline', 'true')
+    video.setAttribute('webkit-playsinline', 'true')
+
+    if (video.volume === 0) video.volume = 1.0
+
+    const p = video.play()
+    if (p && typeof p.catch === 'function') {
+      p.catch(() => {
+        /* ignore autoplay block until gesture */
+      })
+    }
+  } catch {
+    /* no-op */
+  }
+}
+
 const PostCard: React.FC<PostCardProps> = ({
   post,
   onLike,
   onUsernameClick,
-  isFirstPost = false, // ⬅️ default; used to conditionally show honey overlay
+  isFirstPost
 }) => {
   const [showFullCaption, setShowFullCaption] = useState(false)
   const [showLoveIcon, setShowLoveIcon]     = useState(false)
   const [lastTap, setLastTap]               = useState(0)
   const [videoMuted, setVideoMuted]         = useState(true)
 
-  // Only the burger post gets the overlay (adjust this condition if needed)
+  // ====== BURGER LOGIC (unchanged) =========================================
   const isBurgerPost = post.id === 9
   const BURGER_OVERLAY_SRC = '/images/burger-only.png'
 
-  // === TUNING KNOBS (safe UI-only) ==========================================
-  // Background vertical object-position (percentage from TOP).
-  // Higher number -> background sits LOWER in the frame.
-  const BG_POS_Y = 15   // try 42–48 if you want it even lower
-
-  // Burger overlay tuning:
-  const BURGER_WIDTH_PCT = 65   // smaller burger (try 78–82 range)
-  const BURGER_BOTTOM_PX = -100 // still drips into actions, but a bit higher than before
-  const BURGER_X_PX = 80        // nudges to the right (increase if you want it more right)
-  const BURGER_SCALE = 0.98     // tiny downscale for fine-tuning (leave 1 if you prefer)
-  // ==========================================================================
+  // Background and burger tuning knobs (unchanged)
+  const BG_POS_Y = 15
+  const BURGER_WIDTH_PCT = 65
+  const BURGER_BOTTOM_PX = -100
+  const BURGER_X_PX = 80
+  const BURGER_SCALE = 0.98
+  // ========================================================================
 
   const truncate = (text:string, max=100) =>
     text.length <= max ? text : text.slice(0,max) + '...'
@@ -95,19 +114,23 @@ const PostCard: React.FC<PostCardProps> = ({
     setLastTap(now)
   }
 
-  const toggleSound = async (e: React.MouseEvent) => {
+  // Mobile-safe sound toggle
+  const toggleSound = (e: React.MouseEvent) => {
     e.stopPropagation()
     const videos = document.querySelectorAll('video')
-    videos.forEach(async (video) => {
-      video.muted = !videoMuted
-      if (!videoMuted) return
-      try {
-        await (video as HTMLVideoElement).play()
-      } catch {
-        /* no-op */
-      }
-    })
-    setVideoMuted(m => !m)
+
+    if (videoMuted) {
+      videos.forEach(v => unmuteAndPlay(v as HTMLVideoElement))
+      setVideoMuted(false)
+    } else {
+      videos.forEach(video => {
+        const el = video as HTMLVideoElement
+        el.muted = true
+        el.defaultMuted = true
+        el.setAttribute('muted', '')
+      })
+      setVideoMuted(true)
+    }
   }
 
   const carouselProps = {
@@ -123,9 +146,6 @@ const PostCard: React.FC<PostCardProps> = ({
 
   const renderMedia = () => (
     <div className="relative overflow-visible">
-      {/* Honey overlay sits at the very top of the media area */}
-      {isFirstPost && <DrippingHoney />}
-
       {post.media && post.media.length > 0 ? (
         <Carousel {...carouselProps}>
           {post.media.map((m,i) => (
@@ -145,13 +165,16 @@ const PostCard: React.FC<PostCardProps> = ({
                 <div className="relative w-full h-full">
                   <video
                     autoPlay
-                    muted={videoMuted}
                     loop
+                    muted={videoMuted}
                     playsInline
+                    webkit-playsinline="true"
+                    preload="metadata"
                     className="w-full h-full object-cover rounded-lg"
                   >
                     <source src={m.url} type="video/mp4" />
                   </video>
+
                   <button
                     onClick={toggleSound}
                     className="absolute bottom-3 right-3 bg-black/70 text-white p-2 rounded-full z-20"
@@ -196,7 +219,7 @@ const PostCard: React.FC<PostCardProps> = ({
           onClick={handleDoubleTap}
           onTouchEnd={handleDoubleTap}
         >
-          {/* background-only image, with adjustable vertical object-position */}
+          {/* background image */}
           <img
             src={post.image}
             className="w-full h-full object-cover rounded-lg"
@@ -204,7 +227,10 @@ const PostCard: React.FC<PostCardProps> = ({
             style={{ objectPosition: `center ${BG_POS_Y}%` }}
           />
 
-          {/* burger overlay (above everything, allowed to hang into the actions) */}
+          {/* 🍯 Dripping honey (like before) — only on the first post */}
+          {isFirstPost && <DrippingHoney />}
+
+          {/* burger overlay (unchanged) */}
           {isBurgerPost && (
             <img
               src={BURGER_OVERLAY_SRC}
@@ -268,8 +294,7 @@ const PostCard: React.FC<PostCardProps> = ({
       {/* media */}
       {renderMedia()}
 
-      {/* actions / likes / caption / comments
-          z-10 so the burger overlay (z-30) stays on top of these, like the mock */}
+      {/* actions / likes / caption / comments */}
       <div className="px-3 pt-2 relative z-10">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-4">
