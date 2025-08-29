@@ -1,422 +1,276 @@
-
 import { useState, useRef, useEffect } from 'react';
-import { Play, Volume2, VolumeX, X } from 'lucide-react';
-import PostCard from './PostCard';
-import ReelModal from './ReelModal';
+import { Play, Search, Filter, X } from 'lucide-react';
+import { useCloudflareVideos, getCloudflareStreamThumbnail } from '@/hooks/useCloudflareVideos';
+import CloudflareStreamPlayer from './CloudflareStreamPlayer';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 const ExplorePage = () => {
-  const [selectedProject, setSelectedProject] = useState<any>(null);
-  const [selectedProjectIndex, setSelectedProjectIndex] = useState<number>(0);
-  const [activeFilter, setActiveFilter] = useState('Best results');
-  const [mutedVideos, setMutedVideos] = useState<Set<number>>(new Set());
-  const [showPostsFeed, setShowPostsFeed] = useState(false);
-  const [showReelModal, setShowReelModal] = useState(false);
-  const videoRefs = useRef<{ [key: number]: HTMLVideoElement | null }>({});
+  const { videos, loading, error } = useCloudflareVideos('explore');
+  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+  const [selectedVideoIndex, setSelectedVideoIndex] = useState<number>(0);
+  const [activeFilter, setActiveFilter] = useState('Newest');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showModal, setShowModal] = useState(false);
 
-  const allProjects = {
-    'Best results': [
-      {
-        id: 101,
-        title: 'Viral Marketing Campaign',
-        industry: 'Best results',
-        type: 'Post',
-        thumbnail: '/videos/0521.mp4',
-        mediaType: 'video',
-        description: 'Our most successful viral campaign that broke the internet.',
-        results: '10M views, 500K shares, 2M new followers',
-        client: 'SocialHive Agency',
-        likes: 15420,
-        comments: 2843
-      },
-      {
-        id: 102,
-        title: 'Award-Winning Design',
-        industry: 'Best results',
-        type: 'Post',
-        thumbnail: '/images/IMG-20250728-WA0026.jpg',
-        mediaType: 'image',
-        description: 'Design that won 3 international awards and redefined the brand.',
-        results: 'Gold at Cannes, Design of the Year, 400% brand lift',
-        client: 'SocialHive Agency',
-        likes: 8932,
-        comments: 1205
-      },
-      {
-        id: 103,
-        title: 'Record-Breaking Launch',
-        industry: 'Best results',
-        type: 'Post',
-        thumbnail: '/videos/0617 (1)(3).MP4',
-        mediaType: 'video',
-        description: 'Product launch that exceeded all expectations and broke company records.',
-        results: '1M pre-orders, sold out in 24 hours, 300% ROI',
-        client: 'SocialHive Agency',
-        likes: 12567,
-        comments: 3421
-      },
-      {
-        id: 104,
-        title: 'Cultural Impact Campaign',
-        industry: 'Best results',
-        type: 'Post',
-        thumbnail: '/images/IMG-20250728-WA0027.jpg',
-        mediaType: 'image',
-        description: 'Campaign that started a movement and changed industry standards.',
-        results: 'Featured in TIME, 50M reach, industry standard shift',
-        client: 'SocialHive Agency',
-        likes: 9834,
-        comments: 2156
-      },
-      {
-        id: 105,
-        title: 'Innovation Breakthrough',
-        industry: 'Best results',
-        type: 'Post',
-        thumbnail: '/videos/0619 (2) (2).mp4',
-        mediaType: 'video',
-        description: 'Revolutionary approach that redefined how brands connect with audiences.',
-        results: 'Patent filed, 800% engagement increase, industry adoption',
-        client: 'SocialHive Agency',
-        likes: 11249,
-        comments: 1876
-      },
-      {
-        id: 106,
-        title: 'Global Brand Transformation',
-        industry: 'Best results',
-        type: 'Post',
-        thumbnail: '/images/IMG-20250728-WA0028.jpg',
-        mediaType: 'image',
-        description: 'Complete brand overhaul that resulted in global market domination.',
-        results: 'Market leader position, 600% value increase, global expansion',
-        client: 'SocialHive Agency',
-        likes: 13567,
-        comments: 2987
-      }
-    ],
-    Strategy: [
-      {
-        id: 1,
-        title: 'Brand Strategy Portfolio',
-        industry: 'Strategy',
-        type: 'Post',
-        thumbnail: '/images/IMG-20250728-WA0026.jpg',
-        mediaType: 'image',
-        description: 'Comprehensive brand strategy showcasing our methodology and results.',
-        results: '300% increase in brand awareness, 15% conversion rate',
-        client: 'SocialHive Agency',
-        likes: 3421,
-        comments: 567
-      },
-      {
-        id: 7,
-        title: 'Market Analysis Deep Dive',
-        industry: 'Strategy',
-        type: 'Post',
-        thumbnail: '/videos/0626(2).mp4',
-        mediaType: 'video',
-        description: 'Strategic analysis that revealed untapped market opportunities.',
-        results: 'New market entry, 250% growth, competitive advantage',
-        client: 'SocialHive Agency',
-        likes: 2156,
-        comments: 398
-      }
-    ],
-    Creative: [
-      {
-        id: 2,
-        title: 'Creative Design Showcase',
-        industry: 'Creative',
-        type: 'Post',
-        thumbnail: '/images/IMG-20250728-WA0027.jpg',
-        mediaType: 'image',
-        description: 'Creative design portfolio highlighting our visual storytelling capabilities.',
-        results: '250% engagement boost, 1.8M impressions',
-        client: 'SocialHive Agency',
-        likes: 5234,
-        comments: 891
-      },
-      {
-        id: 8,
-        title: 'Visual Identity Revolution',
-        industry: 'Creative',
-        type: 'Post',
-        thumbnail: '/videos/0627 (1).mp4',
-        mediaType: 'video',
-        description: 'Complete visual overhaul that transformed brand perception.',
-        results: 'Brand recognition +400%, design awards, viral adoption',
-        client: 'SocialHive Agency',
-        likes: 4567,
-        comments: 723
-      }
-    ],
-    Marketing: [
-      {
-        id: 3,
-        title: 'Marketing Success Story',
-        industry: 'Marketing',
-        type: 'Post',
-        thumbnail: '/images/IMG-20250728-WA0028.jpg',
-        mediaType: 'image',
-        description: 'Marketing campaign that delivered exceptional results for our client.',
-        results: '150 qualified leads, 85% lead quality score',
-        client: 'SocialHive Agency',
-        likes: 2987,
-        comments: 445
-      },
-      {
-        id: 9,
-        title: 'Digital Marketing Mastery',
-        industry: 'Marketing',
-        type: 'Post',
-        thumbnail: '/videos/0630 (1)(3).mp4',
-        mediaType: 'video',
-        description: 'Multi-channel campaign that maximized reach and conversion.',
-        results: '5M reach, 35% conversion rate, 400% ROAS',
-        client: 'SocialHive Agency',
-        likes: 3765,
-        comments: 612
-      }
-    ],
-    Innovation: [
-      {
-        id: 4,
-        title: 'Digital Innovation Case Study',
-        industry: 'Innovation',
-        type: 'Post',
-        thumbnail: '/images/IMG-20250728-WA0029.jpg',
-        mediaType: 'image',
-        description: 'Innovation in digital marketing strategies and implementation.',
-        results: '1M impressions, 500 sign-ups, 25% conversion',
-        client: 'SocialHive Agency',
-        likes: 4123,
-        comments: 678
-      },
-      {
-        id: 10,
-        title: 'Tech Integration Pioneer',
-        industry: 'Innovation',
-        type: 'Post',
-        thumbnail: '/videos/0703.mp4',
-        mediaType: 'video',
-        description: 'First-to-market integration that set new industry standards.',
-        results: 'Industry first, 10 patents, technology adoption',
-        client: 'SocialHive Agency',
-        likes: 3456,
-        comments: 534
-      }
-    ]
-  };
+  const filters = ['Newest', 'A→Z', 'Z→A', 'Shortest', 'Longest'];
 
-  const filters = ['Best results', 'Strategy', 'Creative', 'Marketing', 'Innovation'];
-
-  const filteredProjects = allProjects[activeFilter as keyof typeof allProjects] || [];
-
-  const reels = filteredProjects.filter(project => project.mediaType === 'video');
-  const posts = filteredProjects.filter(project => project.mediaType === 'image');
-
-  const handleProjectClick = (project: any, index: number) => {
-    setSelectedProject(project);
-    setSelectedProjectIndex(index);
-    
-    if (project.mediaType === 'video') {
-      setShowReelModal(true);
-    } else {
-      setShowPostsFeed(true);
-    }
-  };
-
-  const handleReelNavigate = (direction: 'prev' | 'next') => {
-    if (!selectedProject) return;
-
-    const currentIndex = reels.findIndex(p => p.id === selectedProject.id);
-    
-    if (direction === 'prev' && currentIndex > 0) {
-      setSelectedProject(reels[currentIndex - 1]);
-    } else if (direction === 'next' && currentIndex < reels.length - 1) {
-      setSelectedProject(reels[currentIndex + 1]);
-    }
-  };
-
-  const handleLike = (postId: number) => {
-    // Handle like functionality if needed
-  };
-
-  const toggleMute = (videoId: number) => {
-    const newMutedVideos = new Set(mutedVideos);
-    if (mutedVideos.has(videoId)) {
-      newMutedVideos.delete(videoId);
-    } else {
-      newMutedVideos.add(videoId);
-    }
-    setMutedVideos(newMutedVideos);
-    
-    const video = videoRefs.current[videoId];
-    if (video) {
-      video.muted = newMutedVideos.has(videoId);
-    }
-  };
-
-  useEffect(() => {
-    // Just mute all videos, don't auto-play in grid
-    Object.values(videoRefs.current).forEach(video => {
-      if (video) {
-        video.muted = true;
+  // Filter and sort videos
+  const filteredVideos = videos
+    .filter(video => {
+      if (!searchQuery) return true;
+      return (
+        video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        video.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+    })
+    .sort((a, b) => {
+      switch (activeFilter) {
+        case 'A→Z':
+          return a.title.localeCompare(b.title);
+        case 'Z→A':
+          return b.title.localeCompare(a.title);
+        case 'Shortest':
+          return a.duration - b.duration;
+        case 'Longest':
+          return b.duration - a.duration;
+        case 'Newest':
+        default:
+          return new Date(b.created).getTime() - new Date(a.created).getTime();
       }
     });
-  }, [filteredProjects]);
 
-  const renderGridItem = (project: any, index: number) => {
-    return (
-      <div
-        key={project.id}
-        onClick={() => handleProjectClick(project, index)}
-        className="aspect-square bg-gray-900 cursor-pointer hover:opacity-80 transition-opacity relative group overflow-hidden rounded-sm"
-      >
-        {project.mediaType === 'video' ? (
-          <video
-            ref={(el) => {
-              if (el) {
-                videoRefs.current[project.id] = el;
-              }
-            }}
-            src={project.thumbnail}
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            className="w-full h-full object-cover"
-            onLoadedData={(e) => {
-              const video = e.currentTarget;
-              video.play().catch(() => {
-                // Autoplay failed, will play on user interaction
-              });
-            }}
-          />
-        ) : (
-          <img
-            src={project.thumbnail}
-            alt={project.title}
-            className="w-full h-full object-cover"
-          />
-        )}
-        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
-          <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-50 px-2 py-1 rounded">
-            {project.type}
-          </span>
-        </div>
-        {project.mediaType === 'video' && (
-          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Play className="w-4 h-4 text-white" fill="white" />
-          </div>
-        )}
-      </div>
-    );
+  const handleVideoClick = (uid: string) => {
+    const index = filteredVideos.findIndex(video => video.uid === uid);
+    setSelectedVideo(uid);
+    setSelectedVideoIndex(index);
+    setShowModal(true);
   };
 
-  return (
-    <div className="max-w-md mx-auto h-full">
-      {/* Filters */}
-      <div className="px-4 py-3 bg-black sticky top-0 z-10">
-        {/* Mobile/Tablet: Vertical layout */}
-        <div className="block md:hidden">
-          <div className="flex flex-wrap gap-1.5">
-            {filters.map(filter => (
-              <button
-                key={filter}
-                onClick={() => setActiveFilter(filter)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
-                  activeFilter === filter
-                    ? 'bg-yellow-500 text-black'
-                    : 'bg-gray-800 text-white'
-                }`}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
-        </div>
+  const handleModalClose = () => {
+    setShowModal(false);
+    setSelectedVideo(null);
+  };
 
-        {/* Desktop: Staggered grid layout */}
-        <div className="hidden md:block">
-          <div className="flex flex-wrap gap-1.5">
-            {filters.map(filter => (
-              <button
-                key={filter}
-                onClick={() => setActiveFilter(filter)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
-                  activeFilter === filter
-                    ? 'bg-yellow-500 text-black'
-                    : 'bg-gray-800 text-white'
-                }`}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+  const handleNavigate = (direction: 'prev' | 'next') => {
+    const newIndex = direction === 'prev' 
+      ? Math.max(0, selectedVideoIndex - 1)
+      : Math.min(filteredVideos.length - 1, selectedVideoIndex + 1);
+    
+    setSelectedVideoIndex(newIndex);
+    setSelectedVideo(filteredVideos[newIndex].uid);
+  };
 
-      {/* Instagram-style Grid - Scrollable */}
-      <div className="flex-1 overflow-y-auto" style={{ height: 'calc(100vh - 120px - env(safe-area-inset-bottom))' }}>
-        <div className="grid grid-cols-3 gap-1 p-1 pb-20">
-          {filteredProjects.map((project, index) => renderGridItem(project, index))}
-        </div>
-      </div>
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
-      {/* Posts Feed Modal */}
-      {showPostsFeed && (
-        <div className="fixed inset-0 bg-black bg-opacity-95 z-50 flex flex-col">
-          <div className="flex items-center justify-between p-4 border-b border-gray-800">
-            <h2 className="text-lg font-semibold">Posts</h2>
-            <button onClick={() => setShowPostsFeed(false)} className="text-gray-400 hover:text-white p-2">
-              <X size={24} />
-            </button>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto">
-            <div className="max-w-md mx-auto space-y-0">
-              {filteredProjects.slice(selectedProjectIndex).map((project, index) => (
-                <PostCard 
-                  key={project.id} 
-                  post={{
-                    id: project.id,
-                    username: project.client,
-                    userAvatar: '/images/socialhive.png',
-                    timestamp: '2h',
-                    image: project.thumbnail,
-                    caption: project.description,
-                    likes: project.likes,
-                    comments: project.comments,
-                    isLiked: false,
-                    staticComments: [
-                      { id: 1, username: 'user1', text: 'Amazing work! 🔥' },
-                      { id: 2, username: 'user2', text: 'Love this! 💛' }
-                    ]
-                  }} 
-                  onLike={() => handleLike(project.id)} 
-                  onUsernameClick={() => {}} 
-                />
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black p-4">
+        <div className="max-w-6xl mx-auto">
+          {/* Header skeleton */}
+          <div className="mb-6 space-y-4">
+            <Skeleton className="h-10 w-48 bg-gray-800" />
+            <div className="flex gap-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} className="h-8 w-20 bg-gray-800" />
               ))}
             </div>
           </div>
+          
+          {/* Grid skeleton */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {[...Array(12)].map((_, i) => (
+              <div key={i} className="space-y-2">
+                <Skeleton className="aspect-video w-full bg-gray-800" />
+                <Skeleton className="h-4 w-3/4 bg-gray-800" />
+                <Skeleton className="h-3 w-1/2 bg-gray-800" />
+              </div>
+            ))}
+          </div>
         </div>
-      )}
+      </div>
+    );
+  }
 
-      {/* Reel Modal */}
-      {showReelModal && selectedProject && (
-        <ReelModal
-          reel={{
-            ...selectedProject,
-            videoUrl: selectedProject.thumbnail
-          }}
-          allReels={reels.map(reel => ({
-            ...reel,
-            videoUrl: reel.thumbnail
-          }))}
-          onClose={() => setShowReelModal(false)}
-          onNavigate={handleReelNavigate}
-        />
+  if (error || !videos.length) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center text-white">
+        <div className="text-center space-y-4">
+          <div className="text-6xl">🎬</div>
+          <h2 className="text-2xl font-bold">No Videos Available</h2>
+          <p className="text-gray-400">
+            {error || 'Check back later for new content!'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-black text-white">
+      <div className="max-w-6xl mx-auto p-4">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold mb-4">Explore Videos</h1>
+          
+          {/* Search */}
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Search videos..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-gray-900 border-gray-700 text-white placeholder-gray-400"
+            />
+          </div>
+
+          {/* Filters */}
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {filters.map((filter) => (
+              <Button
+                key={filter}
+                variant={activeFilter === filter ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveFilter(filter)}
+                className={`whitespace-nowrap ${
+                  activeFilter === filter
+                    ? 'bg-yellow-400 text-black hover:bg-yellow-500'
+                    : 'border-gray-600 text-white hover:bg-gray-800'
+                }`}
+              >
+                {filter}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Results count */}
+        <p className="text-gray-400 mb-4">
+          {filteredVideos.length} video{filteredVideos.length !== 1 ? 's' : ''} found
+        </p>
+
+        {/* Video Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {filteredVideos.map((video) => (
+            <div
+              key={video.uid}
+              className="group cursor-pointer"
+              onClick={() => handleVideoClick(video.uid)}
+            >
+              <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-900">
+                <img
+                  src={getCloudflareStreamThumbnail(video.uid, { height: 360 })}
+                  alt={video.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                  loading="lazy"
+                />
+                
+                {/* Play overlay */}
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-200 flex items-center justify-center">
+                  <div className="bg-black/60 rounded-full p-3 group-hover:scale-110 transition-transform duration-200">
+                    <Play size={24} className="text-white fill-white ml-1" />
+                  </div>
+                </div>
+
+                {/* Duration */}
+                <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+                  {formatDuration(video.duration)}
+                </div>
+              </div>
+
+              {/* Video info */}
+              <div className="mt-2 space-y-1">
+                <h3 className="font-medium text-sm line-clamp-2 group-hover:text-yellow-400 transition-colors">
+                  {video.title}
+                </h3>
+                <div className="flex flex-wrap gap-1">
+                  {video.tags.slice(0, 2).map((tag, index) => (
+                    <span key={index} className="text-xs text-gray-400">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Empty state */}
+        {filteredVideos.length === 0 && (
+          <div className="text-center py-12">
+            <Search size={48} className="text-gray-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-2">No videos found</h3>
+            <p className="text-gray-400">
+              Try adjusting your search or filter criteria
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Video Modal */}
+      {showModal && selectedVideo && (
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+          <div className="relative w-full max-w-4xl aspect-video">
+            {/* Close button */}
+            <button
+              onClick={handleModalClose}
+              className="absolute -top-12 right-0 text-white hover:text-gray-300 z-10"
+            >
+              <X size={32} />
+            </button>
+
+            {/* Navigation */}
+            {selectedVideoIndex > 0 && (
+              <button
+                onClick={() => handleNavigate('prev')}
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 z-10"
+              >
+                ←
+              </button>
+            )}
+            
+            {selectedVideoIndex < filteredVideos.length - 1 && (
+              <button
+                onClick={() => handleNavigate('next')}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 z-10"
+              >
+                →
+              </button>
+            )}
+
+            {/* Video Player */}
+            <CloudflareStreamPlayer
+              uid={selectedVideo}
+              autoplay
+              muted={false}
+              controls
+              lazyLoad={false}
+              className="w-full h-full rounded-lg"
+            />
+
+            {/* Video info */}
+            <div className="absolute -bottom-16 left-0 right-0 text-white">
+              <h3 className="text-lg font-semibold mb-1">
+                {filteredVideos[selectedVideoIndex]?.title}
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {filteredVideos[selectedVideoIndex]?.tags.map((tag, index) => (
+                  <span key={index} className="text-sm text-gray-300">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+              <p className="text-sm text-gray-400 mt-2">
+                {selectedVideoIndex + 1} of {filteredVideos.length}
+              </p>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
