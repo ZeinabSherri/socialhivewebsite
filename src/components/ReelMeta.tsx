@@ -18,6 +18,53 @@ const ReelMeta = ({ user, description, audioTitle, avatar }: ReelMetaProps) => {
     return words.slice(0, 15).join(' ') + '...';
   };
 
+  // Desktop layout
+  const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+  
+  if (isDesktop) {
+    return (
+      <div className="text-white space-y-3">
+        {/* User info */}
+        <div className="flex items-center space-x-3">
+          <img 
+            src={avatar} 
+            alt={user}
+            className="w-8 h-8 rounded-full object-cover"
+          />
+          <span className="font-semibold text-base">@{user}</span>
+          <button className="text-white border border-white px-3 py-1 rounded text-sm hover:bg-white hover:text-black transition-colors">
+            Follow
+          </button>
+        </div>
+
+        {/* Caption */}
+        <div>
+          <p className="text-sm leading-relaxed">
+            {truncateText(description, expandedCaption)}
+            {description.split(' ').length > 15 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setExpandedCaption(!expandedCaption);
+                }}
+                className="text-gray-300 ml-1 hover:text-white"
+              >
+                {expandedCaption ? 'less' : 'more'}
+              </button>
+            )}
+          </p>
+        </div>
+
+        {/* Audio */}
+        <div className="flex items-center space-x-2">
+          <Music size={14} className="text-white" />
+          <span className="text-sm text-gray-300">{audioTitle}</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Mobile layout (original)
   return (
     <div
       className="absolute bottom-0 left-0 right-16 text-white z-20"

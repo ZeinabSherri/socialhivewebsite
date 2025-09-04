@@ -23,6 +23,7 @@ interface ReelVideoProps {
   isLiked: boolean;
   globalMuted: boolean;
   onMuteToggle: () => void;
+  layout?: 'mobile' | 'desktop';
 }
 
 const ReelVideo = ({
@@ -32,7 +33,8 @@ const ReelVideo = ({
   onLike,
   isLiked,
   globalMuted,
-  onMuteToggle
+  onMuteToggle,
+  layout = 'mobile'
 }: ReelVideoProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [progress, setProgress] = useState(0);
@@ -56,6 +58,62 @@ const ReelVideo = ({
     onLike(reel.id);
   }, [onLike, reel.id]);
 
+  if (layout === 'desktop') {
+    return (
+      <div className="flex flex-col items-center">
+        <div className="flex gap-6 items-center">
+          {/* Video container */}
+          <div className="relative bg-black rounded-lg overflow-hidden" style={{ width: '520px', height: '720px' }}>
+            {/* Video Player */}
+            <ReelPlayer
+              videoUrl={reel.videoUrl}
+              poster={reel.poster}
+              isActive={isActive}
+              globalMuted={globalMuted}
+              onMuteToggle={onMuteToggle}
+              onLike={handleLikeClick}
+              height={720}
+            />
+
+            {/* Progress bar */}
+            {isActive && (
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/30 z-30">
+                <div
+                  className="h-full bg-white transition-all duration-100"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Right action rail - vertically centered */}
+          <div className="flex items-center">
+            <ReelActionRail
+              likes={reel.likes}
+              comments={reel.comments}
+              shares={reel.shares || 0}
+              isLiked={isLiked}
+              onLike={handleLikeClick}
+              avatar={reel.avatar}
+              user={reel.user}
+            />
+          </div>
+        </div>
+
+        {/* Meta info below video */}
+        <div className="w-[520px] mt-4">
+          <ReelMeta
+            user={reel.user}
+            description={reel.description}
+            audioTitle={reel.audioTitle}
+            avatar={reel.avatar}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Mobile layout (original)
   return (
     <section
       className="relative bg-black w-full snap-start snap-always"

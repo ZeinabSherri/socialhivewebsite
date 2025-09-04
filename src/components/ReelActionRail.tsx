@@ -20,6 +20,59 @@ const ReelActionRail = ({
   avatar,
   user
 }: ReelActionRailProps) => {
+  // Desktop layout
+  const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+  
+  if (isDesktop) {
+    return (
+      <div className="flex flex-col space-y-6 text-white">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onLike();
+          }}
+          className="flex flex-col items-center group"
+        >
+          <Heart
+            size={32}
+            className={`transition-colors group-hover:scale-110 ${
+              isLiked ? 'fill-red-500 text-red-500' : 'hover:text-red-400'
+            }`}
+          />
+          <span className="text-sm mt-1">{formatNumber(likes + (isLiked ? 1 : 0))}</span>
+        </button>
+
+        <button className="flex flex-col items-center group">
+          <MessageCircle size={32} className="group-hover:scale-110 transition-transform" />
+          <span className="text-sm mt-1">{formatNumber(comments)}</span>
+        </button>
+
+        <button className="flex flex-col items-center group">
+          <Send size={32} className="group-hover:scale-110 transition-transform" />
+          <span className="text-sm mt-1">Share</span>
+        </button>
+
+        <button className="flex flex-col items-center group">
+          <Bookmark size={32} className="group-hover:scale-110 transition-transform" />
+        </button>
+
+        <button className="flex flex-col items-center group">
+          <MoreHorizontal size={32} className="group-hover:scale-110 transition-transform" />
+        </button>
+
+        {/* Profile picture */}
+        <div className="w-12 h-12 rounded-full border-2 border-white overflow-hidden mt-2">
+          <img
+            src={avatar}
+            alt={user}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Mobile layout (original)
   return (
     <div
       className="absolute right-0 flex flex-col space-y-5 z-20 pointer-events-auto"

@@ -225,52 +225,118 @@ const ReelsPage = () => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
     >
-      {/* Header */}
-      <div
-        className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2"
-        style={{
-          paddingTop: 'max(8px, env(safe-area-inset-top))',
-          paddingLeft: 'max(16px, env(safe-area-inset-left))',
-          paddingRight: 'max(16px, env(safe-area-inset-right))'
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-transparent pointer-events-none" />
-        
-        <button
-          onClick={() => window.history.back()}
-          className="relative text-white hover:text-gray-300 p-2"
+      {/* Mobile/Tablet Layout (< lg) */}
+      <div className="lg:hidden w-full h-full">
+        {/* Header */}
+        <div
+          className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2"
+          style={{
+            paddingTop: 'max(8px, env(safe-area-inset-top))',
+            paddingLeft: 'max(16px, env(safe-area-inset-left))',
+            paddingRight: 'max(16px, env(safe-area-inset-right))'
+          }}
         >
-          <ChevronLeft size={24} />
-        </button>
-        
-        <div className="relative text-white text-center">
-          <h2 className="font-semibold">Reels</h2>
-          <p className="text-xs text-gray-300">{currentIndex + 1} of {formattedReels.length}</p>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-transparent pointer-events-none" />
+          
+          <button
+            onClick={() => window.history.back()}
+            className="relative text-white hover:text-gray-300 p-2"
+          >
+            <ChevronLeft size={24} />
+          </button>
+          
+          <div className="relative text-white text-center">
+            <h2 className="font-semibold">Reels</h2>
+            <p className="text-xs text-gray-300">{currentIndex + 1} of {formattedReels.length}</p>
+          </div>
+          
+          <div className="w-10" /> {/* Spacer for centering */}
         </div>
-        
-        <div className="w-10" /> {/* Spacer for centering */}
+
+        {/* Reels container */}
+        <div
+          ref={containerRef}
+          className="w-full h-full overflow-y-auto snap-y snap-mandatory scrollbar-hidden"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
+          {formattedReels.map((reel, index) => (
+            <ReelVideo
+              key={reel.id}
+              reel={reel}
+              isActive={index === currentIndex}
+              height={window.innerHeight}
+              onLike={handleLike}
+              isLiked={likedReels.has(reel.id)}
+              globalMuted={globalMuted}
+              onMuteToggle={handleMuteToggle}
+              layout="mobile"
+            />
+          ))}
+        </div>
       </div>
 
-      {/* Reels container */}
-      <div
-        ref={containerRef}
-        className="w-full h-full overflow-y-auto snap-y snap-mandatory scrollbar-hidden"
-        style={{ WebkitOverflowScrolling: 'touch' }}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
-        {formattedReels.map((reel, index) => (
-          <ReelVideo
-            key={reel.id}
-            reel={reel}
-            isActive={index === currentIndex}
-            height={window.innerHeight}
-            onLike={handleLike}
-            isLiked={likedReels.has(reel.id)}
-            globalMuted={globalMuted}
-            onMuteToggle={handleMuteToggle}
-          />
-        ))}
+      {/* Desktop Layout (lg+) */}
+      <div className="hidden lg:flex w-full h-full">
+        {/* Header */}
+        <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-3 bg-gradient-to-b from-black/60 to-transparent">
+          <button
+            onClick={() => window.history.back()}
+            className="text-white hover:text-gray-300 p-2"
+          >
+            <ChevronLeft size={24} />
+          </button>
+          
+          <div className="text-white text-center">
+            <h2 className="text-lg font-semibold">Reels</h2>
+            <p className="text-sm text-gray-300">{currentIndex + 1} of {formattedReels.length}</p>
+          </div>
+          
+          <div className="w-10" />
+        </div>
+
+        {/* Desktop content container */}
+        <div className="flex-1 flex items-center justify-center pt-20 pb-8 px-8">
+          {/* Main video column */}
+          <div className="flex items-center gap-8">
+            {/* Video container */}
+            <div className="w-[520px] flex flex-col">
+              {formattedReels.length > 0 && (
+                <ReelVideo
+                  key={formattedReels[currentIndex].id}
+                  reel={formattedReels[currentIndex]}
+                  isActive={true}
+                  height={720} // 9:16 aspect ratio height for 520px width
+                  onLike={handleLike}
+                  isLiked={likedReels.has(formattedReels[currentIndex].id)}
+                  globalMuted={globalMuted}
+                  onMuteToggle={handleMuteToggle}
+                  layout="desktop"
+                />
+              )}
+            </div>
+
+            {/* Navigation arrows */}
+            <div className="flex flex-col gap-4">
+              <button
+                onClick={() => navigate('prev')}
+                disabled={currentIndex === 0}
+                className="p-3 rounded-full bg-white/10 text-white hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft size={20} className="rotate-90" />
+              </button>
+              
+              <button
+                onClick={() => navigate('next')}
+                disabled={currentIndex === formattedReels.length - 1}
+                className="p-3 rounded-full bg-white/10 text-white hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft size={20} className="-rotate-90" />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </motion.div>
   );
