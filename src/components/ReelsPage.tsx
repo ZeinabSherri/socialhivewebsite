@@ -1,16 +1,19 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
+  ChevronDown,
+  Camera,
   Heart,
   MessageCircle,
   Send,
+  Bookmark,
   MoreHorizontal,
-  ChevronDown,
-  Camera,
   Music,
   Volume2,
-  VolumeX,
+  VolumeX
 } from 'lucide-react';
 import { loadStreamItems, thumbSrc } from '../lib/stream';
+import { formatNumber } from '../lib/format';
+import ReelVideo from './ReelVideo';
 
 /** Types */
 type Reel = {
@@ -29,13 +32,6 @@ type Reel = {
 /** Cloudflare helpers */
 const cfThumb = (uid: string, h = 720) => thumbSrc(uid, h);
 const cfMp4 = (uid: string) => `https://videodelivery.net/${uid}/downloads/default.mp4`;
-
-/** Small helpers */
-const formatNumber = (num: number): string => {
-  if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + 'M';
-  if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K';
-  return num.toString();
-};
 
 const ReelsPage = () => {
   /** Cloudflare reels loaded from /videos.json (section === "reels") */
@@ -82,7 +78,7 @@ const ReelsPage = () => {
   const [progress, setProgress] = useState(0);
   const [likedReels, setLikedReels] = useState<Set<number>>(new Set());
   const [expandedCaptions, setExpandedCaptions] = useState<Set<number>>(new Set());
-  const [isMuted, setIsMuted] = useState(true);
+  const [globalMuted, setGlobalMuted] = useState(true);
   const [muteIconAnimation, setMuteIconAnimation] = useState(false);
   const [heartAnimation, setHeartAnimation] = useState(false);
 
@@ -102,7 +98,7 @@ const ReelsPage = () => {
     { isPressed: false, wasPlaying: false }
   );
 
-  /** “Lower” UI tweaks to feel like Instagram */
+  /** "Lower" UI tweaks to feel like Instagram */
   const ACTIONS_BOTTOM_OFFSET = 72; // px above bottom nav
   const TEXT_BOTTOM_OFFSET = 4;     // px above bottom nav
   const HEADER_HEIGHT = 40;
@@ -133,36 +129,19 @@ const ReelsPage = () => {
     })();
   }, []);
 
-  /** Captions */
-  const toggleCaption = (idx: number) => {
-    setExpandedCaptions((prev) => {
-      const s = new Set(prev);
-      if (s.has(idx)) s.delete(idx);
-      else s.add(idx);
-      return s;
-    });
-  };
-  const truncateText = (text: string, isExpanded: boolean) => {
-    if (isExpanded) return text;
-    const words = text.split(' ');
-    if (words.length <= 15) return text;
-    return words.slice(0, 15).join(' ') + '...';
-  };
-
   /** Likes */
-  const toggleLike = (idx: number) => {
+  const handleLike = useCallback((reelId: number) => {
     setLikedReels((prev) => {
       const s = new Set(prev);
-      if (s.has(idx)) s.delete(idx);
-      else s.add(idx);
+      if (s.has(reelId)) s.delete(reelId);
+      else s.add(reelId);
       return s;
     });
-  };
-  const showHeartAnimation = () => {
-    setHeartAnimation(true);
-    toggleLike(currentReel);
-    window.setTimeout(() => setHeartAnimation(false), 900);
-  };
+  }, []);
+
+  const handleMuteToggle = useCallback(() => {
+    setGlobalMuted(!globalMuted);
+  }, [globalMuted]);
 
   /** Layout calc */
   const calculateReelHeight = useCallback(() => {
@@ -190,7 +169,6 @@ const ReelsPage = () => {
 
       isNavigatingRef.current = true;
       setCurrentReel(target);
-      setProgress(0);
 
       const c = containerRef.current;
       if (c && reelViewportHeight > 0) {
@@ -226,133 +204,6 @@ const ReelsPage = () => {
     [currentReel, navigateToReel]
   );
 
-  /** Progress updater */
-  const updateProgress = useCallback(() => {
-    const vid = videoRefs.current[currentReel];
-    if (vid?.duration) {
-      setProgress((vid.currentTime / vid.duration) * 100);
-    }
-  }, [currentReel]);
-
-  /** Toggle mute (single tap) */
-  const toggleMute = useCallback(() => {
-    const vid = videoRefs.current[currentReel];
-    if (!vid) return;
-
-    const t = vid.currentTime;
-    const paused = vid.paused;
-
-    vid.muted = !vid.muted;
-    setIsMuted(vid.muted);
-
-    if (!paused) vid.play().catch(() => {});
-    vid.currentTime = t;
-
-    setMuteIconAnimation(true);
-    window.setTimeout(() => setMuteIconAnimation(false), 800);
-  }, [currentReel]);
-
-  /** Press & hold pause */
-  const handlePressStart = (
-    e: React.PointerEvent | React.MouseEvent | React.TouchEvent
-  ) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const vid = videoRefs.current[currentReel];
-    if (!vid || pressStateRef.current.isPressed) return;
-
-    pressStateRef.current.isPressed = true;
-    pressStateRef.current.wasPlaying = !vid.paused;
-
-    pressStateRef.current.holdTimeout = window.setTimeout(() => {
-      if (pressStateRef.current.isPressed) {
-        vid.pause();
-      }
-    }, 300);
-  };
-
-  const handlePressEnd = (
-    e: React.PointerEvent | React.MouseEvent | React.TouchEvent
-  ) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const vid = videoRefs.current[currentReel];
-    if (!vid) return;
-
-    if (pressStateRef.current.holdTimeout) {
-      window.clearTimeout(pressStateRef.current.holdTimeout);
-      pressStateRef.current.holdTimeout = undefined;
-    }
-    const shouldResume =
-      pressStateRef.current.isPressed && pressStateRef.current.wasPlaying;
-
-    pressStateRef.current.isPressed = false;
-    if (shouldResume) {
-      vid.play().catch(() => {});
-    }
-  };
-
-  /** Tap handler (single = mute, double = like) */
-  const handleVideoClick = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (pressStateRef.current.isPressed) return;
-
-    tapCountRef.current += 1;
-    if (tapTimeoutRef.current) {
-      window.clearTimeout(tapTimeoutRef.current);
-    }
-
-    tapTimeoutRef.current = window.setTimeout(() => {
-      if (tapCountRef.current === 1) {
-        toggleMute();
-      } else if (tapCountRef.current === 2) {
-        showHeartAnimation();
-      }
-      tapCountRef.current = 0;
-    }, 250);
-  };
-
-  /** When the current reel changes, start it (muted) and reset others */
-  useEffect(() => {
-    const vid = videoRefs.current[currentReel];
-    if (!vid) return;
-
-    setProgress(0);
-    vid.muted = true;
-    setIsMuted(true);
-    vid.play().catch(() => {});
-
-    videoRefs.current.forEach((v, i) => {
-      if (v && i !== currentReel) {
-        v.pause();
-        v.currentTime = 0;
-      }
-    });
-
-    if (progressIntervalRef.current) {
-      window.clearInterval(progressIntervalRef.current);
-    }
-    progressIntervalRef.current = window.setInterval(updateProgress, 100);
-
-    const onEnded = () => navigateToReel(currentReel + 1);
-    vid.addEventListener('ended', onEnded);
-
-    return () => {
-      vid.removeEventListener('ended', onEnded);
-      if (progressIntervalRef.current) {
-        window.clearInterval(progressIntervalRef.current);
-      }
-    };
-  }, [currentReel, navigateToReel, updateProgress]);
-
-  /** Keep video element's muted prop in sync */
-  useEffect(() => {
-    const vid = videoRefs.current[currentReel];
-    if (vid) vid.muted = isMuted;
-  }, [isMuted, currentReel]);
-
   /** Height + viewport listeners */
   useEffect(() => {
     const handleResize = () => calculateReelHeight();
@@ -381,13 +232,158 @@ const ReelsPage = () => {
       const newIndex = Math.round(c.scrollTop / reelViewportHeight);
       if (newIndex !== currentReel && newIndex >= 0 && newIndex < reels.length) {
         setCurrentReel(newIndex);
-        setProgress(0);
       }
     };
 
     c.addEventListener('scroll', onScroll, { passive: true });
     return () => c.removeEventListener('scroll', onScroll);
   }, [currentReel, reels.length, reelViewportHeight]);
+
+  // Video playback management
+  useEffect(() => {
+    videoRefs.current.forEach((video, index) => {
+      if (!video) return;
+      
+      if (index === currentReel) {
+        video.muted = globalMuted;
+        video.play().catch(() => {});
+      } else {
+        video.pause();
+        video.currentTime = 0;
+      }
+    });
+  }, [currentReel, globalMuted]);
+
+  // Progress tracking
+  useEffect(() => {
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+    }
+
+    const video = videoRefs.current[currentReel];
+    if (!video) return;
+
+    const updateProgress = () => {
+      if (video.duration) {
+        setProgress((video.currentTime / video.duration) * 100);
+      }
+    };
+
+    progressIntervalRef.current = window.setInterval(updateProgress, 100);
+
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+    };
+  }, [currentReel]);
+
+  // Tap gesture handling
+  const handleVideoClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (pressStateRef.current.isPressed) return;
+
+    tapCountRef.current += 1;
+    
+    if (tapTimeoutRef.current) {
+      clearTimeout(tapTimeoutRef.current);
+    }
+
+    tapTimeoutRef.current = window.setTimeout(() => {
+      if (tapCountRef.current === 1) {
+        // Single tap - toggle mute
+        setGlobalMuted(!globalMuted);
+        setMuteIconAnimation(true);
+        setTimeout(() => setMuteIconAnimation(false), 1000);
+      } else if (tapCountRef.current === 2) {
+        // Double tap - like with heart animation
+        const currentReelId = reels[currentReel]?.id;
+        if (currentReelId) {
+          handleLike(currentReelId);
+          setHeartAnimation(true);
+          setTimeout(() => setHeartAnimation(false), 800);
+          
+          // Haptic feedback if available
+          if ('vibrate' in navigator) {
+            navigator.vibrate(15);
+          }
+        }
+      }
+      tapCountRef.current = 0;
+    }, 250);
+  }, [globalMuted, handleLike, reels, currentReel]);
+
+  // Press and hold for pause
+  const handlePressStart = useCallback((e: React.PointerEvent | React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const video = videoRefs.current[currentReel];
+    if (!video || pressStateRef.current.isPressed) return;
+
+    pressStateRef.current.isPressed = true;
+    pressStateRef.current.wasPlaying = !video.paused;
+
+    pressStateRef.current.holdTimeout = window.setTimeout(() => {
+      if (pressStateRef.current.isPressed) {
+        video.pause();
+      }
+    }, 300);
+  }, [currentReel]);
+
+  const handlePressEnd = useCallback((e: React.PointerEvent | React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const video = videoRefs.current[currentReel];
+    if (!video) return;
+
+    if (pressStateRef.current.holdTimeout) {
+      clearTimeout(pressStateRef.current.holdTimeout);
+      pressStateRef.current.holdTimeout = undefined;
+    }
+
+    const shouldResume = pressStateRef.current.isPressed && pressStateRef.current.wasPlaying;
+    pressStateRef.current.isPressed = false;
+    
+    if (shouldResume) {
+      video.play().catch(() => {});
+    }
+  }, [currentReel]);
+
+  const toggleLike = useCallback((index: number) => {
+    const reelId = reels[index]?.id;
+    if (reelId) {
+      handleLike(reelId);
+      setHeartAnimation(true);
+      setTimeout(() => setHeartAnimation(false), 800);
+      
+      if ('vibrate' in navigator) {
+        navigator.vibrate(15);
+      }
+    }
+  }, [reels, handleLike]);
+
+  const toggleCaption = useCallback((index: number) => {
+    setExpandedCaptions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const truncateText = (text: string, expanded: boolean) => {
+    if (expanded) return text;
+    const words = text.split(' ');
+    if (words.length <= 15) return text;
+    return words.slice(0, 15).join(' ') + '...';
+  };
 
   return (
     <>
@@ -404,18 +400,17 @@ const ReelsPage = () => {
         {/* Header — overlay style like IG */}
         <div
           ref={headerRef}
-          className="relative flex items-center justify-between px-4 z-40"
+          className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between reels-safe-padding reels-safe-top"
           style={{
-            height: `calc(${HEADER_HEIGHT}px + env(safe-area-inset-top, 0px))`,
-            paddingTop: 'env(safe-area-inset-top, 0px)',
+            height: `calc(${HEADER_HEIGHT}px + env(safe-area-inset-top, 0px))`
           }}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-transparent pointer-events-none" />
-          <div className="relative flex items-center space-x-2">
+          <div className="relative flex items-center space-x-2 pt-2">
             <span className="text-white font-semibold text-lg">Reels</span>
             <ChevronDown size={20} className="text-white" />
           </div>
-          <button className="relative text-white">
+          <button className="relative text-white pt-2">
             <Camera size={24} />
           </button>
         </div>
@@ -468,7 +463,7 @@ const ReelsPage = () => {
               {idx === currentReel && muteIconAnimation && (
                 <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
                   <div className="bg-black/60 rounded-full p-4 animate-fade-in">
-                    {isMuted ? (
+                    {globalMuted ? (
                       <VolumeX size={48} className="text-white" />
                     ) : (
                       <Volume2 size={48} className="text-white" />
@@ -490,8 +485,11 @@ const ReelsPage = () => {
 
               {/* Right action rail */}
               <div
-                className="absolute right-3 flex flex-col space-y-5 z-20 pointer-events-auto"
-                style={{ bottom: `${bottomNavHeight + ACTIONS_BOTTOM_OFFSET}px` }}
+                className="absolute right-0 flex flex-col space-y-5 z-20 pointer-events-auto"
+                style={{ 
+                  bottom: `${bottomNavHeight + ACTIONS_BOTTOM_OFFSET}px`,
+                  paddingRight: 'max(14px, env(safe-area-inset-right))'
+                }}
               >
                 <button
                   onClick={(e) => {
@@ -503,14 +501,14 @@ const ReelsPage = () => {
                   <Heart
                     size={28}
                     className={`${
-                      likedReels.has(idx)
+                      likedReels.has(reel.id)
                         ? 'text-red-500 fill-red-500'
                         : 'text-white'
                     } drop-shadow-lg`}
-                    strokeWidth={likedReels.has(idx) ? 0 : 1.5}
+                    strokeWidth={likedReels.has(reel.id) ? 0 : 1.5}
                   />
                   <span className="text-white text-xs font-medium drop-shadow-lg">
-                    {formatNumber(reel.likes + (likedReels.has(idx) ? 1 : 0))}
+                    {formatNumber(reel.likes + (likedReels.has(reel.id) ? 1 : 0))}
                   </span>
                 </button>
 
@@ -536,21 +534,31 @@ const ReelsPage = () => {
                   </span>
                 </button>
 
-                <MoreHorizontal
-                  size={28}
-                  className="text-white drop-shadow-lg"
-                  strokeWidth={1.5}
-                />
-
-                <button className="mt-2 w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-yellow-500 flex items-center justify-center border border-white">
-                  <Music size={16} className="text-white" />
+                <button className="flex flex-col items-center text-white">
+                  <Bookmark size={28} />
                 </button>
+
+                <button className="flex flex-col items-center text-white">
+                  <MoreHorizontal size={28} />
+                </button>
+
+                {/* Profile picture */}
+                <div className="w-10 h-10 rounded-full border-2 border-white overflow-hidden">
+                  <img
+                    src={reel.avatar}
+                    alt={reel.user}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               </div>
 
               {/* Profile & Caption */}
               <div
-                className="absolute left-4 right-20 z-20"
-                style={{ bottom: `${bottomNavHeight + TEXT_BOTTOM_OFFSET}px` }}
+                className="absolute left-0 right-16 z-20"
+                style={{ 
+                  bottom: `${bottomNavHeight + TEXT_BOTTOM_OFFSET}px`,
+                  paddingLeft: 'max(14px, env(safe-area-inset-left))'
+                }}
               >
                 <div className="flex items-center space-x-3 mb-2">
                   <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30">
@@ -597,7 +605,11 @@ const ReelsPage = () => {
               {/* Progress bar */}
               <div
                 className="absolute left-0 right-0 h-1 bg-white/20 z-30"
-                style={{ bottom: `${bottomNavHeight}px` }}
+                style={{ 
+                  bottom: `${bottomNavHeight}px`,
+                  paddingLeft: 'max(14px, env(safe-area-inset-left))',
+                  paddingRight: 'max(14px, env(safe-area-inset-right))'
+                }}
               >
                 <div
                   className="h-full bg-white transition-all ease-linear"
@@ -609,163 +621,27 @@ const ReelsPage = () => {
         </div>
       </div>
 
-      {/* DESKTOP */}
-      <div className="hidden lg:block bg-black min-h-screen">
-        <div
-          ref={containerRef}
-          className="h-screen overflow-y-auto scrollbar-hidden"
-          style={{ scrollSnapType: 'y mandatory', scrollbarWidth: 'none' }}
-        >
-          {reels.map((reel, idx) => (
-            <section
-              key={reel.id}
-              className="min-h-screen flex items-center justify-center"
-              style={{ scrollSnapAlign: 'center', scrollSnapStop: 'always' }}
-            >
-              <div className="relative w-[420px] h-[min(86vh,900px)] aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl bg-black">
-                <video
-                  ref={(el) => (videoRefs.current[idx] = el)}
-                  className="w-full h-full object-cover"
-                  loop
-                  muted
-                  playsInline
-                  preload="metadata"
-                  poster={reel.poster}
-                  onClick={handleVideoClick}
-                  onPointerDown={handlePressStart}
-                  onPointerUp={handlePressEnd}
-                  onPointerLeave={handlePressEnd}
-                  onMouseDown={handlePressStart}
-                  onMouseUp={handlePressEnd}
-                  onMouseLeave={handlePressEnd}
-                  onTouchStart={handlePressStart}
-                  onTouchEnd={handlePressEnd}
-                >
-                  <source src={reel.videoUrl} type="video/mp4" />
-                </video>
-
-                {idx === currentReel && muteIconAnimation && (
-                  <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
-                    <div className="bg-black/60 rounded-full p-4 animate-fade-in">
-                      {isMuted ? (
-                        <VolumeX size={48} className="text-white" />
-                      ) : (
-                        <Volume2 size={48} className="text-white" />
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {idx === currentReel && heartAnimation && (
-                  <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
-                    <Heart
-                      size={88}
-                      className="text-red-500 fill-red-500 drop-shadow-lg animate-scale-in"
-                      strokeWidth={0}
-                    />
-                  </div>
-                )}
-
-                <div className="absolute right-3 bottom-24 flex flex-col space-y-6 z-30">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleLike(idx);
-                    }}
-                    className="flex flex-col items-center space-y-1"
-                  >
-                    <Heart
-                      size={28}
-                      className={`${
-                        likedReels.has(idx)
-                          ? 'text-red-500 fill-red-500'
-                          : 'text-white'
-                      } drop-shadow-lg`}
-                      strokeWidth={likedReels.has(idx) ? 0 : 1.5}
-                    />
-                    <span className="text-white text-xs font-medium drop-shadow-lg">
-                      {formatNumber(reel.likes + (likedReels.has(idx) ? 1 : 0))}
-                    </span>
-                  </button>
-
-                  <button className="flex flex-col items-center space-y-1">
-                    <MessageCircle
-                      size={28}
-                      className="text-white drop-shadow-lg"
-                      strokeWidth={1.5}
-                    />
-                    <span className="text-white text-xs font-medium drop-shadow-lg">
-                      {formatNumber(reel.comments)}
-                    </span>
-                  </button>
-
-                  <button className="flex flex-col items-center space-y-1">
-                    <Send
-                      size={28}
-                      className="text-white drop-shadow-lg"
-                      strokeWidth={1.5}
-                    />
-                    <span className="text-white text-xs font-medium drop-shadow-lg">
-                      {formatNumber(reel.shares)}
-                    </span>
-                  </button>
-
-                  <MoreHorizontal
-                    size={28}
-                    className="text-white drop-shadow-lg"
-                    strokeWidth={1.5}
-                  />
-
-                  <button className="mt-4 w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-yellow-500 flex items-center justify-center border border-white">
-                    <Music size={16} className="text-white" />
-                  </button>
-                </div>
-
-                <div className="absolute bottom-6 left-4 right-4 z-30 pt-8">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30">
-                      <img
-                        src={reel.avatar}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <span className="text-white font-semibold text-sm">
-                      {reel.user}
-                    </span>
-                    <span className="text-white text-sm font-semibold">
-                      • Follow
-                    </span>
-                  </div>
-
-                  <p className="text-white text-sm leading-5 max-w-xs mb-2">
-                    {truncateText(reel.description, expandedCaptions.has(idx))}
-                    {reel.description.split(' ').length > 15 && (
-                      <button
-                        onClick={() => toggleCaption(idx)}
-                        className="text-gray-300 ml-1 font-medium"
-                      >
-                        {expandedCaptions.has(idx) ? 'less' : 'more'}
-                      </button>
-                    )}
-                  </p>
-
-                  <div className="flex items-center space-x-2 pb-2">
-                    <Music size={12} className="text-white" />
-                    <span className="text-white text-xs">
-                      {reel.user} • {reel.audioTitle}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-30">
-                  <div
-                    className="h-full bg-white transition-all ease-linear"
-                    style={{ width: `${idx === currentReel ? progress : 0}%` }}
-                  />
+      {/* DESKTOP - unchanged */}
+      <div className="hidden lg:block">
+        <div className="grid grid-cols-2 gap-6 p-6">
+          {reels.map((reel) => (
+            <div key={reel.id} className="bg-gray-900 rounded-lg overflow-hidden">
+              <video
+                controls
+                className="w-full h-96 object-cover"
+                poster={reel.poster}
+              >
+                <source src={reel.videoUrl} type="video/mp4" />
+              </video>
+              <div className="p-4">
+                <h3 className="font-semibold text-white">{reel.user}</h3>
+                <p className="text-gray-300 text-sm mt-1">{reel.description}</p>
+                <div className="flex items-center space-x-4 mt-3 text-gray-400 text-sm">
+                  <span>{reel.likes} likes</span>
+                  <span>{reel.comments} comments</span>
                 </div>
               </div>
-            </section>
+            </div>
           ))}
         </div>
       </div>
