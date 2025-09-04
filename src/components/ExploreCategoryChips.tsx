@@ -13,9 +13,9 @@ const ExploreCategoryChips: React.FC<ExploreCategoryChipsProps> = ({
   onSelect
 }) => {
   return (
-    <div className="sticky top-0 z-30 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="mx-auto w-full max-w-[920px] px-4 pt-6 pb-4">
-        <div className="flex flex-wrap items-center justify-center gap-2">
+    <div className="sticky top-0 z-30 bg-transparent backdrop-blur-sm">
+      <div className="mx-auto w-full max-w-[920px] px-4 pt-8 pb-6">
+        <div className="flex flex-wrap items-center justify-center gap-8">
           {categories.map((category, index) => {
             const isSelected = selectedCategory === category;
             
@@ -37,13 +37,14 @@ const ExploreCategoryChips: React.FC<ExploreCategoryChipsProps> = ({
                   scale: isSelected ? { duration: 0.22, times: [0, 0.6, 1] } : undefined
                 }}
                 className={`
-                  px-3.5 h-9 text-sm md:px-4 md:h-10 md:text-base
-                  rounded-full border font-medium
-                  active:scale-[0.98] transition-all duration-200
+                  inline-flex items-center justify-center
+                  text-sm h-9 px-4 sm:text-base sm:h-10 sm:px-5
+                  rounded-full font-medium
+                  active:scale-[0.98] transition-colors duration-150
                   focus:outline-none focus:ring-2 focus:ring-[--brand]/80
                   ${isSelected 
-                    ? 'bg-[--brand] text-black border-transparent shadow-sm' 
-                    : 'border-white/10 bg-white/5 text-white/85 hover:bg-white/10'
+                    ? 'bg-[var(--brand)] text-black font-semibold border-transparent shadow-sm' 
+                    : 'border border-white/12 bg-white/6 text-white/90 hover:bg-white/10'
                   }
                 `}
                 aria-pressed={isSelected}
