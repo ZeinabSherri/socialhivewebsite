@@ -4,6 +4,7 @@ import { Play, Search } from 'lucide-react';
 import { loadStreamItems, thumbSrc } from '../lib/stream';
 import { formatCount } from '../lib/format';
 import ReelsViewer from './ReelsViewer';
+import ExploreCategoryChips from './ExploreCategoryChips';
 import type { StreamItem } from '../lib/stream';
 
 type ExploreReel = {
@@ -66,8 +67,6 @@ const ExplorePage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [cfReels, setCfReels] = useState<ExploreReel[]>([]);
   const videoRefs = useRef<Record<number, HTMLVideoElement | null>>({});
-  const categoryScrollRef = useRef<HTMLDivElement>(null);
-  const [categoryIndicatorStyle, setCategoryIndicatorStyle] = useState({ width: 0, left: 0 });
 
   // guess category when videos.json has no "industry"
   const guessCategory = (title?: string, tags?: string[]): FilterName => {
@@ -152,34 +151,12 @@ const ExplorePage = () => {
     window.history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);
   };
 
-  // Handle category change with animation
-  const handleCategoryChange = (newCategory: FilterName, element: HTMLButtonElement) => {
+  // Handle category change
+  const handleCategoryChange = (newCategory: FilterName) => {
     setActiveFilter(newCategory);
     setSearchQuery(''); // Clear search when changing category
-    
-    // Update indicator position
-    const rect = element.getBoundingClientRect();
-    const containerRect = categoryScrollRef.current?.getBoundingClientRect();
-    if (containerRect) {
-      setCategoryIndicatorStyle({
-        width: rect.width,
-        left: rect.left - containerRect.left + (categoryScrollRef.current?.scrollLeft || 0)
-      });
-    }
   };
 
-  // Initialize category indicator position
-  useEffect(() => {
-    const activeButton = categoryScrollRef.current?.querySelector(`[data-category="${activeFilter}"]`) as HTMLButtonElement;
-    if (activeButton && categoryScrollRef.current) {
-      const rect = activeButton.getBoundingClientRect();
-      const containerRect = categoryScrollRef.current.getBoundingClientRect();
-      setCategoryIndicatorStyle({
-        width: rect.width,
-        left: rect.left - containerRect.left + categoryScrollRef.current.scrollLeft
-      });
-    }
-  }, [activeFilter]);
 
   // Handle deep linking on mount
   useEffect(() => {
@@ -257,39 +234,11 @@ const ExplorePage = () => {
           </div>
         </div>
 
-        {/* Animated category chips */}
-        <div className="relative">
-          <div
-            ref={categoryScrollRef}
-            className="flex space-x-2 overflow-x-auto scrollbar-hidden pb-2"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {filters.map((filter) => (
-              <button
-                key={filter}
-                data-category={filter}
-                onClick={(e) => handleCategoryChange(filter as FilterName, e.currentTarget)}
-                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 ${
-                  activeFilter === filter 
-                    ? 'text-black bg-white' 
-                    : 'text-gray-300 bg-gray-800 hover:bg-gray-700'
-                }`}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
-          
-          {/* Sliding indicator */}
-          <motion.div
-            className="absolute bottom-0 h-0.5 bg-yellow-500 category-indicator"
-            animate={{
-              width: categoryIndicatorStyle.width,
-              x: categoryIndicatorStyle.left
-            }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          />
-        </div>
+        <ExploreCategoryChips
+          categories={filters}
+          selectedCategory={activeFilter}
+          onSelect={handleCategoryChange}
+        />
       </div>
 
       {/* Reels grid */}

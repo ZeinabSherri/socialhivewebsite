@@ -142,6 +142,9 @@ All colors MUST be HSL.
 
     /* Reels mobile safe area gutters */
     --reels-gutter: 14px;
+
+    /* Brand color for selected states */
+    --brand: 45 93% 58%; /* Yellow brand color */
   }
 }
 
