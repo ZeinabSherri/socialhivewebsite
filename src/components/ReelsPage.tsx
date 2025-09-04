@@ -10,10 +10,9 @@ import {
   Volume2,
   VolumeX,
 } from 'lucide-react';
+import { loadStreamItems, thumbSrc } from '../lib/stream';
 
-/**
- * Small helpers/types
- */
+/** Types */
 type Reel = {
   id: number;
   description: string;
@@ -27,6 +26,11 @@ type Reel = {
   poster?: string;
 };
 
+/** Cloudflare helpers */
+const cfThumb = (uid: string, h = 720) => thumbSrc(uid, h);
+const cfMp4 = (uid: string) => `https://videodelivery.net/${uid}/downloads/default.mp4`;
+
+/** Small helpers */
 const formatNumber = (num: number): string => {
   if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + 'M';
   if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K';
@@ -34,12 +38,11 @@ const formatNumber = (num: number): string => {
 };
 
 const ReelsPage = () => {
-  /**
-   * Demo sources (lightweight videos)
-   * Place files at: public/videos/demo1.mp4 and public/videos/demo2.mp4
-   * Optional posters: public/videos/demo1.jpg, demo2.jpg
-   */
-  const reels = useMemo<Reel[]>(
+  /** Cloudflare reels loaded from /videos.json (section === "reels") */
+  const [cfReels, setCfReels] = useState<Reel[]>([]);
+
+  /** Your existing demo/local reels */
+  const baseReels = useMemo<Reel[]>(
     () => [
       {
         id: 1,
@@ -71,22 +74,23 @@ const ReelsPage = () => {
     []
   );
 
-  // UI state
+  /** Merge CF reels first so they appear on top */
+  const reels = useMemo<Reel[]>(() => [...cfReels, ...baseReels], [cfReels, baseReels]);
+
+  /** UI state */
   const [currentReel, setCurrentReel] = useState(0);
   const [progress, setProgress] = useState(0);
   const [likedReels, setLikedReels] = useState<Set<number>>(new Set());
-  const [expandedCaptions, setExpandedCaptions] = useState<Set<number>>(
-    new Set()
-  );
+  const [expandedCaptions, setExpandedCaptions] = useState<Set<number>>(new Set());
   const [isMuted, setIsMuted] = useState(true);
   const [muteIconAnimation, setMuteIconAnimation] = useState(false);
   const [heartAnimation, setHeartAnimation] = useState(false);
 
-  // Layout state
+  /** Layout */
   const [reelViewportHeight, setReelViewportHeight] = useState(0);
   const [bottomNavHeight, setBottomNavHeight] = useState(0);
 
-  // Refs
+  /** Refs */
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -94,32 +98,50 @@ const ReelsPage = () => {
   const isNavigatingRef = useRef(false);
   const tapTimeoutRef = useRef<number | null>(null);
   const tapCountRef = useRef(0);
-  const pressStateRef = useRef<{
-    isPressed: boolean;
-    wasPlaying: boolean;
-    holdTimeout?: number;
-  }>({ isPressed: false, wasPlaying: false });
+  const pressStateRef = useRef<{ isPressed: boolean; wasPlaying: boolean; holdTimeout?: number }>(
+    { isPressed: false, wasPlaying: false }
+  );
 
-  /**
-   * Lower-the-UI tweaks (feel closer to Instagram)
-   * Increase these if you still want everything a tad lower.
-   */
-  const ACTIONS_BOTTOM_OFFSET = 72; // px above the bottom nav
-  const TEXT_BOTTOM_OFFSET = 4; // px above the bottom nav
-  const HEADER_HEIGHT = 40; // visual IG header height (we calculate safe inset below)
+  /** “Lower” UI tweaks to feel like Instagram */
+  const ACTIONS_BOTTOM_OFFSET = 72; // px above bottom nav
+  const TEXT_BOTTOM_OFFSET = 4;     // px above bottom nav
+  const HEADER_HEIGHT = 40;
 
-  // Caption helpers
-const toggleCaption = (idx: number) => {
-  setExpandedCaptions((prev) => {
-    const s = new Set(prev);
-    if (s.has(idx)) {
-      s.delete(idx);
-    } else {
-      s.add(idx);
-    }
-    return s;
-  });
-};
+  /** Load Cloudflare reels */
+  useEffect(() => {
+    (async () => {
+      try {
+        const items = await loadStreamItems();
+        const mapped: Reel[] = items
+          .filter((v) => v.section === 'reels')
+          .map((v, i) => ({
+            id: 90000 + i,
+            description: v.title || 'Reel',
+            likes: 0,
+            comments: 0,
+            shares: 0,
+            user: 'cloudflare.stream',
+            avatar: '/images/socialhive.png',
+            audioTitle: 'Original audio',
+            videoUrl: cfMp4(v.uid),
+            poster: cfThumb(v.uid, 720),
+          }));
+        setCfReels(mapped);
+      } catch (e) {
+        console.error('CF reels load failed', e);
+      }
+    })();
+  }, []);
+
+  /** Captions */
+  const toggleCaption = (idx: number) => {
+    setExpandedCaptions((prev) => {
+      const s = new Set(prev);
+      if (s.has(idx)) s.delete(idx);
+      else s.add(idx);
+      return s;
+    });
+  };
   const truncateText = (text: string, isExpanded: boolean) => {
     if (isExpanded) return text;
     const words = text.split(' ');
@@ -127,53 +149,41 @@ const toggleCaption = (idx: number) => {
     return words.slice(0, 15).join(' ') + '...';
   };
 
-  // Like helpers
-const toggleLike = (idx: number) => {
-  setLikedReels((prev) => {
-    const s = new Set(prev);
-    if (s.has(idx)) {
-      s.delete(idx);
-    } else {
-      s.add(idx);
-    }
-    return s;
-  });
-};
+  /** Likes */
+  const toggleLike = (idx: number) => {
+    setLikedReels((prev) => {
+      const s = new Set(prev);
+      if (s.has(idx)) s.delete(idx);
+      else s.add(idx);
+      return s;
+    });
+  };
   const showHeartAnimation = () => {
     setHeartAnimation(true);
     toggleLike(currentReel);
     window.setTimeout(() => setHeartAnimation(false), 900);
   };
 
-  // Calculate viewport height minus header + bottom nav
+  /** Layout calc */
   const calculateReelHeight = useCallback(() => {
-    const header = headerRef.current;
-    if (!header) return;
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+    const headerHeight = headerRef.current?.getBoundingClientRect().height ?? HEADER_HEIGHT;
 
-    const viewportHeight =
-      window.visualViewport?.height ?? window.innerHeight;
-
-    const headerRect = header.getBoundingClientRect();
-    const headerHeight = headerRect.height;
-
-    // Try to detect a bottom nav (your app) and measure it
     const bottomNavEl = document.querySelector(
       'nav[class*="fixed"][class*="bottom-0"]'
     ) as HTMLElement | null;
-    const bottomNavCalculated = bottomNavEl
-      ? bottomNavEl.getBoundingClientRect().height
-      : 64; // fallback
+    const bottomNavCalculated = bottomNavEl ? bottomNavEl.getBoundingClientRect().height : 64;
 
     setBottomNavHeight(bottomNavCalculated);
-
     const h = Math.max(viewportHeight - headerHeight - bottomNavCalculated, 240);
     setReelViewportHeight(h);
   }, []);
 
-  // Navigate reels
+  /** Navigation helpers */
   const navigateToReel = useCallback(
     (newIndex: number) => {
       if (isNavigatingRef.current) return;
+
       let target = newIndex;
       if (newIndex < 0) target = reels.length - 1;
       if (newIndex >= reels.length) target = 0;
@@ -186,32 +196,37 @@ const toggleLike = (idx: number) => {
       if (c && reelViewportHeight > 0) {
         c.scrollTo({ top: target * reelViewportHeight, behavior: 'smooth' });
       }
-      window.setTimeout(() => (isNavigatingRef.current = false), 300);
+
+      window.setTimeout(() => {
+        isNavigatingRef.current = false;
+      }, 300);
     },
     [reels.length, reelViewportHeight]
   );
 
-  // Touch navigation
+  /** Touch navigation */
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     containerRef.current?.setAttribute('data-start-y', `${e.touches[0].clientY}`);
   }, []);
 
   const handleTouchEnd = useCallback(
     (e: React.TouchEvent) => {
-      const startY = parseFloat(
-        containerRef.current?.getAttribute('data-start-y') || '0'
-      );
+      const startY = parseFloat(containerRef.current?.getAttribute('data-start-y') || '0');
       const endY = e.changedTouches[0].clientY;
       const diff = startY - endY;
+
       if (Math.abs(diff) > 50) {
-        // ✅ single call; fixes "no-unused-expressions"
-        navigateToReel(diff > 0 ? currentReel + 1 : currentReel - 1);
+        if (diff > 0) {
+          navigateToReel(currentReel + 1);
+        } else {
+          navigateToReel(currentReel - 1);
+        }
       }
     },
     [currentReel, navigateToReel]
   );
 
-  // Progress updater
+  /** Progress updater */
   const updateProgress = useCallback(() => {
     const vid = videoRefs.current[currentReel];
     if (vid?.duration) {
@@ -219,7 +234,7 @@ const toggleLike = (idx: number) => {
     }
   }, [currentReel]);
 
-  // Toggle mute (single tap)
+  /** Toggle mute (single tap) */
   const toggleMute = useCallback(() => {
     const vid = videoRefs.current[currentReel];
     if (!vid) return;
@@ -237,7 +252,7 @@ const toggleLike = (idx: number) => {
     window.setTimeout(() => setMuteIconAnimation(false), 800);
   }, [currentReel]);
 
-  // Press & hold pause
+  /** Press & hold pause */
   const handlePressStart = (
     e: React.PointerEvent | React.MouseEvent | React.TouchEvent
   ) => {
@@ -250,7 +265,9 @@ const toggleLike = (idx: number) => {
     pressStateRef.current.wasPlaying = !vid.paused;
 
     pressStateRef.current.holdTimeout = window.setTimeout(() => {
-      if (pressStateRef.current.isPressed) vid.pause();
+      if (pressStateRef.current.isPressed) {
+        vid.pause();
+      }
     }, 300);
   };
 
@@ -271,30 +288,33 @@ const toggleLike = (idx: number) => {
       pressStateRef.current.isPressed && pressStateRef.current.wasPlaying;
 
     pressStateRef.current.isPressed = false;
-    if (shouldResume) vid.play().catch(() => {});
+    if (shouldResume) {
+      vid.play().catch(() => {});
+    }
   };
 
-  // Tap handler (single = mute, double = like)
-  const handleVideoClick = (
-    e: React.MouseEvent | React.TouchEvent
-  ) => {
+  /** Tap handler (single = mute, double = like) */
+  const handleVideoClick = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (pressStateRef.current.isPressed) return;
 
     tapCountRef.current += 1;
-    if (tapTimeoutRef.current) window.clearTimeout(tapTimeoutRef.current);
+    if (tapTimeoutRef.current) {
+      window.clearTimeout(tapTimeoutRef.current);
+    }
 
     tapTimeoutRef.current = window.setTimeout(() => {
-      if (tapCountRef.current === 1) toggleMute();
-      else if (tapCountRef.current === 2) showHeartAnimation();
+      if (tapCountRef.current === 1) {
+        toggleMute();
+      } else if (tapCountRef.current === 2) {
+        showHeartAnimation();
+      }
       tapCountRef.current = 0;
     }, 250);
   };
 
-  /**
-   * When the current reel changes, start it (muted) and reset others.
-   */
+  /** When the current reel changes, start it (muted) and reset others */
   useEffect(() => {
     const vid = videoRefs.current[currentReel];
     if (!vid) return;
@@ -302,9 +322,7 @@ const toggleLike = (idx: number) => {
     setProgress(0);
     vid.muted = true;
     setIsMuted(true);
-
-    const p = vid.play();
-    if (p) p.catch(() => {}); // ignore autoplay block; user taps will start
+    vid.play().catch(() => {});
 
     videoRefs.current.forEach((v, i) => {
       if (v && i !== currentReel) {
@@ -313,8 +331,9 @@ const toggleLike = (idx: number) => {
       }
     });
 
-    if (progressIntervalRef.current)
+    if (progressIntervalRef.current) {
       window.clearInterval(progressIntervalRef.current);
+    }
     progressIntervalRef.current = window.setInterval(updateProgress, 100);
 
     const onEnded = () => navigateToReel(currentReel + 1);
@@ -322,18 +341,19 @@ const toggleLike = (idx: number) => {
 
     return () => {
       vid.removeEventListener('ended', onEnded);
-      if (progressIntervalRef.current)
+      if (progressIntervalRef.current) {
         window.clearInterval(progressIntervalRef.current);
+      }
     };
   }, [currentReel, navigateToReel, updateProgress]);
 
-  // Keep video element's muted prop in sync
+  /** Keep video element's muted prop in sync */
   useEffect(() => {
     const vid = videoRefs.current[currentReel];
     if (vid) vid.muted = isMuted;
   }, [isMuted, currentReel]);
 
-  // Height + viewport listeners
+  /** Height + viewport listeners */
   useEffect(() => {
     const handleResize = () => calculateReelHeight();
     calculateReelHeight();
@@ -351,7 +371,7 @@ const toggleLike = (idx: number) => {
     };
   }, [calculateReelHeight]);
 
-  // Scroll -> update reel index
+  /** Scroll -> update reel index */
   useEffect(() => {
     const c = containerRef.current;
     if (!c || reelViewportHeight === 0) return;
@@ -423,7 +443,7 @@ const toggleLike = (idx: number) => {
             >
               {/* Video */}
               <video
-                ref={el => (videoRefs.current[idx] = el)}
+                ref={(el) => (videoRefs.current[idx] = el)}
                 className="absolute inset-0 w-full h-full object-cover"
                 style={{ objectPosition: 'center center' }}
                 loop
@@ -468,13 +488,13 @@ const toggleLike = (idx: number) => {
                 </div>
               )}
 
-              {/* Right action rail (lower) */}
-             <div
-  className="absolute right-3 flex flex-col space-y-5 z-20 pointer-events-auto"
-  style={{ bottom: `${bottomNavHeight + ACTIONS_BOTTOM_OFFSET}px` }}
->
+              {/* Right action rail */}
+              <div
+                className="absolute right-3 flex flex-col space-y-5 z-20 pointer-events-auto"
+                style={{ bottom: `${bottomNavHeight + ACTIONS_BOTTOM_OFFSET}px` }}
+              >
                 <button
-                  onClick={e => {
+                  onClick={(e) => {
                     e.stopPropagation();
                     toggleLike(idx);
                   }}
@@ -527,11 +547,11 @@ const toggleLike = (idx: number) => {
                 </button>
               </div>
 
-              {/* Profile & Caption (lower) */}
+              {/* Profile & Caption */}
               <div
-  className="absolute left-4 right-20 z-20"
-  style={{ bottom: `${bottomNavHeight + TEXT_BOTTOM_OFFSET}px` }}
->
+                className="absolute left-4 right-20 z-20"
+                style={{ bottom: `${bottomNavHeight + TEXT_BOTTOM_OFFSET}px` }}
+              >
                 <div className="flex items-center space-x-3 mb-2">
                   <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30">
                     <img
@@ -574,7 +594,7 @@ const toggleLike = (idx: number) => {
                 </div>
               </div>
 
-              {/* Progress bar (just above bottom nav) */}
+              {/* Progress bar */}
               <div
                 className="absolute left-0 right-0 h-1 bg-white/20 z-30"
                 style={{ bottom: `${bottomNavHeight}px` }}
@@ -589,7 +609,7 @@ const toggleLike = (idx: number) => {
         </div>
       </div>
 
-      {/* DESKTOP (kept simple) */}
+      {/* DESKTOP */}
       <div className="hidden lg:block bg-black min-h-screen">
         <div
           ref={containerRef}
@@ -604,7 +624,7 @@ const toggleLike = (idx: number) => {
             >
               <div className="relative w-[420px] h-[min(86vh,900px)] aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl bg-black">
                 <video
-                  ref={el => (videoRefs.current[idx] = el)}
+                  ref={(el) => (videoRefs.current[idx] = el)}
                   className="w-full h-full object-cover"
                   loop
                   muted
@@ -648,7 +668,7 @@ const toggleLike = (idx: number) => {
 
                 <div className="absolute right-3 bottom-24 flex flex-col space-y-6 z-30">
                   <button
-                    onClick={e => {
+                    onClick={(e) => {
                       e.stopPropagation();
                       toggleLike(idx);
                     }}
