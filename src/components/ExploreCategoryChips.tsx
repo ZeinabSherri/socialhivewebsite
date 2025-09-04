@@ -14,8 +14,8 @@ const ExploreCategoryChips: React.FC<ExploreCategoryChipsProps> = ({
 }) => {
   return (
     <div className="sticky top-0 z-30 bg-transparent">
-      <div className="mx-auto w-full max-w-[920px] px-4 pt-8 pb-6">
-        <div className="grid grid-cols-3 gap-x-4 gap-y-4 justify-items-center">
+      <div className="max-w-md mx-auto p-1 pt-8 pb-6">
+        <div className="grid grid-cols-3 gap-1">
           {categories.map((category, index) => {
             const isSelected = selectedCategory === category;
             
@@ -37,15 +37,34 @@ const ExploreCategoryChips: React.FC<ExploreCategoryChipsProps> = ({
                   scale: isSelected ? { duration: 0.22, times: [0, 0.6, 1] } : undefined
                 }}
                 className={`
-                  px-3 h-9 text-sm md:px-4 md:h-10 md:text-base
+                  w-full flex items-center justify-center
+                  px-2 h-8 text-xs sm:px-3 sm:h-9 sm:text-sm
                   rounded-full border font-medium
                   active:scale-[0.98] transition-all duration-200
-                  focus:outline-none focus:ring-2 focus:ring-[--brand]/80
+                  focus:outline-none focus:ring-2 focus:ring-yellow-400/80
                   ${isSelected 
-                    ? 'bg-[--brand] text-black border-transparent shadow-sm' 
-                    : 'border-white/10 bg-white/5 text-white/85 hover:bg-[--brand] hover:text-black hover:border-transparent'
+                    ? 'text-black border-transparent shadow-sm' 
+                    : 'border-white/10 bg-white/5 text-white/85 hover:text-black hover:border-transparent'
                   }
                 `}
+                style={{
+                  backgroundColor: isSelected ? 'rgb(250 204 21)' : undefined,
+                  ...(isSelected ? {} : {
+                    '&:hover': {
+                      backgroundColor: 'rgb(250 204 21)'
+                    }
+                  })
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.backgroundColor = 'rgb(250 204 21)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.backgroundColor = '';
+                  }
+                }}
                 aria-pressed={isSelected}
                 aria-label={`Filter by ${category}`}
               >
