@@ -7,18 +7,15 @@ interface ExploreCategoryChipsProps {
   onSelect: (category: string) => void;
 }
 
-const SPANS = [2, 2, 2, 3, 3]; // 3-2-3-2 pattern
-const spanForIndex = (i: number) => SPANS[i % SPANS.length];
-
 const ExploreCategoryChips: React.FC<ExploreCategoryChipsProps> = ({
   categories,
   selectedCategory,
   onSelect
 }) => {
   return (
-    <div className="sticky top-0 z-30 bg-transparent backdrop-blur-sm">
-      <div className="mx-auto w-full max-w-[920px] px-4 pt-8 pb-6">
-        <div className="grid grid-cols-6 gap-x-4 gap-y-4 justify-items-center">
+    <div className="sticky top-0 z-30 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="mx-auto w-full max-w-[920px] px-4 pt-6 pb-4">
+        <div className="flex flex-wrap items-center justify-center gap-2">
           {categories.map((category, index) => {
             const isSelected = selectedCategory === category;
             
@@ -39,17 +36,14 @@ const ExploreCategoryChips: React.FC<ExploreCategoryChipsProps> = ({
                   duration: 0.2,
                   scale: isSelected ? { duration: 0.22, times: [0, 0.6, 1] } : undefined
                 }}
-                style={{
-                  gridColumn: `span ${spanForIndex(index)} / span ${spanForIndex(index)}`
-                }}
                 className={`
-                  inline-flex items-center justify-center rounded-full
-                  text-sm h-9 px-4 md:text-base md:h-10 md:px-5
-                  font-medium transition-colors duration-150
-                  focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/80
+                  px-3.5 h-9 text-sm md:px-4 md:h-10 md:text-base
+                  rounded-full border font-medium
+                  active:scale-[0.98] transition-all duration-200
+                  focus:outline-none focus:ring-2 focus:ring-[--brand]/80
                   ${isSelected 
-                    ? 'bg-[var(--brand)] text-black font-semibold border-transparent shadow-sm' 
-                    : 'border border-white/12 bg-white/6 text-white/90 hover:bg-[var(--brand)] hover:text-black hover:border-transparent'
+                    ? 'bg-[--brand] text-black border-transparent shadow-sm' 
+                    : 'border-white/10 bg-white/5 text-white/85 hover:bg-white/10'
                   }
                 `}
                 aria-pressed={isSelected}
