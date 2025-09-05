@@ -168,6 +168,15 @@ All colors MUST be HSL.
   display: none; /* Chrome, Safari, and Opera */
 }
 
+.scrollbar-none {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Opera */
+}
+
 /* Mobile safe area utilities */
 .reels-safe-padding {
   padding-left: max(var(--reels-gutter), env(safe-area-inset-left));

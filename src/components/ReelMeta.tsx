@@ -6,9 +6,10 @@ interface ReelMetaProps {
   description: string;
   audioTitle: string;
   avatar: string;
+  layout?: 'mobile' | 'desktop';
 }
 
-const ReelMeta = ({ user, description, audioTitle, avatar }: ReelMetaProps) => {
+const ReelMeta = ({ user, description, audioTitle, avatar, layout = 'mobile' }: ReelMetaProps) => {
   const [expandedCaption, setExpandedCaption] = useState(false);
 
   const truncateText = (text: string, expanded: boolean) => {

@@ -280,128 +280,71 @@ const ReelsPage = () => {
         </div>
       </motion.div>
 
-      {/* Desktop Layout (lg+) - Within 3-pane shell */}
-      <div className="hidden lg:flex justify-center min-h-screen bg-background">
-        {/* Video Stage Column */}
-        <div className="flex flex-col items-center">
-          {formattedReels.length > 0 && (
-            <VideoStage
-              reel={formattedReels[currentIndex]}
-              currentIndex={currentIndex}
-              totalReels={formattedReels.length}
-              isActive={true}
-              globalMuted={globalMuted}
-              isLiked={likedReels.has(formattedReels[currentIndex].id)}
-              onLike={handleLike}
-              onMuteToggle={handleMuteToggle}
-              onNavigate={navigate}
-            />
-          )}
-        </div>
+      {/* Desktop Layout (lg+) - Vertical scroll with snap */}
+      <div className="hidden lg:flex justify-center min-h-screen">
+        {/* Center column with vertical scroll */}
+        <div className="relative flex">
+          {/* Video Stage Column - scrollable */}
+          <div 
+            className="h-screen overflow-y-auto snap-y snap-mandatory scrollbar-none"
+            style={{ 
+              width: 'clamp(420px, 32vw, 620px)'
+            }}
+            onWheel={(e) => {
+              e.preventDefault();
+              const direction = e.deltaY > 0 ? 'next' : 'prev';
+              navigate(direction);
+            }}
+          >            
+            {formattedReels.map((reel, index) => (
+              <div
+                key={reel.id}
+                className="h-screen snap-start snap-always flex flex-col justify-center items-center py-8"
+              >
+                {/* Video Stage */}
+                <div 
+                  className="relative"
+                  style={{
+                    width: 'clamp(420px, 32vw, 620px)',
+                    aspectRatio: '9 / 16',
+                    maxHeight: '86vh'
+                  }}
+                >
+                  <ReelVideo
+                    reel={reel}
+                    isActive={index === currentIndex}
+                    height={0} // Height controlled by aspect ratio
+                    onLike={handleLike}
+                    isLiked={likedReels.has(reel.id)}
+                    globalMuted={globalMuted}
+                    onMuteToggle={handleMuteToggle}
+                    layout="desktop"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
 
-        {/* Action Rail Column */}
-        <div className="flex flex-col items-center justify-center ml-6 sticky top-32 h-screen">
-          {formattedReels.length > 0 && (
-            <ReelActionRail
-              likes={formattedReels[currentIndex].likes}
-              comments={formattedReels[currentIndex].comments}
-              shares={formattedReels[currentIndex].shares || 0}
-              isLiked={likedReels.has(formattedReels[currentIndex].id)}
-              onLike={() => handleLike(formattedReels[currentIndex].id)}
-              avatar={formattedReels[currentIndex].avatar}
-              user={formattedReels[currentIndex].user}
-            />
-          )}
+          {/* Action Rail Column - sticky */}
+          <div className="fixed left-1/2 ml-80 top-1/2 -translate-y-1/2 z-20">
+            {formattedReels.length > 0 && (
+              <ReelActionRail
+                likes={formattedReels[currentIndex].likes}
+                comments={formattedReels[currentIndex].comments}
+                shares={formattedReels[currentIndex].shares || 0}
+                isLiked={likedReels.has(formattedReels[currentIndex].id)}
+                onLike={() => handleLike(formattedReels[currentIndex].id)}
+                avatar={formattedReels[currentIndex].avatar}
+                user={formattedReels[currentIndex].user}
+              />
+            )}
+          </div>
         </div>
       </div>
     </>
   );
 };
 
-// Desktop Video Stage Component
-const VideoStage = ({ 
-  reel, 
-  currentIndex, 
-  totalReels,
-  isActive, 
-  globalMuted, 
-  isLiked, 
-  onLike, 
-  onMuteToggle,
-  onNavigate
-}: {
-  reel: any;
-  currentIndex: number;
-  totalReels: number;
-  isActive: boolean;
-  globalMuted: boolean;
-  isLiked: boolean;
-  onLike: (reelId: number) => void;
-  onMuteToggle: () => void;
-  onNavigate: (direction: 'prev' | 'next') => void;
-}) => {
-  const stageRef = useRef<HTMLDivElement>(null);
-
-  // Debug logging to ensure stage has proper dimensions
-  useEffect(() => {
-    if (stageRef.current) {
-      const rect = stageRef.current.getBoundingClientRect();
-      console.log('VideoStage dimensions:', { width: rect.width, height: rect.height });
-    }
-  }, []);
-
-  const stageStyle = {
-    width: 'clamp(420px, 32vw, 620px)',
-    aspectRatio: '9 / 16',
-    maxHeight: '86vh'
-  };
-
-  return (
-    <div className="flex flex-col py-6">
-      {/* Header */}
-      <div className="mb-4 text-center">
-        <h2 className="text-lg font-semibold text-foreground">Reels</h2>
-        <p className="text-sm text-muted-foreground">{currentIndex + 1} of {totalReels}</p>
-      </div>
-
-      {/* Video Stage */}
-      <div 
-        ref={stageRef}
-        className="relative bg-black rounded-lg overflow-hidden flex-shrink-0"
-        style={stageStyle}
-      >
-        <ReelVideo
-          reel={reel}
-          isActive={isActive}
-          height={0} // Height controlled by aspect ratio
-          onLike={onLike}
-          isLiked={isLiked}
-          globalMuted={globalMuted}
-          onMuteToggle={onMuteToggle}
-          layout="desktop"
-        />
-      </div>
-
-      {/* Navigation */}
-      <div className="flex justify-center gap-4 mt-4">
-        <button
-          onClick={() => onNavigate('prev')}
-          disabled={currentIndex === 0}
-          className="p-2 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-        >
-          <ChevronLeft size={18} className="rotate-90" />
-        </button>
-        
-        <button
-          onClick={() => onNavigate('next')}
-          disabled={currentIndex === totalReels - 1}
-          className="p-2 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-        >
-          <ChevronLeft size={18} className="-rotate-90" />
-        </button>
-      </div>
-    </div>
-  );
-};
+// Removed VideoStage component - integrated into main layout
 
 export default ReelsPage;

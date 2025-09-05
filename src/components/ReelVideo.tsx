@@ -60,9 +60,9 @@ const ReelVideo = ({
 
   if (layout === 'desktop') {
     return (
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full w-full">
         {/* Video container - fills the stage */}
-        <div className="relative bg-black flex-1 min-h-0">
+        <div className="relative flex-1 min-h-0 w-full h-full">
           {/* Video Player */}
           <ReelPlayer
             videoUrl={reel.videoUrl}
@@ -92,6 +92,7 @@ const ReelVideo = ({
             description={reel.description}
             audioTitle={reel.audioTitle}
             avatar={reel.avatar}
+            layout="desktop"
           />
         </div>
       </div>
