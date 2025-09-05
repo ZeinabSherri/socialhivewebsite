@@ -172,7 +172,13 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
       return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }, [isActive]);
 
-    // Warmup loading effect
+    // Sync video muted state with prop
+    useEffect(() => {
+      const video = videoRef.current;
+      if (video && video.muted !== muted) {
+        video.muted = muted;
+      }
+    }, [muted]);
     useEffect(() => {
       const video = videoRef.current;
       if (!video || !warmupLoad || isWarmupLoadedRef.current) return;
@@ -219,14 +225,11 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
 
       tapTimeoutRef.current = window.setTimeout(() => {
         if (tapCountRef.current === 1) {
-          // Single tap - toggle mute WITHOUT restart/seek
+          // Single tap - call external onTap callback for mute toggle
           const video = videoRef.current;
-          if (video) {
-            video.muted = !video.muted;
+          if (video && video.paused && isActive) {
             // If paused due to policy, try to play
-            if (video.paused && isActive) {
-              video.play().catch(() => {});
-            }
+            video.play().catch(() => {});
           }
           onTap?.();
         } else if (tapCountRef.current === 2) {
