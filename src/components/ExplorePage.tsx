@@ -24,7 +24,7 @@ type ExploreReel = {
 const cfThumb = (uid: string, h = 360) => `https://videodelivery.net/${uid}/thumbnails/thumbnail.jpg?time=1s&height=${h}`;
 
 // Use exact categories from source of truth
-const FILTERS = Object.keys(CATEGORY_VIDEOS) as const;
+const FILTERS = ['Beauty clinics', 'Content creation', 'Real Estate'] as const;
 type FilterName = (typeof FILTERS)[number];
 
 const ExplorePage = () => {
