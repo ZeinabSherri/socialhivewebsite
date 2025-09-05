@@ -55,7 +55,7 @@ const Index = () => {
       <div className="hidden lg:flex">
         {/* Special layout for Reels on desktop */}
         {activeTab === 'reels' && !showAddPage && (
-          <>
+          <div className="reels-page w-full">
             <LeftSidebar
               activeTab={activeTab}
               onTabChange={(tab) => {
@@ -69,12 +69,12 @@ const Index = () => {
               <ReelsPage />
             </div>
             <RightSidebar />
-          </>
+          </div>
         )}
 
         {/* Normal layout for other pages */}
         {(activeTab !== 'reels' || showAddPage) && (
-          <>
+          <div className={`${activeTab === 'home' ? 'home-page' : activeTab === 'explore' ? 'explore-page' : activeTab === 'profile' ? 'profile-page' : ''} w-full`}>
             {/* Left Sidebar */}
             <LeftSidebar
               activeTab={activeTab}
@@ -95,12 +95,12 @@ const Index = () => {
 
             {/* Right Sidebar */}
             <RightSidebar />
-          </>
+          </div>
         )}
       </div>
 
       {/* Mobile/Tablet Layout (<1024px) - Keep existing design */}
-      <div className="lg:hidden">
+      <div className={`lg:hidden ${activeTab === 'home' ? 'home-page' : activeTab === 'explore' ? 'explore-page' : activeTab === 'profile' ? 'profile-page' : activeTab === 'reels' ? 'reels-page' : ''}`}>
         {/* Header - only show when not on add page or reels */}
         {!showAddPage && activeTab !== 'reels' && (
           <header className="sticky top-0 z-40 bg-black border-b border-gray-800 px-4 py-3">
