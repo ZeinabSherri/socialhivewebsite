@@ -92,8 +92,8 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
         capLevelToPlayerSize: true,
         maxBufferLength: 10,
         backBufferLength: 30,
-        fragLoadingTimeOut: 6000, // Reduced timeout
-        manifestLoadingTimeOut: 6000, // Reduced timeout
+        fragLoadingTimeOut: 20000, // Increased timeout for better reliability
+        manifestLoadingTimeOut: 10000, // Increased timeout for better reliability
         abrEwmaDefaultEstimate: 3e5,
         maxMaxBufferLength: 20, // Limit buffer size
         maxBufferSize: 30 * 1000 * 1000, // 30MB max buffer

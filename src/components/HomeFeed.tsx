@@ -1,9 +1,10 @@
-import React, { useState, useRef, createRef } from "react";
+import React, { useState, useRef, createRef, useMemo } from "react";
 import PostCard from "./PostCard";
 import Stories from "./Stories";
 import FlyingBee from "./FlyingBee";
 import DrippingHoney from "./DrippingHoney";
 import { CLOUDFLARE_POSTS, type Post as CloudflarePost } from "../data/cloudflareVideoPosts";
+import { getExistingHomePosts, type LegacyPost } from "../data/legacyPosts";
 
 interface Comment {
   id: number;
@@ -36,13 +37,27 @@ export interface Post {
 const HomeFeed: React.FC<{ onNavigateToProfile?: () => void }> = ({
   onNavigateToProfile,
 }) => {
-  // Use Cloudflare video posts for instant mobile playback
-  // Convert CloudflarePost to HomeFeed Post format for compatibility
-  const [posts, setPosts] = useState<Post[]>(CLOUDFLARE_POSTS.map(post => ({
-    ...post,
-    comments: post.commentsCount, // Convert comments array length to number
-    // All other fields are already compatible
-  })));
+  // Append-only approach: preserve existing posts, add Cloudflare posts
+  const allHomePosts = useMemo(() => {
+    const existing = getExistingHomePosts();
+    const cloudflareSeeds = CLOUDFLARE_POSTS.map(post => ({
+      ...post,
+      id: `cf-${post.cloudflareId}`, // Prefix to avoid ID conflicts
+      comments: post.commentsCount, // Convert comments array length to number
+    }));
+    
+    // Deduplication function
+    const dedup = (list: Post[]) =>
+      list.filter((p, i, arr) => 
+        arr.findIndex(q => 
+          (q.id ?? q.cloudflareId) === (p.id ?? p.cloudflareId)
+        ) === i
+      );
+    
+    return dedup([...existing, ...cloudflareSeeds]);
+  }, []);
+  
+  const [posts, setPosts] = useState<Post[]>(allHomePosts);
   const [likedPosts, setLikedPosts] = useState<Set<number | string>>(new Set());
   const videoRefs = useRef<{ [key: string]: React.RefObject<HTMLVideoElement> }>({});
 
