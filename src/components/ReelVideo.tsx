@@ -23,7 +23,7 @@ interface ReelVideoProps {
   isLiked: boolean;
   globalMuted: boolean;
   onMuteToggle: () => void;
-  layout?: 'mobile' | 'desktop';
+  layout?: 'mobile' | 'desktop' | 'desktop-mobile-like';
 }
 
 const ReelVideo = ({
@@ -96,6 +96,61 @@ const ReelVideo = ({
           />
         </div>
       </div>
+    );
+  }
+
+  if (layout === 'desktop-mobile-like') {
+    return (
+      <section
+        className="relative bg-black w-full"
+        style={{ 
+          height: `${height}px`,
+          aspectRatio: '9 / 16',
+          maxHeight: '90vh',
+          width: '100%'
+        }}
+      >
+        {/* Video Player with interactions */}
+        <ReelPlayer
+          videoUrl={reel.videoUrl}
+          poster={reel.poster}
+          isActive={isActive}
+          globalMuted={globalMuted}
+          onMuteToggle={onMuteToggle}
+          onLike={handleLikeClick}
+          height={height}
+        />
+
+        {/* Progress bar */}
+        {isActive && (
+          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/30 z-30">
+            <div
+              className="h-full bg-white transition-all duration-100"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        )}
+
+        {/* Right Action Rail */}
+        <ReelActionRail
+          likes={reel.likes}
+          comments={reel.comments}
+          shares={reel.shares || 0}
+          isLiked={isLiked}
+          onLike={handleLikeClick}
+          avatar={reel.avatar}
+          user={reel.user}
+        />
+
+        {/* Bottom Meta Info */}
+        <ReelMeta
+          user={reel.user}
+          description={reel.description}
+          audioTitle={reel.audioTitle}
+          avatar={reel.avatar}
+          layout="mobile"
+        />
+      </section>
     );
   }
 

@@ -280,65 +280,34 @@ const ReelsPage = () => {
         </div>
       </motion.div>
 
-      {/* Desktop Layout (lg+) - Vertical scroll with snap */}
-      <div className="hidden lg:flex justify-center min-h-screen">
-        {/* Center column with vertical scroll */}
-        <div className="relative flex">
-          {/* Video Stage Column - scrollable */}
-          <div 
-            className="h-screen overflow-y-auto snap-y snap-mandatory scrollbar-none"
-            style={{ 
-              width: 'clamp(420px, 32vw, 620px)'
-            }}
-            onWheel={(e) => {
-              e.preventDefault();
-              const direction = e.deltaY > 0 ? 'next' : 'prev';
-              navigate(direction);
-            }}
-          >            
-            {formattedReels.map((reel, index) => (
-              <div
-                key={reel.id}
-                className="h-screen snap-start snap-always flex flex-col justify-center items-center py-8"
-              >
-                {/* Video Stage */}
-                <div 
-                  className="relative"
-                  style={{
-                    width: 'clamp(420px, 32vw, 620px)',
-                    aspectRatio: '9 / 16',
-                    maxHeight: '86vh'
-                  }}
-                >
-                  <ReelVideo
-                    reel={reel}
-                    isActive={index === currentIndex}
-                    height={0} // Height controlled by aspect ratio
-                    onLike={handleLike}
-                    isLiked={likedReels.has(reel.id)}
-                    globalMuted={globalMuted}
-                    onMuteToggle={handleMuteToggle}
-                    layout="desktop"
-                  />
-                </div>
+      {/* Desktop Layout (lg+) - Mobile-like vertical scroller */}
+      <div className="hidden lg:block h-screen">
+        <div
+          ref={containerRef}
+          className="h-screen overflow-y-auto snap-y snap-mandatory scrollbar-hidden"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+          onWheel={(e) => {
+            e.preventDefault();
+            const direction = e.deltaY > 0 ? 'next' : 'prev';
+            navigate(direction);
+          }}
+        >
+          {formattedReels.map((reel, index) => (
+            <div key={reel.id} className="h-screen snap-start snap-always flex justify-center items-center">
+              <div style={{ width: 'clamp(380px, 28vw, 480px)' }}>
+                <ReelVideo
+                  reel={reel}
+                  isActive={index === currentIndex}
+                  height={window.innerHeight}
+                  onLike={handleLike}
+                  isLiked={likedReels.has(reel.id)}
+                  globalMuted={globalMuted}
+                  onMuteToggle={handleMuteToggle}
+                  layout="desktop-mobile-like"
+                />
               </div>
-            ))}
-          </div>
-
-          {/* Action Rail Column - sticky */}
-          <div className="fixed left-1/2 ml-80 top-1/2 -translate-y-1/2 z-20">
-            {formattedReels.length > 0 && (
-              <ReelActionRail
-                likes={formattedReels[currentIndex].likes}
-                comments={formattedReels[currentIndex].comments}
-                shares={formattedReels[currentIndex].shares || 0}
-                isLiked={likedReels.has(formattedReels[currentIndex].id)}
-                onLike={() => handleLike(formattedReels[currentIndex].id)}
-                avatar={formattedReels[currentIndex].avatar}
-                user={formattedReels[currentIndex].user}
-              />
-            )}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
     </>

@@ -27,6 +27,7 @@ const Index = () => {
       case 'explore':
         return <ExplorePage />;
       case 'reels':
+        // On mobile/tablet, use normal rendering; desktop handled separately
         return <ReelsPage />;
       case 'profile':
         return <ProfilePage onNavigateToContact={() => setShowAddPage(true)} />;
@@ -52,26 +53,50 @@ const Index = () => {
     <div className="min-h-screen bg-black text-white">
       {/* Desktop Layout (≥1024px) */}
       <div className="hidden lg:flex">
-        {/* Left Sidebar */}
-        <LeftSidebar
-          activeTab={activeTab}
-          onTabChange={(tab) => {
-            setActiveTab(tab);
-            setShowAddPage(false);
-          }}
-          onAddClick={handleAddClick}
-          showAddPage={showAddPage}
-        />
+        {/* Special layout for Reels on desktop */}
+        {activeTab === 'reels' && !showAddPage && (
+          <>
+            <LeftSidebar
+              activeTab={activeTab}
+              onTabChange={(tab) => {
+                setActiveTab(tab);
+                setShowAddPage(false);
+              }}
+              onAddClick={handleAddClick}
+              showAddPage={showAddPage}
+            />
+            <div className="flex-1 ml-64 mr-80">
+              <ReelsPage />
+            </div>
+            <RightSidebar />
+          </>
+        )}
 
-        {/* Main Content Area */}
-        <div className="flex-1 ml-64 mr-80">
-          <main className="max-w-2xl mx-auto px-4 py-6">
-            {renderContent()}
-          </main>
-        </div>
+        {/* Normal layout for other pages */}
+        {(activeTab !== 'reels' || showAddPage) && (
+          <>
+            {/* Left Sidebar */}
+            <LeftSidebar
+              activeTab={activeTab}
+              onTabChange={(tab) => {
+                setActiveTab(tab);
+                setShowAddPage(false);
+              }}
+              onAddClick={handleAddClick}
+              showAddPage={showAddPage}
+            />
 
-        {/* Right Sidebar */}
-        <RightSidebar />
+            {/* Main Content Area */}
+            <div className="flex-1 ml-64 mr-80">
+              <main className="max-w-2xl mx-auto px-4 py-6">
+                {renderContent()}
+              </main>
+            </div>
+
+            {/* Right Sidebar */}
+            <RightSidebar />
+          </>
+        )}
       </div>
 
       {/* Mobile/Tablet Layout (<1024px) - Keep existing design */}
