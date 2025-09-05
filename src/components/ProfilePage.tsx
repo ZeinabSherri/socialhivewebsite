@@ -6,15 +6,17 @@ import PostHoverStats from './PostHoverStats';
 import WhatsAppIcon from './WhatsAppIcon';
 import ReelModal from './ReelModal';
 import { useCounterAnimation } from '../hooks/useCounterAnimation';
-import { generateCategoryPosts } from '../data/categoryVideos';
+import { generateCategoryPosts, CATEGORY_KEYS, type CategoryKey } from '../data/categoryVideos';
+
 interface ProfilePageProps {
   onNavigateToContact?: () => void;
 }
+
 const ProfilePage = ({
   onNavigateToContact
 }: ProfilePageProps) => {
   const [activeTab, setActiveTab] = useState('posts');
-  const [selectedProfile, setSelectedProfile] = useState('Beauty clinics');
+  const [selectedProfile, setSelectedProfile] = useState<CategoryKey | 'Agency'>('Agency');
   const [showProfileSelector, setShowProfileSelector] = useState(false);
   const [showPostsFeed, setShowPostsFeed] = useState(false);
   const [selectedPostIndex, setSelectedPostIndex] = useState(0);
@@ -23,25 +25,27 @@ const ProfilePage = ({
   const [hoveredPostId, setHoveredPostId] = useState<number | null>(null);
   const [showRecommendationsDropdown, setShowRecommendationsDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const profileOptions = [{
-    id: 'beauty-clinics',
-    name: 'Beauty clinics',
-    followers: 67000,
-    followersDisplay: '67K',
-    posts: 9
-  }, {
-    id: 'content-creation',
-    name: 'Content creation',
-    followers: 89000,
-    followersDisplay: '89K',
-    posts: 9
-  }, {
-    id: 'real-estate',
-    name: 'Real Estate',
-    followers: 34000,
-    followersDisplay: '34K',
-    posts: 9
-  }];
+
+  // Profile options: main agency + 6 category profiles
+  const profileOptions = [
+    {
+      id: 'agency',
+      name: 'Agency' as const,
+      followers: 125000,
+      followersDisplay: '125K',
+      posts: 12,
+      isCategory: false
+    },
+    ...CATEGORY_KEYS.map(category => ({
+      id: category.toLowerCase().replace(/\s+/g, '-'),
+      name: category,
+      followers: Math.floor(Math.random() * 50000) + 20000,
+      followersDisplay: `${Math.floor((Math.random() * 50 + 20))}K`,
+      posts: generateCategoryPosts(category).length,
+      isCategory: true as const
+    }))
+  ];
+
   const currentProfile = profileOptions.find(p => p.name === selectedProfile) || profileOptions[0];
 
   // Counter animations for main stats - reset when profile changes
@@ -70,8 +74,29 @@ const ProfilePage = ({
   };
 
   // Generate posts based on selected profile using category videos
-  const getPostsForProfile = (profileName: string) => {
-    const videoPosts = generateCategoryPosts(profileName);
+  const getPostsForProfile = (profileName: CategoryKey | 'Agency') => {
+    // If it's the main agency profile, return some demo posts
+    if (profileName === 'Agency') {
+      return Array.from({ length: 12 }, (_, i) => ({
+        id: i + 1,
+        username: 'socialhive.agency',
+        userAvatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+        timestamp: `${i + 1}h`,
+        image: `https://images.unsplash.com/photo-${600000000000 + i * 1000000}?auto=format&fit=crop&w=800&q=80`,
+        caption: `🐝 Crafting digital experiences that drive results`,
+        likes: Math.floor(Math.random() * 1000) + 100,
+        comments: Math.floor(Math.random() * 50) + 5,
+        isLiked: false,
+        staticComments: [
+          { id: 1, username: 'user1', text: 'Amazing work! 🔥' },
+          { id: 2, username: 'user2', text: 'Love this! 💛' }
+        ],
+        type: 'image' as const
+      }));
+    }
+
+    // For category profiles, use category videos
+    const videoPosts = generateCategoryPosts(profileName as CategoryKey);
     
     return videoPosts.map((post: any, index: number) => ({
       id: index + 1,
@@ -94,13 +119,23 @@ const ProfilePage = ({
   };
   const posts = getPostsForProfile(selectedProfile);
   const getBioText = () => {
-    switch (selectedProfile.toLowerCase()) {
-      case 'beauty clinics':
+    if (selectedProfile === 'Agency') {
+      return '🐝 Crafting Buzz. Driving Growth. • Digital Marketing Agency • Managed over 200 brands • Results that speak louder than words ✨';
+    }
+    
+    switch (selectedProfile) {
+      case 'Beauty clinics':
         return '💄 Beauty clinic marketing specialists • Creating stunning content that converts • Making clinics glow ✨🐝';
-      case 'content creation':
+      case 'Content creation':
         return '🎬 Content creation experts • Behind-the-scenes magic • Teaching creators to succeed 🐝';
-      case 'real estate':
+      case 'Real Estate':
         return '🏡 Real estate marketing pros • Connecting properties with perfect buyers • Premium listings 🐝';
+      case 'Restaurants and FnB':
+        return '🍽️ Restaurant marketing specialists • Driving foot traffic & online orders • Taste the success 🐝';
+      case 'Ecommerce':
+        return '🛒 E-commerce growth specialists • Turning browsers into buyers • ROI-focused strategies 🐝';
+      case 'Network operators':
+        return '📡 Network & telecom marketing • Connecting communities • Building digital infrastructure 🐝';
       default:
         return '🐝 Crafting Buzz. Driving Growth. • Digital Marketing Agency • Results that speak louder than words ✨';
     }

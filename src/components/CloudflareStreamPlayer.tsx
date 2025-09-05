@@ -14,7 +14,7 @@ export type CloudflareStreamPlayerProps = {
   onLoadedMetadata?: () => void;
 };
 
-/** Enhanced Stream player with native video + HLS for mobile autoplay */
+/** Unified Cloudflare player with native video + HLS for fast mobile autoplay */
 const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlayerProps>(
   ({ 
     uid,
@@ -45,17 +45,20 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
         // Use native HLS on Safari/devices that don't support hls.js
         video.src = hlsUrl;
       } else {
-        // Use hls.js for other browsers
+        // Use hls.js for other browsers with optimized settings
         if (hlsRef.current) {
           hlsRef.current.destroy();
         }
         
         const hls = new Hls({
-          lowLatencyMode: true,
           enableWorker: true,
+          lowLatencyMode: true,
           startLevel: 0, // Start with lowest quality for fast first frame
+          capLevelToPlayerSize: true,
           maxBufferLength: 10,
           backBufferLength: 30,
+          fragLoadingTimeOut: 8000,
+          manifestLoadingTimeOut: 8000,
           abrEwmaDefaultEstimate: 3e5 // Conservative bandwidth estimate
         });
         
@@ -139,6 +142,7 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
           playsInline
           webkit-playsinline="true"
           preload="auto"
+          crossOrigin="anonymous"
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           onPlay={onPlay}
           onPause={onPause}

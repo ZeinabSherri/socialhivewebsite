@@ -21,8 +21,20 @@ export type VideoPost = {
   category: string;
 };
 
+// Canonical categories - tuple for proper TS const inference
+export const CATEGORY_KEYS = [
+  "Beauty clinics",
+  "Real Estate", 
+  "Restaurants and FnB",
+  "Ecommerce",
+  "Network operators",
+  "Content creation",
+] as const;
+
+export type CategoryKey = typeof CATEGORY_KEYS[number];
+
 // Source of truth for categories → Cloudflare video IDs
-export const CATEGORY_VIDEOS: Record<string, string[]> = {
+export const CATEGORY_VIDEOS: Record<CategoryKey, string[]> = {
   "Beauty clinics": [
     "076587b81c514566c26b3691aca9e841",
   ],
@@ -31,16 +43,19 @@ export const CATEGORY_VIDEOS: Record<string, string[]> = {
   ],
   "Real Estate": [
     "c6829e0f2c96c0ff1b9f9d76ae46b816",
-    "385533ff9e9ac080967a5067c739d6bd",
+    "385533ff9e9ac080967a5067c739d6bd", 
     "51c84960d6f584c7e9001cd9b5318942",
     "202dba979e199bae3aadd1ce70682dee",
   ],
+  "Restaurants and FnB": [],
+  "Ecommerce": [],
+  "Network operators": [],
 };
 
-// Home videos (existing from previous implementation)
+// 9 Home-feed videos we already added
 export const HOME_CLOUDFLARE_IDS = [
   "6c7a065ca867f93420da7508d73c8449",
-  "768ee9d9ec7c78a4247615d7bc5e9bc1",
+  "768ee9d9ec7c78a4247615d7bc5e9bc1", 
   "bb04c2938d2330d41a65e502f108dfcd",
   "ed20917ebcafb2fd334fca26634b1f96",
   "7edf6822d44eb173d14b2fb6da69b857",
@@ -51,17 +66,14 @@ export const HOME_CLOUDFLARE_IDS = [
 ];
 
 // All reels for the Reels page
-export const ALL_REELS_IDS = [
-  ...HOME_CLOUDFLARE_IDS,
-  ...CATEGORY_VIDEOS["Beauty clinics"],
-  ...CATEGORY_VIDEOS["Content creation"],
-  ...CATEGORY_VIDEOS["Real Estate"],
-];
+export const ALL_REELS_IDS = HOME_CLOUDFLARE_IDS.concat(
+  ...CATEGORY_KEYS.map(k => CATEGORY_VIDEOS[k])
+).filter(Boolean);
 
 const DEMO_CAPTIONS = [
   "Behind the scenes of our latest campaign 🎬",
   "Quick tip: hooks that boost watch time ⚡",
-  "Client reveal day ✨",
+  "Client reveal day ✨", 
   "Editing flow in 3 steps 🧠",
   "UGC cut that converts 📈",
   "Lighting test vs final shot 💡",
@@ -76,7 +88,7 @@ const DEMO_CAPTIONS = [
 
 const DEMO_COMMENTS = [
   "This is fire! 🔥",
-  "Love the transitions 👏",
+  "Love the transitions 👏", 
   "Where was this shot?",
   "Saving this for inspo 🙌",
   "Music choice is perfect 🎶",
@@ -101,7 +113,7 @@ const getRandomComments = (count: number): Comment[] => {
 };
 
 // Generate posts for a specific category
-export const generateCategoryPosts = (category: string): VideoPost[] => {
+export const generateCategoryPosts = (category: CategoryKey): VideoPost[] => {
   const videoIds = CATEGORY_VIDEOS[category] || [];
   
   return videoIds.map((videoId, index) => {
@@ -130,13 +142,13 @@ export const generateCategoryPosts = (category: string): VideoPost[] => {
 };
 
 // Generate all category posts
-export const ALL_CATEGORY_POSTS = Object.keys(CATEGORY_VIDEOS).flatMap(category => 
+export const ALL_CATEGORY_POSTS = CATEGORY_KEYS.flatMap(category => 
   generateCategoryPosts(category)
 );
 
-// Generate posts for all reels (Home + Categories)
-export const generateAllReelsPosts = (): VideoPost[] => {
-  const homePosts = HOME_CLOUDFLARE_IDS.map((videoId, index) => {
+// Generate posts for Home feed (9 videos)
+export const generateHomePosts = (): VideoPost[] => {
+  return HOME_CLOUDFLARE_IDS.map((videoId, index) => {
     const commentCount = 3 + Math.floor(Math.random() * 3);
     const comments = getRandomComments(commentCount);
     const likesCount = Math.floor(Math.random() * 5000) + 500;
@@ -159,6 +171,10 @@ export const generateAllReelsPosts = (): VideoPost[] => {
       category: 'Home'
     };
   });
+};
 
+// Generate posts for all reels (Home + Categories)
+export const generateAllReelsPosts = (): VideoPost[] => {
+  const homePosts = generateHomePosts();
   return [...homePosts, ...ALL_CATEGORY_POSTS];
 };
