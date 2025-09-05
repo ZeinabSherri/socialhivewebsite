@@ -12,7 +12,9 @@ import {
 } from 'lucide-react'
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar'
 import VerificationBadge from './VerificationBadge'
-import DrippingHoney from './DrippingHoney' // ⬅️ re-added
+import DrippingHoney from './DrippingHoney'
+import CloudflareStreamPlayer from './CloudflareStreamPlayer'
+import { formatCount } from '../lib/format'
 
 interface Comment {
   id: number
@@ -26,7 +28,9 @@ interface MediaItem {
 }
 
 interface Post {
-  id: number
+  id: number | string
+  type?: 'video' | 'image'
+  cloudflareId?: string
   username: string
   userAvatar: string
   timestamp: string
@@ -146,7 +150,39 @@ const PostCard: React.FC<PostCardProps> = ({
 
   const renderMedia = () => (
     <div className="relative overflow-visible">
-      {post.media && post.media.length > 0 ? (
+      {post.type === 'video' && post.cloudflareId ? (
+        <div
+          className="relative aspect-[4/5]"
+          onClick={handleDoubleTap}
+          onTouchEnd={handleDoubleTap}
+        >
+          <CloudflareStreamPlayer
+            uid={post.cloudflareId}
+            autoplay={true}
+            muted={videoMuted}
+            loop={true}
+            controls={false}
+            className="w-full h-full rounded-lg overflow-hidden"
+          />
+          
+          <button
+            onClick={toggleSound}
+            className="absolute bottom-3 right-3 bg-black/70 text-white p-2 rounded-full z-20"
+          >
+            {videoMuted ? <VolumeX size={18}/> : <Volume2 size={18}/>}
+          </button>
+
+          {showLoveIcon && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+              <Heart
+                size={120}
+                className="text-red-500 fill-red-500"
+                style={{ animation: 'instagram-heart 1s ease-out forwards' }}
+              />
+            </div>
+          )}
+        </div>
+      ) : post.media && post.media.length > 0 ? (
         <Carousel {...carouselProps}>
           {post.media.map((m,i) => (
             <div
@@ -311,7 +347,7 @@ const PostCard: React.FC<PostCardProps> = ({
         </div>
 
         <p className="font-semibold text-sm mb-2">
-          {post.likes.toLocaleString()} likes
+          {formatCount(post.likes)} likes
         </p>
 
         <div className="text-sm mb-2">

@@ -3,6 +3,7 @@ import PostCard from "./PostCard";
 import Stories from "./Stories";
 import FlyingBee from "./FlyingBee";
 import DrippingHoney from "./DrippingHoney";
+import { CLOUDFLARE_POSTS } from "../data/cloudflareVideoPosts";
 
 interface Comment {
   id: number;
@@ -16,7 +17,9 @@ interface MediaItem {
 }
 
 export interface Post {
-  id: number;
+  id: number | string;
+  type?: 'video' | 'image';
+  cloudflareId?: string;
   username: string;
   userAvatar: string;
   timestamp: string;
@@ -230,6 +233,11 @@ const HomeFeed: React.FC<{ onNavigateToProfile?: () => void }> = ({
         { id: 3, username: "buzzbite", text: "That honey drizzle 🔥🐝" },
       ],
     },
+    // Add Cloudflare video posts
+    ...CLOUDFLARE_POSTS.map(cloudPost => ({
+      ...cloudPost,
+      comments: cloudPost.commentsCount // Map array to count for compatibility
+    }))
   ]);
 
   const postRefs = useRef<React.RefObject<HTMLDivElement>[]>([]);
@@ -237,7 +245,7 @@ const HomeFeed: React.FC<{ onNavigateToProfile?: () => void }> = ({
     postRefs.current = posts.map(() => createRef<HTMLDivElement>());
   }
 
-  const handleLike = (postId: number) => {
+  const handleLike = (postId: number | string) => {
     setPosts((prev) =>
       prev.map((p) =>
         p.id === postId

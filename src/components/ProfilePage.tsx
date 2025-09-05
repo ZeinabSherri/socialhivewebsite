@@ -140,7 +140,7 @@ const ProfilePage = ({
         username: 'user2',
         text: 'Love this! 💛'
       }],
-      type: i % 3 === 0 ? 'reel' : 'post'
+      type: (i % 3 === 0 ? 'video' : 'image') as 'video' | 'image'
     }));
   };
   const posts = getPostsForProfile(selectedProfile);
@@ -168,7 +168,7 @@ const ProfilePage = ({
     }
   };
   const handlePostClick = (post: any, index: number) => {
-    if (post.type === 'reel') {
+    if (post.type === 'video') {
       setSelectedReel(post);
       setShowReelModal(true);
     } else {
@@ -180,7 +180,7 @@ const ProfilePage = ({
   const handleReelNavigate = (direction: 'prev' | 'next') => {
     if (!selectedReel) return;
     
-    const reels = posts.filter(p => p.type === 'reel');
+    const reels = posts.filter(p => p.type === 'video');
     const currentIndex = reels.findIndex(r => r.id === selectedReel.id);
     
     if (direction === 'prev' && currentIndex > 0) {
@@ -318,9 +318,9 @@ const ProfilePage = ({
       </div>
 
       <div className="grid grid-cols-3 gap-1">
-        {posts.filter(post => activeTab === 'posts' ? post.type === 'post' : post.type === 'reel').map((post, index) => <div key={post.id} className="aspect-square bg-gray-900 relative cursor-pointer group" onClick={() => handlePostClick(post, index)} onMouseEnter={() => setHoveredPostId(post.id)} onMouseLeave={() => setHoveredPostId(null)}>
+        {posts.filter(post => activeTab === 'posts' ? post.type === 'image' : post.type === 'video').map((post, index) => <div key={post.id} className="aspect-square bg-gray-900 relative cursor-pointer group" onClick={() => handlePostClick(post, index)} onMouseEnter={() => setHoveredPostId(post.id)} onMouseLeave={() => setHoveredPostId(null)}>
             <img src={post.image} alt={`Post ${post.id}`} className="w-full h-full object-cover transition-opacity duration-200 group-hover:opacity-80" />
-            {post.type === 'reel' && <div className="absolute top-2 right-2">
+            {post.type === 'video' && <div className="absolute top-2 right-2">
                 <Play size={16} className="text-white" />
               </div>}
             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
@@ -342,7 +342,7 @@ const ProfilePage = ({
           
           <div className="flex-1 overflow-y-auto">
             <div className="max-w-md mx-auto space-y-0">
-              {posts.filter(p => p.type === 'post').slice(selectedPostIndex).map(post => <PostCard key={post.id} post={post} onLike={() => handleLike(post.id)} onUsernameClick={() => {}} />)}
+              {posts.filter(p => p.type === 'image').slice(selectedPostIndex).map(post => <PostCard key={post.id} post={post} onLike={() => handleLike(post.id)} onUsernameClick={() => {}} />)}
             </div>
           </div>
         </div>}
@@ -354,7 +354,7 @@ const ProfilePage = ({
             ...selectedReel,
             videoUrl: selectedReel.image
           }}
-          allReels={posts.filter(p => p.type === 'reel').map(reel => ({
+          allReels={posts.filter(p => p.type === 'video').map(reel => ({
             ...reel,
             videoUrl: reel.image
           }))}
