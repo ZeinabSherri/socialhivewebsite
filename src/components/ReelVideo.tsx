@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import ReelPlayer from './ReelPlayer';
 import ReelActionRail from './ReelActionRail';
 import ReelMeta from './ReelMeta';
+import CloudflareStreamPlayer from './CloudflareStreamPlayer';
 
 interface ReelVideoProps {
   reel: {
@@ -16,6 +17,7 @@ interface ReelVideoProps {
     videoUrl: string;
     poster?: string;
     viewCount?: number;
+    isCloudflare?: boolean;
   };
   isActive: boolean;
   height: number;
@@ -64,15 +66,28 @@ const ReelVideo = ({
         {/* Video container - fills the stage */}
         <div className="relative flex-1 min-h-0 w-full h-full">
           {/* Video Player */}
-          <ReelPlayer
-            videoUrl={reel.videoUrl}
-            poster={reel.poster}
-            isActive={isActive}
-            globalMuted={globalMuted}
-            onMuteToggle={onMuteToggle}
-            onLike={handleLikeClick}
-            height={0} // Height controlled by parent
-          />
+          {reel.isCloudflare ? (
+            <CloudflareStreamPlayer
+              uid={reel.videoUrl}
+              autoplay={isActive}
+              muted={globalMuted}
+              loop={true}
+              controls={false}
+              className="w-full h-full"
+              onPlay={() => {}}
+              onPause={() => {}}
+            />
+          ) : (
+            <ReelPlayer
+              videoUrl={reel.videoUrl}
+              poster={reel.poster}
+              isActive={isActive}
+              globalMuted={globalMuted}
+              onMuteToggle={onMuteToggle}
+              onLike={handleLikeClick}
+              height={0} // Height controlled by parent
+            />
+          )}
 
           {/* Progress bar */}
           {isActive && (
@@ -103,15 +118,28 @@ const ReelVideo = ({
     return (
       <div className="relative bg-transparent w-full h-full">
         {/* Video Player with interactions - fills the stage */}
-        <ReelPlayer
-          videoUrl={reel.videoUrl}
-          poster={reel.poster}
-          isActive={isActive}
-          globalMuted={globalMuted}
-          onMuteToggle={onMuteToggle}
-          onLike={handleLikeClick}
-          height={0} // Height controlled by parent aspect ratio
-        />
+        {reel.isCloudflare ? (
+          <CloudflareStreamPlayer
+            uid={reel.videoUrl}
+            autoplay={isActive}
+            muted={globalMuted}
+            loop={true}
+            controls={false}
+            className="w-full h-full"
+            onPlay={() => {}}
+            onPause={() => {}}
+          />
+        ) : (
+          <ReelPlayer
+            videoUrl={reel.videoUrl}
+            poster={reel.poster}
+            isActive={isActive}
+            globalMuted={globalMuted}
+            onMuteToggle={onMuteToggle}
+            onLike={handleLikeClick}
+            height={0} // Height controlled by parent aspect ratio
+          />
+        )}
 
         {/* Progress bar */}
         {isActive && (
@@ -144,15 +172,28 @@ const ReelVideo = ({
       style={{ height: `${height}px`, scrollSnapStop: 'always' }}
     >
       {/* Video Player with interactions */}
-      <ReelPlayer
-        videoUrl={reel.videoUrl}
-        poster={reel.poster}
-        isActive={isActive}
-        globalMuted={globalMuted}
-        onMuteToggle={onMuteToggle}
-        onLike={handleLikeClick}
-        height={height}
-      />
+      {reel.isCloudflare ? (
+        <CloudflareStreamPlayer
+          uid={reel.videoUrl}
+          autoplay={isActive}
+          muted={globalMuted}
+          loop={true}
+          controls={false}
+          className="absolute inset-0 w-full h-full"
+          onPlay={() => {}}
+          onPause={() => {}}
+        />
+      ) : (
+        <ReelPlayer
+          videoUrl={reel.videoUrl}
+          poster={reel.poster}
+          isActive={isActive}
+          globalMuted={globalMuted}
+          onMuteToggle={onMuteToggle}
+          onLike={handleLikeClick}
+          height={height}
+        />
+      )}
 
       {/* Progress bar */}
       {isActive && (

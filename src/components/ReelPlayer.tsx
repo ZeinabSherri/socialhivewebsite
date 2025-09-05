@@ -45,7 +45,7 @@ const ReelPlayer = ({
       if (playPromise) {
         playPromise.catch((error) => {
           console.log('Video autoplay failed:', error);
-          // Keep muted to satisfy autoplay policies
+          // Retry with muted to satisfy autoplay policies
           video.muted = true;
           video.play().catch(() => {});
         });
@@ -147,6 +147,7 @@ const ReelPlayer = ({
         loop
         muted={globalMuted}
         playsInline
+        webkit-playsinline="true"
         preload="auto"
         poster={poster}
         onClick={handleVideoTap}

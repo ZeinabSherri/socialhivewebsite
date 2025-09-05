@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import Carousel from 'react-multi-carousel'
 import 'react-multi-carousel/lib/styles.css'
 import {
@@ -88,9 +88,57 @@ const PostCard: React.FC<PostCardProps> = ({
   isFirstPost
 }) => {
   const [showFullCaption, setShowFullCaption] = useState(false)
-  const [showLoveIcon, setShowLoveIcon]     = useState(false)
-  const [lastTap, setLastTap]               = useState(0)
-  const [videoMuted, setVideoMuted]         = useState(true)
+  const [showLoveIcon, setShowLoveIcon] = useState(false)
+  const [lastTap, setLastTap] = useState(0)
+  const [videoMuted, setVideoMuted] = useState(true)
+  const [isVideoActive, setIsVideoActive] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // IntersectionObserver for video autoplay
+  useEffect(() => {
+    if (post.type !== 'video' || !containerRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const isIntersecting = entry.isIntersecting && entry.intersectionRatio > 0.6;
+          setIsVideoActive(isIntersecting);
+          
+          if (isIntersecting) {
+            // Pause all other videos
+            document.querySelectorAll('video').forEach((video) => {
+              if (video !== videoRef.current) {
+                video.pause();
+              }
+            });
+          }
+        });
+      },
+      {
+        threshold: 0.6,
+        rootMargin: '300px 0px' // Pre-warm
+      }
+    );
+
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [post.type]);
+
+  // Handle video play/pause based on active state
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || post.type !== 'video') return;
+
+    if (isVideoActive) {
+      video.muted = true;
+      video.play().catch((error) => {
+        console.log('Autoplay failed:', error);
+      });
+    } else {
+      video.pause();
+    }
+  }, [isVideoActive, post.type]);
 
   // ====== BURGER LOGIC (unchanged) =========================================
   const isBurgerPost = post.id === 9
@@ -119,23 +167,25 @@ const PostCard: React.FC<PostCardProps> = ({
   }
 
   // Mobile-safe sound toggle
-  const toggleSound = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    const videos = document.querySelectorAll('video')
+  const toggleSound = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    const video = videoRef.current;
+    if (!video) return;
 
     if (videoMuted) {
-      videos.forEach(v => unmuteAndPlay(v as HTMLVideoElement))
-      setVideoMuted(false)
+      // First tap may need to trigger play() for mobile browsers
+      video.muted = false;
+      if (video.paused) {
+        video.play().catch(() => {
+          video.muted = true; // Fallback to muted if unmuted play fails
+        });
+      }
+      setVideoMuted(false);
     } else {
-      videos.forEach(video => {
-        const el = video as HTMLVideoElement
-        el.muted = true
-        el.defaultMuted = true
-        el.setAttribute('muted', '')
-      })
-      setVideoMuted(true)
+      video.muted = true;
+      setVideoMuted(true);
     }
-  }
+  }, [videoMuted]);
 
   const carouselProps = {
     responsive,
@@ -152,13 +202,15 @@ const PostCard: React.FC<PostCardProps> = ({
     <div className="relative overflow-visible">
       {post.type === 'video' && post.cloudflareId ? (
         <div
+          ref={containerRef}
           className="relative aspect-[4/5]"
           onClick={handleDoubleTap}
           onTouchEnd={handleDoubleTap}
         >
           <CloudflareStreamPlayer
+            ref={videoRef}
             uid={post.cloudflareId}
-            autoplay={true}
+            autoplay={isVideoActive}
             muted={videoMuted}
             loop={true}
             controls={false}
@@ -205,7 +257,7 @@ const PostCard: React.FC<PostCardProps> = ({
                     muted={videoMuted}
                     playsInline
                     webkit-playsinline="true"
-                    preload="metadata"
+                    preload="auto"
                     className="w-full h-full object-cover rounded-lg"
                   >
                     <source src={m.url} type="video/mp4" />

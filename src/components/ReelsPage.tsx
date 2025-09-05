@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft } from 'lucide-react';
 import { loadStreamItems, thumbSrc } from '../lib/stream';
+import { CLOUDFLARE_POSTS } from '../data/cloudflareVideoPosts';
 import ReelVideo from './ReelVideo';
 import ReelActionRail from './ReelActionRail';
 
@@ -21,15 +22,29 @@ type Reel = {
 
 /** Cloudflare helpers */
 const cfThumb = (uid: string, h = 720) => thumbSrc(uid, h);
-const cfMp4 = (uid: string) => `https://videodelivery.net/${uid}/downloads/default.mp4`;
+const cfVideo = (uid: string) => uid; // Use UID directly for CloudflareVideo component
 
 const ReelsPage = () => {
-  /** Cloudflare reels loaded from /videos.json (section === "reels") */
+  /** Combine Cloudflare video posts with streaming videos */
   const [cfReels, setCfReels] = useState<Reel[]>([]);
 
   /** Your existing demo/local reels */
   const baseReels = useMemo<Reel[]>(
     () => [
+      // Convert CLOUDFLARE_POSTS to reel format
+      ...CLOUDFLARE_POSTS.map((post, index) => ({
+        id: 90000 + index,
+        description: post.caption,
+        likes: post.likes,
+        comments: post.staticComments.length,
+        shares: Math.floor(Math.random() * 100) + 10,
+        user: post.username,
+        avatar: post.userAvatar,
+        audioTitle: 'Original audio',
+        videoUrl: post.cloudflareId!, // Use cloudflareId directly
+        poster: cfThumb(post.cloudflareId!, 720),
+        isCloudflare: true // Flag to identify Cloudflare videos
+      })),
       {
         id: 1,
         description:
@@ -70,7 +85,7 @@ const ReelsPage = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isNavigatingRef = useRef(false);
 
-  /** Load Cloudflare reels */
+  /** Load additional streaming reels from videos.json (optional) */
   useEffect(() => {
     (async () => {
       try {
@@ -78,16 +93,17 @@ const ReelsPage = () => {
         const mapped: Reel[] = items
           .filter((v) => v.section === 'reels')
           .map((v, i) => ({
-            id: 90000 + i,
+            id: 95000 + i, // Different ID range
             description: v.title || 'Reel',
-            likes: 0,
-            comments: 0,
-            shares: 0,
+            likes: Math.floor(Math.random() * 10000) + 1000,
+            comments: Math.floor(Math.random() * 500) + 50,
+            shares: Math.floor(Math.random() * 100) + 10,
             user: 'cloudflare.stream',
             avatar: '/images/socialhive.png',
             audioTitle: 'Original audio',
-            videoUrl: cfMp4(v.uid),
+            videoUrl: v.uid, // Use UID for CloudflareVideo
             poster: cfThumb(v.uid, 720),
+            isCloudflare: true
           }));
         setCfReels(mapped);
       } catch (e) {
@@ -108,7 +124,8 @@ const ReelsPage = () => {
     audioTitle: reel.audioTitle || 'Original audio',
     videoUrl: reel.videoUrl,
     poster: reel.poster,
-    viewCount: Math.floor(Math.random() * 100000) + 10000
+    viewCount: Math.floor(Math.random() * 100000) + 10000,
+    isCloudflare: (reel as any).isCloudflare || false
   }));
 
   const navigate = useCallback((direction: 'prev' | 'next') => {
