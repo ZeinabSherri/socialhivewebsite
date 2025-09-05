@@ -259,6 +259,10 @@ const HomeFeed: React.FC<{ onNavigateToProfile?: () => void }> = ({
     );
   };
 
+  const handleDelete = (postId: number | string) => {
+    setPosts((prev) => prev.filter((p) => p.id !== postId));
+  };
+
   return (
     <div className="max-w-md mx-auto">
       {/* bee flying behind posts */}
@@ -279,6 +283,7 @@ const HomeFeed: React.FC<{ onNavigateToProfile?: () => void }> = ({
               post={post}
               onLike={() => handleLike(post.id)}
               onUsernameClick={onNavigateToProfile}
+              onDelete={() => handleDelete(post.id)}
               isFirstPost={idx === 0}
             />
           </div>

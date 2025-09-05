@@ -48,6 +48,7 @@ interface PostCardProps {
   post: Post
   onLike: () => void
   onUsernameClick?: () => void
+  onDelete?: () => void
   isFirstPost?: boolean
 }
 
@@ -85,6 +86,7 @@ const PostCard: React.FC<PostCardProps> = ({
   post,
   onLike,
   onUsernameClick,
+  onDelete,
   isFirstPost
 }) => {
   const [showFullCaption, setShowFullCaption] = useState(false)
@@ -387,7 +389,9 @@ const PostCard: React.FC<PostCardProps> = ({
             <p className="text-gray-400 text-xs">{post.timestamp}</p>
           </div>
         </div>
-        <MoreHorizontal size={20} className="text-gray-400 hover:text-white"/>
+        <button onClick={onDelete} className="text-gray-400 hover:text-white">
+          <MoreHorizontal size={20}/>
+        </button>
       </div>
 
       {/* media */}
