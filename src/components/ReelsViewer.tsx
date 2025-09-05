@@ -45,7 +45,8 @@ const ReelsViewer = ({ reels, initialIndex, category, onClose }: ReelsViewerProp
     audioTitle: reel.audioTitle || 'Original audio',
     videoUrl: reel.videoUrl,
     poster: reel.thumbnail,
-    viewCount: reel.viewCount || Math.floor(Math.random() * 100000) + 10000
+    viewCount: reel.viewCount || Math.floor(Math.random() * 100000) + 10000,
+    isCloudflare: true // All videos are Cloudflare Stream videos
   }));
 
   const navigate = useCallback((direction: 'prev' | 'next') => {

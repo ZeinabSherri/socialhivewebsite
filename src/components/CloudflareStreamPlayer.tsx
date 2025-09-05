@@ -44,11 +44,12 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
     onDoubleTap,
     warmupLoad = false,
   }, ref) => {
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const hlsRef = useRef<Hls | null>(null);
-    const tapCountRef = useRef(0);
-    const tapTimeoutRef = useRef<number | null>(null);
-    const isWarmupLoadedRef = useRef(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
+  const tapCountRef = useRef(0);
+  const tapTimeoutRef = useRef<number | null>(null);
+  const isWarmupLoadedRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
     
     useImperativeHandle(ref, () => videoRef.current as HTMLVideoElement);
 
@@ -60,58 +61,71 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
       }
     }, []);
 
-    // Initialize HLS or native video
-    useEffect(() => {
-      const video = videoRef.current;
-      if (!video) return;
+  // Initialize HLS or native video
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
 
-      const hlsUrl = `https://videodelivery.net/${videoId}/manifest/video.m3u8`;
-      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    // Cancel any previous loading
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
+    const hlsUrl = `https://videodelivery.net/${videoId}/manifest/video.m3u8`;
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    
+    // Clean up existing HLS
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+    
+    if (isSafari || !Hls.isSupported()) {
+      video.src = hlsUrl;
+    } else {
+      // Optimized HLS.js settings for instant start
+      const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: true,
+        startLevel: 0, // Fastest first frame
+        capLevelToPlayerSize: true,
+        maxBufferLength: 10,
+        backBufferLength: 30,
+        fragLoadingTimeOut: 6000, // Reduced timeout
+        manifestLoadingTimeOut: 6000, // Reduced timeout
+        abrEwmaDefaultEstimate: 3e5,
+        maxMaxBufferLength: 20, // Limit buffer size
+        maxBufferSize: 30 * 1000 * 1000, // 30MB max buffer
+      });
       
-      // Clean up existing HLS
+      hlsRef.current = hls;
+      hls.loadSource(hlsUrl);
+      hls.attachMedia(video);
+      
+      hls.on(Hls.Events.ERROR, (event, data) => {
+        console.warn('HLS Error:', event, data);
+        if (data.fatal) {
+          hls.destroy();
+          hlsRef.current = null;
+          // Fallback to direct MP4
+          video.src = `https://videodelivery.net/${videoId}/downloads/default.mp4`;
+        }
+      });
+    }
+
+    globalPlayerRegistry.add(pauseVideo);
+
+    return () => {
+      // Cancel loading if component unmounts
+      abortControllerRef.current?.abort();
+      globalPlayerRegistry.delete(pauseVideo);
       if (hlsRef.current) {
         hlsRef.current.destroy();
         hlsRef.current = null;
       }
-      
-      if (isSafari || !Hls.isSupported()) {
-        video.src = hlsUrl;
-      } else {
-        // Optimized HLS.js settings for instant start
-        const hls = new Hls({
-          enableWorker: true,
-          lowLatencyMode: true,
-          startLevel: 0, // Fastest first frame
-          capLevelToPlayerSize: true,
-          maxBufferLength: 10,
-          backBufferLength: 30,
-          fragLoadingTimeOut: 8000,
-          manifestLoadingTimeOut: 8000,
-          abrEwmaDefaultEstimate: 3e5
-        });
-        
-        hlsRef.current = hls;
-        hls.loadSource(hlsUrl);
-        hls.attachMedia(video);
-        
-        hls.on(Hls.Events.ERROR, (event, data) => {
-          console.warn('HLS Error:', event, data);
-          if (data.fatal) {
-            video.src = `https://videodelivery.net/${videoId}/downloads/default.mp4`;
-          }
-        });
-      }
-
-      globalPlayerRegistry.add(pauseVideo);
-
-      return () => {
-        globalPlayerRegistry.delete(pauseVideo);
-        if (hlsRef.current) {
-          hlsRef.current.destroy();
-          hlsRef.current = null;
-        }
-      };
-    }, [videoId, pauseVideo]);
+    };
+  }, [videoId, pauseVideo]);
 
     // Handle active state changes
     useEffect(() => {
@@ -143,17 +157,21 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
       onActiveChange?.(isActive);
     }, [isActive, onPlay, pauseVideo, onActiveChange]);
 
-    // Visibility change handling
+    // Visibility change handling - better implementation
     useEffect(() => {
       const handleVisibilityChange = () => {
         const video = videoRef.current;
         if (!video) return;
 
         if (document.hidden) {
+          // Pause all videos when tab becomes hidden
           video.pause();
         } else if (isActive && !document.hidden) {
+          // Resume only the active video when tab becomes visible
           video.muted = true;
-          video.play().catch(() => {});
+          video.play().catch(() => {
+            console.log('Resume play failed, will retry on user gesture');
+          });
         }
       };
 
