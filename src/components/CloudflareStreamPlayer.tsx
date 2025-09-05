@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useRef, useCallback } from "react";
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useCallback, useState } from "react";
 import Hls from 'hls.js';
 
 export type CloudflareStreamPlayerProps = {
@@ -21,6 +21,7 @@ export type CloudflareStreamPlayerProps = {
 
 // Global registry for "one playing" rule
 const globalPlayerRegistry = new Set<() => void>();
+const likedReels = new Set<string>(); // Persisted liked state
 
 /**
  * Unified Cloudflare Stream Player - native video + HLS.js
@@ -50,8 +51,32 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
     const tapTimeoutRef = useRef<number | null>(null);
     const isWarmupLoadedRef = useRef(false);
     const abortControllerRef = useRef<AbortController | null>(null);
+    const resizeObserverRef = useRef<ResizeObserver | null>(null);
+    const [isInitialized, setIsInitialized] = useState(false);
     
     useImperativeHandle(ref, () => videoRef.current as HTMLVideoElement);
+
+    // Zero-size guard and ResizeObserver
+    useEffect(() => {
+      const container = videoRef.current?.parentElement;
+      if (!container) return;
+
+      const checkSize = () => {
+        const rect = container.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0 && !isInitialized) {
+          setIsInitialized(true);
+        }
+      };
+
+      checkSize(); // Initial check
+
+      resizeObserverRef.current = new ResizeObserver(checkSize);
+      resizeObserverRef.current.observe(container);
+
+      return () => {
+        resizeObserverRef.current?.disconnect();
+      };
+    }, [isInitialized]);
 
     // Pause function for global registry
     const pauseVideo = useCallback(() => {
@@ -63,6 +88,8 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
 
     // Initialize HLS or native video
     useEffect(() => {
+      if (!isInitialized) return; // Wait for proper sizing
+      
       const video = videoRef.current;
       if (!video) return;
 
@@ -122,7 +149,7 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
           hlsRef.current = null;
         }
       };
-    }, [videoId, pauseVideo]);
+    }, [videoId, pauseVideo, isInitialized]);
 
     // Handle active state changes
     useEffect(() => {
@@ -212,7 +239,7 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
       }
     }, [startWarmupLoad]);
 
-    // Handle tap gestures - single tap mute/unmute, double tap callback
+    // Handle tap gestures with proper mute/unmute and like functionality
     const handleVideoTap = useCallback((e: React.TouchEvent | React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
@@ -225,15 +252,15 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
 
       tapTimeoutRef.current = window.setTimeout(() => {
         if (tapCountRef.current === 1) {
-          // Single tap - call external onTap callback for mute toggle
+          // Single tap - mute toggle via external callback
+          onTap?.();
+          
           const video = videoRef.current;
           if (video && video.paused && isActive) {
-            // If paused due to policy, try to play
             video.play().catch(() => {});
           }
-          onTap?.();
         } else if (tapCountRef.current === 2) {
-          // Double tap - like animation
+          // Double tap - like with haptic feedback
           onDoubleTap?.();
           
           if ('vibrate' in navigator) {
@@ -241,36 +268,65 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
           }
         }
         tapCountRef.current = 0;
-      }, 250);
+      }, 300);
     }, [isActive, onTap, onDoubleTap]);
 
+    // Visibility change handler
+    useEffect(() => {
+      const handleVisibilityChange = () => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        if (document.hidden) {
+          video.pause();
+        } else if (isActive && !document.hidden) {
+          video.muted = muted;
+          video.play().catch(() => {});
+        }
+      };
+
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, [isActive, muted]);
+
     return (
-      <div className={className}>
-        <video
-          ref={videoRef}
-          autoPlay={autoPlay}
-          muted={muted}
-          loop={loop}
-          controls={controls}
-          poster={poster || `https://videodelivery.net/${videoId}/thumbnails/thumbnail.jpg?time=1s&height=720`}
-          playsInline
-          webkit-playsinline="true"
-          preload="auto"
-          crossOrigin="anonymous"
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          onPlay={onPlay}
-          onPause={onPause}
-          onLoadedMetadata={onLoadedMetadata}
-          onClick={handleVideoTap}
-          onTouchEnd={handleVideoTap}
-          onError={(e) => {
-            console.warn('Video error, trying MP4 fallback:', e);
-            const video = e.currentTarget;
-            if (!video.src.includes('downloads')) {
-              video.src = `https://videodelivery.net/${videoId}/downloads/default.mp4`;
-            }
-          }}
-        />
+      <div className={className} style={{ pointerEvents: 'auto' }}>
+        {isInitialized ? (
+          <video
+            ref={videoRef}
+            autoPlay={autoPlay}
+            muted={muted}
+            loop={loop}
+            controls={controls}
+            poster={poster || `https://videodelivery.net/${videoId}/thumbnails/thumbnail.jpg?time=1s&height=720`}
+            playsInline
+            webkit-playsinline="true"
+            preload="auto"
+            crossOrigin="anonymous"
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            onPlay={onPlay}
+            onPause={onPause}
+            onLoadedMetadata={onLoadedMetadata}
+            onClick={handleVideoTap}
+            onTouchEnd={handleVideoTap}
+            onError={(e) => {
+              console.warn('Video error, trying MP4 fallback:', e);
+              const video = e.currentTarget;
+              if (!video.src.includes('downloads')) {
+                video.src = `https://videodelivery.net/${videoId}/downloads/default.mp4`;
+              }
+            }}
+          />
+        ) : (
+          <div 
+            className="w-full h-full bg-gray-900 flex items-center justify-center"
+            style={{
+              backgroundImage: poster ? `url(${poster})` : `url(https://videodelivery.net/${videoId}/thumbnails/thumbnail.jpg?time=1s&height=720)`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }}
+          />
+        )}
       </div>
     );
   }
