@@ -65,7 +65,15 @@ export const HOME_CLOUDFLARE_IDS = [
   "266422f6f89edba5a2c83408ea59b768",
 ];
 
-// All reels for the Reels page
+// Flatten all Explore videos into one list, preserving category order and in-category order
+export const EXPLORE_ALL_VIDEO_IDS: string[] = CATEGORY_KEYS
+  .flatMap(k => CATEGORY_VIDEOS[k])
+  .filter(Boolean);
+
+// Optional safety: dedupe in case a video id appears in multiple places
+export const EXPLORE_ALL_UNIQUE_VIDEO_IDS = Array.from(new Set(EXPLORE_ALL_VIDEO_IDS));
+
+// All reels for the Reels page (kept for backwards compatibility)
 export const ALL_REELS_IDS = HOME_CLOUDFLARE_IDS.concat(
   ...CATEGORY_KEYS.map(k => CATEGORY_VIDEOS[k])
 ).filter(Boolean);
@@ -173,7 +181,12 @@ export const generateHomePosts = (): VideoPost[] => {
   });
 };
 
-// Generate posts for all reels (Home + Categories)
+// Generate posts for Explore videos only (all categories)
+export const generateExploreAllPosts = (): VideoPost[] => {
+  return ALL_CATEGORY_POSTS;
+};
+
+// Generate posts for all reels (Home + Categories) - kept for backwards compatibility
 export const generateAllReelsPosts = (): VideoPost[] => {
   const homePosts = generateHomePosts();
   return [...homePosts, ...ALL_CATEGORY_POSTS];

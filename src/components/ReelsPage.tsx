@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft } from 'lucide-react';
-import { generateAllReelsPosts } from '../data/categoryVideos';
+import { generateExploreAllPosts, EXPLORE_ALL_UNIQUE_VIDEO_IDS } from '../data/categoryVideos';
 import ReelVideo from './ReelVideo';
 import ReelActionRail from './ReelActionRail';
 import { useVideoObserver } from '../hooks/useVideoObserver';
@@ -21,8 +21,20 @@ type Reel = {
 };
 
 const ReelsPage = () => {
-  // Generate all reels from Home + Categories
-  const allVideosPosts = useMemo(() => generateAllReelsPosts(), []);
+  // Use Explore as the single source of truth - all category videos
+  const allVideosPosts = useMemo(() => generateExploreAllPosts(), []);
+
+  // Empty state if no videos
+  if (!EXPLORE_ALL_UNIQUE_VIDEO_IDS.length) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white">
+        <div className="text-center p-8">
+          <h2 className="text-2xl font-bold mb-2">No reels yet</h2>
+          <p className="text-gray-400">Add videos to Explore to see them here.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Convert to reel format
   const reels = useMemo<Reel[]>(() => {
