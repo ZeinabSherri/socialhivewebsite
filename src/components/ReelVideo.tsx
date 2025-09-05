@@ -68,14 +68,12 @@ const ReelVideo = ({
           {/* Video Player */}
           {reel.isCloudflare ? (
             <CloudflareStreamPlayer
-              uid={reel.videoUrl}
-              autoplay={isActive}
+              videoId={reel.videoUrl}
+              isActive={isActive}
               muted={globalMuted}
               loop={true}
               controls={false}
               className="w-full h-full"
-              onPlay={() => {}}
-              onPause={() => {}}
             />
           ) : (
             <ReelPlayer
@@ -120,14 +118,14 @@ const ReelVideo = ({
         {/* Video Player with interactions - fills the stage */}
         {reel.isCloudflare ? (
           <CloudflareStreamPlayer
-            uid={reel.videoUrl}
-            autoplay={isActive}
+            videoId={reel.videoUrl}
+            isActive={isActive}
             muted={globalMuted}
             loop={true}
             controls={false}
             className="w-full h-full"
-            onPlay={() => {}}
-            onPause={() => {}}
+            onTap={onMuteToggle}
+            onDoubleTap={() => onLike(reel.id)}
           />
         ) : (
           <ReelPlayer
@@ -174,14 +172,14 @@ const ReelVideo = ({
       {/* Video Player with interactions */}
       {reel.isCloudflare ? (
         <CloudflareStreamPlayer
-          uid={reel.videoUrl}
-          autoplay={isActive}
+          videoId={reel.videoUrl}
+          isActive={isActive}
           muted={globalMuted}
           loop={true}
           controls={false}
           className="absolute inset-0 w-full h-full"
-          onPlay={() => {}}
-          onPause={() => {}}
+          onTap={onMuteToggle}
+          onDoubleTap={() => onLike(reel.id)}
         />
       ) : (
         <ReelPlayer

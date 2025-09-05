@@ -4,6 +4,7 @@ import { ChevronLeft } from 'lucide-react';
 import { generateAllReelsPosts } from '../data/categoryVideos';
 import ReelVideo from './ReelVideo';
 import ReelActionRail from './ReelActionRail';
+import { useVideoObserver } from '../hooks/useVideoObserver';
 
 /** Types */
 type Reel = {
@@ -40,12 +41,44 @@ const ReelsPage = () => {
     }));
   }, [allVideosPosts]);
 
-  /** UI state */
+  // UI state
   const [currentIndex, setCurrentIndex] = useState(0);
   const [likedReels, setLikedReels] = useState<Set<number>>(new Set());
   const [globalMuted, setGlobalMuted] = useState(true);
+  const [activeReels, setActiveReels] = useState<Set<number>>(new Set());
+  const [nearbyReels, setNearbyReels] = useState<Set<number>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
   const isNavigatingRef = useRef(false);
+
+  // Video observer for autoplay control
+  const { observe, unobserve, disconnect } = useVideoObserver({
+    root: containerRef.current,
+    rootMargin: "300px 0px",
+    threshold: 0.6,
+    onActiveChange: (index, isActive) => {
+      setActiveReels(prev => {
+        const newSet = new Set(prev);
+        if (isActive) {
+          newSet.add(index);
+          setCurrentIndex(index);
+        } else {
+          newSet.delete(index);
+        }
+        return newSet;
+      });
+    },
+    onNearby: (index, isNearby) => {
+      setNearbyReels(prev => {
+        const newSet = new Set(prev);
+        if (isNearby) {
+          newSet.add(index);
+        } else {
+          newSet.delete(index);
+        }
+        return newSet;
+      });
+    }
+  });
 
   // No need for additional loading - everything is generated from categories
 
@@ -159,55 +192,16 @@ const ReelsPage = () => {
     const container = containerRef.current;
     if (!container) return;
 
-    // IntersectionObserver for desktop autoplay
-    let observer: IntersectionObserver | null = null;
-    
-    if (window.matchMedia('(min-width: 1024px)').matches) {
-      observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
-              const index = parseInt(entry.target.getAttribute('data-index') || '0');
-              if (index !== currentIndex && index >= 0 && index < formattedReels.length) {
-                setCurrentIndex(index);
-              }
-            }
-          });
-        },
-        {
-          root: container,
-          threshold: 0.6,
-          rootMargin: '-10% 0px -10% 0px'
-        }
-      );
-
-      // Observe all reel containers
-      const reelElements = container.querySelectorAll('[data-index]');
-      reelElements.forEach((element) => observer!.observe(element));
-    } else {
-      // Mobile scroll handler
-      const handleScroll = () => {
-        if (isNavigatingRef.current) return;
-        
-        const newIndex = Math.round(container.scrollTop / window.innerHeight);
-        if (newIndex !== currentIndex && newIndex >= 0 && newIndex < formattedReels.length) {
-          setCurrentIndex(newIndex);
-        }
-      };
-
-      container.addEventListener('scroll', handleScroll, { passive: true });
-      
-      return () => {
-        container.removeEventListener('scroll', handleScroll);
-      };
-    }
+    // Register video elements with observer
+    const reelElements = container.querySelectorAll('[data-reel-index]');
+    reelElements.forEach((element, index) => {
+      observe(element, index);
+    });
 
     return () => {
-      if (observer) {
-        observer.disconnect();
-      }
+      disconnect();
     };
-  }, [currentIndex, formattedReels.length]);
+  }, [formattedReels.length, observe, disconnect]);
 
   return (
     <>
@@ -258,13 +252,14 @@ const ReelsPage = () => {
               <ReelVideo
                 key={reel.id}
                 reel={reel}
-                isActive={index === currentIndex}
+                isActive={activeReels.has(index)}
                 height={window.innerHeight}
                 onLike={handleLike}
                 isLiked={likedReels.has(reel.id)}
                 globalMuted={globalMuted}
                 onMuteToggle={handleMuteToggle}
                 layout="mobile"
+                data-reel-index={index}
               />
             ))}
           </div>
@@ -293,7 +288,7 @@ const ReelsPage = () => {
                 key={reel.id} 
                 className="snap-start snap-always flex justify-center items-center bg-transparent"
                 style={{ minHeight: '100vh' }}
-                data-index={index}
+                data-reel-index={index}
               >
                 {/* Video Stage */}
                 <div 
@@ -316,7 +311,7 @@ const ReelsPage = () => {
                 >
                   <ReelVideo
                     reel={reel}
-                    isActive={index === currentIndex}
+                    isActive={activeReels.has(index)}
                     height={0} // Height controlled by aspect ratio
                     onLike={handleLike}
                     isLiked={likedReels.has(reel.id)}

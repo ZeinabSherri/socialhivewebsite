@@ -209,8 +209,8 @@ const PostCard: React.FC<PostCardProps> = ({
         >
           <CloudflareStreamPlayer
             ref={videoRef}
-            uid={post.cloudflareId}
-            autoplay={isVideoActive}
+            videoId={post.cloudflareId!}
+            autoPlay={isVideoActive}
             muted={videoMuted}
             loop={true}
             controls={false}
