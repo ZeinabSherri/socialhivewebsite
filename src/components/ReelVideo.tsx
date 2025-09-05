@@ -43,9 +43,11 @@ const ReelVideo = ({
 
   // Progress tracking
   useEffect(() => {
-    if (!isActive || !videoRef.current) return;
+    if (!isActive) return;
 
-    const video = videoRef.current;
+    const video = document.querySelector(`[data-reel-id="${reel.id}"] video`) as HTMLVideoElement;
+    if (!video) return;
+
     const updateProgress = () => {
       if (video.duration) {
         setProgress((video.currentTime / video.duration) * 100);
@@ -54,7 +56,7 @@ const ReelVideo = ({
 
     const interval = setInterval(updateProgress, 100);
     return () => clearInterval(interval);
-  }, [isActive]);
+  }, [isActive, reel.id]);
 
   const handleLikeClick = useCallback(() => {
     onLike(reel.id);
@@ -66,16 +68,19 @@ const ReelVideo = ({
         {/* Video container - fills the stage */}
         <div className="relative flex-1 min-h-0 w-full h-full">
           {/* Video Player */}
-          {reel.isCloudflare ? (
-            <CloudflareStreamPlayer
-              videoId={reel.videoUrl}
-              isActive={isActive}
-              muted={globalMuted}
-              loop={true}
-              controls={false}
-              className="w-full h-full"
-            />
-          ) : (
+        {reel.isCloudflare ? (
+          <CloudflareStreamPlayer
+            videoId={reel.videoUrl}
+            isActive={isActive}
+            muted={globalMuted}
+            loop={true}
+            controls={false}
+            className="w-full h-full"
+            onTap={onMuteToggle}
+            onDoubleTap={() => onLike(reel.id)}
+            warmupLoad={!isActive}
+          />
+        ) : (
             <ReelPlayer
               videoUrl={reel.videoUrl}
               poster={reel.poster}
@@ -126,6 +131,7 @@ const ReelVideo = ({
             className="w-full h-full"
             onTap={onMuteToggle}
             onDoubleTap={() => onLike(reel.id)}
+            warmupLoad={!isActive}
           />
         ) : (
           <ReelPlayer
@@ -168,6 +174,7 @@ const ReelVideo = ({
     <section
       className="relative bg-black w-full snap-start snap-always"
       style={{ height: `${height}px`, scrollSnapStop: 'always' }}
+      data-reel-id={reel.id}
     >
       {/* Video Player with interactions */}
       {reel.isCloudflare ? (
@@ -180,6 +187,7 @@ const ReelVideo = ({
           className="absolute inset-0 w-full h-full"
           onTap={onMuteToggle}
           onDoubleTap={() => onLike(reel.id)}
+          warmupLoad={!isActive}
         />
       ) : (
         <ReelPlayer

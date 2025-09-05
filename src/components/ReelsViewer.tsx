@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft } from 'lucide-react';
 import ReelVideo from './ReelVideo';
 
-interface Reel {
+export interface Reel {
   id: number;
   title: string;
   description?: string;

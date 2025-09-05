@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Search } from 'lucide-react';
 import { formatCount } from '../lib/format';
@@ -99,7 +99,7 @@ const ExplorePage = () => {
     }
   }, [allReels]);
 
-  const renderReelGridItem = (reel: ExploreReel, index: number) => {
+  const renderReelGridItem = useCallback((reel: ExploreReel, index: number) => {
     return (
       <div
         key={reel.id}
@@ -110,6 +110,7 @@ const ExplorePage = () => {
           src={reel.thumbnail}
           alt={reel.title}
           className="w-full h-full object-cover"
+          loading="lazy"
         />
 
         {/* Play icon overlay */}
@@ -124,7 +125,7 @@ const ExplorePage = () => {
         </div>
       </div>
     );
-  };
+  }, [handleReelClick]);
 
   const renderEmptyState = () => (
     <div className="flex flex-col items-center justify-center h-64 text-gray-400 p-8">

@@ -210,11 +210,22 @@ const PostCard: React.FC<PostCardProps> = ({
           <CloudflareStreamPlayer
             ref={videoRef}
             videoId={post.cloudflareId!}
-            autoPlay={isVideoActive}
+            isActive={isVideoActive}
             muted={videoMuted}
             loop={true}
             controls={false}
             className="w-full h-full rounded-lg overflow-hidden"
+            onTap={() => {
+              // Single tap mute toggle
+              setVideoMuted(!videoMuted);
+            }}
+            onDoubleTap={() => {
+              // Double tap like
+              if (!post.isLiked) onLike();
+              setShowLoveIcon(true);
+              setTimeout(() => setShowLoveIcon(false), 1000);
+            }}
+            warmupLoad={!isVideoActive}
           />
           
           <button

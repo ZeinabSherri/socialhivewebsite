@@ -2,7 +2,7 @@ import React, { forwardRef, useEffect, useImperativeHandle, useRef, useCallback 
 import Hls from 'hls.js';
 
 export type CloudflareStreamPlayerProps = {
-  videoId: string; // Cloudflare Stream video UID
+  videoId: string;
   autoPlay?: boolean;
   muted?: boolean;
   loop?: boolean;
@@ -16,14 +16,15 @@ export type CloudflareStreamPlayerProps = {
   isActive?: boolean;
   onTap?: () => void;
   onDoubleTap?: () => void;
+  warmupLoad?: boolean;
 };
 
-// Global registry to manage "one playing" rule
+// Global registry for "one playing" rule
 const globalPlayerRegistry = new Set<() => void>();
 
-/** 
- * Unified Cloudflare Stream Player with native video + HLS
- * Handles mobile autoplay, tap-to-mute (no restart), and instant loading
+/**
+ * Unified Cloudflare Stream Player - native video + HLS.js
+ * Optimized for mobile autoplay, instant start, tap controls without restart
  */
 const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlayerProps>(
   ({ 
@@ -41,11 +42,13 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
     isActive = false,
     onTap,
     onDoubleTap,
+    warmupLoad = false,
   }, ref) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const hlsRef = useRef<Hls | null>(null);
     const tapCountRef = useRef(0);
     const tapTimeoutRef = useRef<number | null>(null);
+    const isWarmupLoadedRef = useRef(false);
     
     useImperativeHandle(ref, () => videoRef.current as HTMLVideoElement);
 
@@ -72,20 +75,19 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
       }
       
       if (isSafari || !Hls.isSupported()) {
-        // Use native HLS on Safari/devices that don't support hls.js
         video.src = hlsUrl;
       } else {
-        // Use hls.js for other browsers with optimized settings for fast start
+        // Optimized HLS.js settings for instant start
         const hls = new Hls({
           enableWorker: true,
           lowLatencyMode: true,
-          startLevel: 0, // Start with lowest quality for fastest first frame
+          startLevel: 0, // Fastest first frame
           capLevelToPlayerSize: true,
           maxBufferLength: 10,
           backBufferLength: 30,
           fragLoadingTimeOut: 8000,
           manifestLoadingTimeOut: 8000,
-          abrEwmaDefaultEstimate: 3e5 // Conservative bandwidth estimate
+          abrEwmaDefaultEstimate: 3e5
         });
         
         hlsRef.current = hls;
@@ -95,13 +97,11 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
         hls.on(Hls.Events.ERROR, (event, data) => {
           console.warn('HLS Error:', event, data);
           if (data.fatal) {
-            // Fallback to direct MP4 on fatal error
             video.src = `https://videodelivery.net/${videoId}/downloads/default.mp4`;
           }
         });
       }
 
-      // Register with global player registry
       globalPlayerRegistry.add(pauseVideo);
 
       return () => {
@@ -161,11 +161,27 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
       return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }, [isActive]);
 
-    // Warmup loading for nearby videos
+    // Warmup loading effect
+    useEffect(() => {
+      const video = videoRef.current;
+      if (!video || !warmupLoad || isWarmupLoadedRef.current) return;
+
+      isWarmupLoadedRef.current = true;
+      
+      if (hlsRef.current) {
+        hlsRef.current.startLoad();
+      } else {
+        video.load();
+      }
+    }, [warmupLoad]);
+
+    // Expose warmup method via ref
     const startWarmupLoad = useCallback(() => {
       const video = videoRef.current;
-      if (!video) return;
+      if (!video || isWarmupLoadedRef.current) return;
 
+      isWarmupLoadedRef.current = true;
+      
       if (hlsRef.current) {
         hlsRef.current.startLoad();
       } else {
@@ -173,7 +189,6 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
       }
     }, []);
 
-    // Expose warmup method via ref
     useEffect(() => {
       if (videoRef.current) {
         (videoRef.current as any).startWarmupLoad = startWarmupLoad;
@@ -193,21 +208,20 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
 
       tapTimeoutRef.current = window.setTimeout(() => {
         if (tapCountRef.current === 1) {
-          // Single tap - toggle mute (NO RESTART)
+          // Single tap - toggle mute WITHOUT restart/seek
           const video = videoRef.current;
           if (video) {
             video.muted = !video.muted;
-            // If paused, try to play again (for mobile)
+            // If paused due to policy, try to play
             if (video.paused && isActive) {
               video.play().catch(() => {});
             }
           }
           onTap?.();
         } else if (tapCountRef.current === 2) {
-          // Double tap - trigger callback (like with heart animation)
+          // Double tap - like animation
           onDoubleTap?.();
           
-          // Haptic feedback if available
           if ('vibrate' in navigator) {
             navigator.vibrate(15);
           }
