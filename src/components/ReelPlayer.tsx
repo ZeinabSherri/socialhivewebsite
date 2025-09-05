@@ -41,7 +41,15 @@ const ReelPlayer = ({
 
     if (isActive) {
       video.muted = globalMuted;
-      video.play().catch(() => {});
+      const playPromise = video.play();
+      if (playPromise) {
+        playPromise.catch((error) => {
+          console.log('Video autoplay failed:', error);
+          // Keep muted to satisfy autoplay policies
+          video.muted = true;
+          video.play().catch(() => {});
+        });
+      }
     } else {
       video.pause();
       video.currentTime = 0;
@@ -132,16 +140,14 @@ const ReelPlayer = ({
       {/* Video */}
       <video
         ref={videoRef}
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover bg-black"
         style={{ 
-          objectPosition: 'center center',
-          paddingLeft: 'max(14px, env(safe-area-inset-left))',
-          paddingRight: 'max(14px, env(safe-area-inset-right))'
+          objectPosition: 'center center'
         }}
         loop
         muted={globalMuted}
         playsInline
-        preload="metadata"
+        preload="auto"
         poster={poster}
         onClick={handleVideoTap}
         onPointerDown={handlePressStart}
@@ -152,6 +158,16 @@ const ReelPlayer = ({
         onMouseLeave={handlePressEnd}
         onTouchStart={handlePressStart}
         onTouchEnd={handlePressEnd}
+        onLoadedMetadata={() => {
+          const video = videoRef.current;
+          if (video && isActive) {
+            console.log('Video loaded, attempting autoplay for active reel');
+            video.muted = globalMuted;
+            video.play().catch((error) => {
+              console.log('Autoplay failed after load:', error);
+            });
+          }
+        }}
       >
         <source src={videoUrl} type="video/mp4" />
       </video>

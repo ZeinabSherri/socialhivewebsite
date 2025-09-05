@@ -101,16 +101,8 @@ const ReelVideo = ({
 
   if (layout === 'desktop-mobile-like') {
     return (
-      <section
-        className="relative bg-black w-full"
-        style={{ 
-          height: `${height}px`,
-          aspectRatio: '9 / 16',
-          maxHeight: '90vh',
-          width: '100%'
-        }}
-      >
-        {/* Video Player with interactions */}
+      <div className="relative bg-transparent w-full h-full">
+        {/* Video Player with interactions - fills the stage */}
         <ReelPlayer
           videoUrl={reel.videoUrl}
           poster={reel.poster}
@@ -118,12 +110,12 @@ const ReelVideo = ({
           globalMuted={globalMuted}
           onMuteToggle={onMuteToggle}
           onLike={handleLikeClick}
-          height={height}
+          height={0} // Height controlled by parent aspect ratio
         />
 
         {/* Progress bar */}
         {isActive && (
-          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/30 z-30">
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/30 z-30">
             <div
               className="h-full bg-white transition-all duration-100"
               style={{ width: `${progress}%` }}
@@ -131,26 +123,17 @@ const ReelVideo = ({
           </div>
         )}
 
-        {/* Right Action Rail */}
-        <ReelActionRail
-          likes={reel.likes}
-          comments={reel.comments}
-          shares={reel.shares || 0}
-          isLiked={isLiked}
-          onLike={handleLikeClick}
-          avatar={reel.avatar}
-          user={reel.user}
-        />
-
         {/* Bottom Meta Info */}
-        <ReelMeta
-          user={reel.user}
-          description={reel.description}
-          audioTitle={reel.audioTitle}
-          avatar={reel.avatar}
-          layout="mobile"
-        />
-      </section>
+        <div className="absolute bottom-4 left-4 right-16 text-white z-20">
+          <ReelMeta
+            user={reel.user}
+            description={reel.description}
+            audioTitle={reel.audioTitle}
+            avatar={reel.avatar}
+            layout="desktop"
+          />
+        </div>
+      </div>
     );
   }
 

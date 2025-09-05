@@ -20,11 +20,9 @@ const ReelMeta = ({ user, description, audioTitle, avatar, layout = 'mobile' }: 
   };
 
   // Desktop layout
-  const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
-  
-  if (isDesktop) {
+  if (layout === 'desktop' || (window.matchMedia('(min-width: 1024px)').matches)) {
     return (
-      <div className="text-white space-y-3">
+      <div className="text-white space-y-2 bg-transparent">
         {/* User info */}
         <div className="flex items-center space-x-3">
           <img 
@@ -32,15 +30,15 @@ const ReelMeta = ({ user, description, audioTitle, avatar, layout = 'mobile' }: 
             alt={user}
             className="w-8 h-8 rounded-full object-cover"
           />
-          <span className="font-semibold text-base">@{user}</span>
-          <button className="text-white border border-white px-3 py-1 rounded text-sm hover:bg-white hover:text-black transition-colors">
+          <span className="font-semibold text-sm">@{user}</span>
+          <button className="text-white border border-white px-2 py-1 rounded text-xs hover:bg-white hover:text-black transition-colors">
             Follow
           </button>
         </div>
 
         {/* Caption */}
         <div>
-          <p className="text-sm leading-relaxed">
+          <p className="text-xs leading-relaxed">
             {truncateText(description, expandedCaption)}
             {description.split(' ').length > 15 && (
               <button
@@ -58,8 +56,8 @@ const ReelMeta = ({ user, description, audioTitle, avatar, layout = 'mobile' }: 
 
         {/* Audio */}
         <div className="flex items-center space-x-2">
-          <Music size={14} className="text-white" />
-          <span className="text-sm text-gray-300">{audioTitle}</span>
+          <Music size={12} className="text-white" />
+          <span className="text-xs text-gray-300">{audioTitle}</span>
         </div>
       </div>
     );

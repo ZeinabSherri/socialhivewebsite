@@ -200,22 +200,59 @@ const ReelsPage = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [navigate, globalMuted]);
 
-  // Handle scroll-based navigation
+  // Handle scroll-based navigation and IntersectionObserver
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const handleScroll = () => {
-      if (isNavigatingRef.current) return;
+    // IntersectionObserver for desktop autoplay
+    let observer: IntersectionObserver | null = null;
+    
+    if (window.matchMedia('(min-width: 1024px)').matches) {
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+              const index = parseInt(entry.target.getAttribute('data-index') || '0');
+              if (index !== currentIndex && index >= 0 && index < formattedReels.length) {
+                setCurrentIndex(index);
+              }
+            }
+          });
+        },
+        {
+          root: container,
+          threshold: 0.6,
+          rootMargin: '-10% 0px -10% 0px'
+        }
+      );
+
+      // Observe all reel containers
+      const reelElements = container.querySelectorAll('[data-index]');
+      reelElements.forEach((element) => observer!.observe(element));
+    } else {
+      // Mobile scroll handler
+      const handleScroll = () => {
+        if (isNavigatingRef.current) return;
+        
+        const newIndex = Math.round(container.scrollTop / window.innerHeight);
+        if (newIndex !== currentIndex && newIndex >= 0 && newIndex < formattedReels.length) {
+          setCurrentIndex(newIndex);
+        }
+      };
+
+      container.addEventListener('scroll', handleScroll, { passive: true });
       
-      const newIndex = Math.round(container.scrollTop / window.innerHeight);
-      if (newIndex !== currentIndex && newIndex >= 0 && newIndex < formattedReels.length) {
-        setCurrentIndex(newIndex);
+      return () => {
+        container.removeEventListener('scroll', handleScroll);
+      };
+    }
+
+    return () => {
+      if (observer) {
+        observer.disconnect();
       }
     };
-
-    container.addEventListener('scroll', handleScroll, { passive: true });
-    return () => container.removeEventListener('scroll', handleScroll);
   }, [currentIndex, formattedReels.length]);
 
   return (
@@ -281,33 +318,84 @@ const ReelsPage = () => {
       </motion.div>
 
       {/* Desktop Layout (lg+) - Mobile-like vertical scroller */}
-      <div className="hidden lg:block h-screen">
-        <div
-          ref={containerRef}
-          className="h-screen overflow-y-auto snap-y snap-mandatory scrollbar-hidden"
-          style={{ WebkitOverflowScrolling: 'touch' }}
-          onWheel={(e) => {
-            e.preventDefault();
-            const direction = e.deltaY > 0 ? 'next' : 'prev';
-            navigate(direction);
-          }}
-        >
-          {formattedReels.map((reel, index) => (
-            <div key={reel.id} className="h-screen snap-start snap-always flex justify-center items-center">
-              <div style={{ width: 'clamp(380px, 28vw, 480px)' }}>
-                <ReelVideo
-                  reel={reel}
-                  isActive={index === currentIndex}
-                  height={window.innerHeight}
-                  onLike={handleLike}
-                  isLiked={likedReels.has(reel.id)}
-                  globalMuted={globalMuted}
-                  onMuteToggle={handleMuteToggle}
-                  layout="desktop-mobile-like"
-                />
+      <div className="hidden lg:block">
+        <div className="relative flex">
+          {/* Center scroll container */}
+          <div 
+            ref={containerRef}
+            className="flex-1 overflow-y-auto snap-y snap-mandatory scrollbar-hidden bg-transparent"
+            style={{ 
+              height: 'calc(100vh - 0px)',
+              WebkitOverflowScrolling: 'touch'
+            }}
+            onWheel={(e) => {
+              e.preventDefault();
+              const direction = e.deltaY > 0 ? 'next' : 'prev';
+              navigate(direction);
+            }}
+          >
+            {formattedReels.map((reel, index) => (
+              <div 
+                key={reel.id} 
+                className="snap-start snap-always flex justify-center items-center bg-transparent"
+                style={{ minHeight: '100vh' }}
+                data-index={index}
+              >
+                {/* Video Stage */}
+                <div 
+                  className="relative bg-transparent"
+                  style={{
+                    width: 'clamp(420px, 32vw, 620px)',
+                    aspectRatio: '9 / 16',
+                    maxHeight: '86vh'
+                  }}
+                  ref={(el) => {
+                    // Debug sizing
+                    if (el && index === currentIndex) {
+                      const rect = el.getBoundingClientRect();
+                      console.log(`Stage ${index} dimensions:`, rect.width, 'x', rect.height);
+                      if (rect.width === 0 || rect.height === 0) {
+                        console.warn('Stage has zero dimensions!');
+                      }
+                    }
+                  }}
+                >
+                  <ReelVideo
+                    reel={reel}
+                    isActive={index === currentIndex}
+                    height={0} // Height controlled by aspect ratio
+                    onLike={handleLike}
+                    isLiked={likedReels.has(reel.id)}
+                    globalMuted={globalMuted}
+                    onMuteToggle={handleMuteToggle}
+                    layout="desktop-mobile-like"
+                  />
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+
+          {/* Action Rail - Sticky beside the center */}
+          <div 
+            className="fixed z-20"
+            style={{
+              left: 'calc(50% + clamp(420px, 32vw, 620px) / 2 + 20px)',
+              top: '50%',
+              transform: 'translateY(-50%)'
+            }}
+          >
+            {formattedReels.length > 0 && (
+              <ReelActionRail
+                likes={formattedReels[currentIndex].likes}
+                comments={formattedReels[currentIndex].comments}
+                shares={formattedReels[currentIndex].shares || 0}
+                isLiked={likedReels.has(formattedReels[currentIndex].id)}
+                onLike={() => handleLike(formattedReels[currentIndex].id)}
+                avatar={formattedReels[currentIndex].avatar}
+                user={formattedReels[currentIndex].user}
+              />
+            )}
+          </div>
         </div>
       </div>
     </>
