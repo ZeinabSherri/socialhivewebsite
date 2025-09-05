@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft } from 'lucide-react';
-import { loadStreamItems, thumbSrc } from '../lib/stream';
-import { CLOUDFLARE_POSTS } from '../data/cloudflareVideoPosts';
+import { generateAllReelsPosts, ALL_REELS_IDS } from '../data/categoryVideos';
 import ReelVideo from './ReelVideo';
 import ReelActionRail from './ReelActionRail';
 
@@ -20,63 +19,26 @@ type Reel = {
   poster?: string;
 };
 
-/** Cloudflare helpers */
-const cfThumb = (uid: string, h = 720) => thumbSrc(uid, h);
-const cfVideo = (uid: string) => uid; // Use UID directly for CloudflareVideo component
-
 const ReelsPage = () => {
-  /** Combine Cloudflare video posts with streaming videos */
-  const [cfReels, setCfReels] = useState<Reel[]>([]);
+  // Generate all reels from Home + Categories
+  const allVideosPosts = useMemo(() => generateAllReelsPosts(), []);
 
-  /** Your existing demo/local reels */
-  const baseReels = useMemo<Reel[]>(
-    () => [
-      // Convert CLOUDFLARE_POSTS to reel format
-      ...CLOUDFLARE_POSTS.map((post, index) => ({
-        id: 90000 + index,
-        description: post.caption,
-        likes: post.likes,
-        comments: post.staticComments.length,
-        shares: Math.floor(Math.random() * 100) + 10,
-        user: post.username,
-        avatar: post.userAvatar,
-        audioTitle: 'Original audio',
-        videoUrl: post.cloudflareId!, // Use cloudflareId directly
-        poster: cfThumb(post.cloudflareId!, 720),
-        isCloudflare: true // Flag to identify Cloudflare videos
-      })),
-      {
-        id: 1,
-        description:
-          'Behind the scenes of our content creation process. From ideation to final production – see how we craft engaging content that converts! 🎬💡 #ContentCreation #BTS #Creative #VideoMarketing',
-        likes: 16800,
-        comments: 234,
-        shares: 98,
-        user: 'socialhive.agency',
-        avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
-        audioTitle: 'Creative Process Mix',
-        videoUrl: '/videos/demo1.mp4',
-        poster: '/videos/demo1.jpg',
-      },
-      {
-        id: 2,
-        description:
-          'Transform your social media presence with data-driven insights. Track performance and optimize content for maximum engagement! 📊✨ #Analytics #DataDriven',
-        likes: 18420,
-        comments: 287,
-        shares: 142,
-        user: 'socialhive.agency',
-        avatar: '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
-        audioTitle: 'Analytics Trending Audio',
-        videoUrl: '/videos/demo2.mp4',
-        poster: '/videos/demo2.jpg',
-      },
-    ],
-    []
-  );
-
-  /** Merge CF reels first so they appear on top */
-  const reels = useMemo<Reel[]>(() => [...cfReels, ...baseReels], [cfReels, baseReels]);
+  // Convert to reel format
+  const reels = useMemo<Reel[]>(() => {
+    return allVideosPosts.map((post, index) => ({
+      id: parseInt(post.id.replace(/\D/g, '')) || index,
+      description: post.caption,
+      likes: post.likesCount,
+      comments: post.commentsCount,
+      shares: Math.floor(Math.random() * 100) + 10,
+      user: post.user.handle,
+      avatar: post.user.avatarUrl,
+      audioTitle: 'Original audio',
+      videoUrl: post.cloudflareId, // Use cloudflareId directly for CloudflareStreamPlayer
+      poster: `https://videodelivery.net/${post.cloudflareId}/thumbnails/thumbnail.jpg?time=1s&height=720`,
+      isCloudflare: true
+    }));
+  }, [allVideosPosts]);
 
   /** UI state */
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -85,32 +47,7 @@ const ReelsPage = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isNavigatingRef = useRef(false);
 
-  /** Load additional streaming reels from videos.json (optional) */
-  useEffect(() => {
-    (async () => {
-      try {
-        const items = await loadStreamItems();
-        const mapped: Reel[] = items
-          .filter((v) => v.section === 'reels')
-          .map((v, i) => ({
-            id: 95000 + i, // Different ID range
-            description: v.title || 'Reel',
-            likes: Math.floor(Math.random() * 10000) + 1000,
-            comments: Math.floor(Math.random() * 500) + 50,
-            shares: Math.floor(Math.random() * 100) + 10,
-            user: 'cloudflare.stream',
-            avatar: '/images/socialhive.png',
-            audioTitle: 'Original audio',
-            videoUrl: v.uid, // Use UID for CloudflareVideo
-            poster: cfThumb(v.uid, 720),
-            isCloudflare: true
-          }));
-        setCfReels(mapped);
-      } catch (e) {
-        console.error('CF reels load failed', e);
-      }
-    })();
-  }, []);
+  // No need for additional loading - everything is generated from categories
 
   // Convert reels to proper format
   const formattedReels = reels.map(reel => ({

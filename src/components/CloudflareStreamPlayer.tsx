@@ -1,5 +1,5 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
-import CloudflareVideo from './CloudflareVideo';
+import Hls from 'hls.js';
 
 export type CloudflareStreamPlayerProps = {
   uid: string; // Cloudflare Stream video UID or signed token
@@ -14,7 +14,7 @@ export type CloudflareStreamPlayerProps = {
   onLoadedMetadata?: () => void;
 };
 
-/** Enhanced Stream player with native video control for mobile autoplay */
+/** Enhanced Stream player with native video + HLS for mobile autoplay */
 const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlayerProps>(
   ({ 
     uid,
@@ -29,8 +29,56 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
     onLoadedMetadata,
   }, ref) => {
     const videoRef = useRef<HTMLVideoElement>(null);
+    const hlsRef = useRef<Hls | null>(null);
     
     useImperativeHandle(ref, () => videoRef.current as HTMLVideoElement);
+
+    // Initialize HLS or native video
+    useEffect(() => {
+      const video = videoRef.current;
+      if (!video) return;
+
+      const hlsUrl = `https://videodelivery.net/${uid}/manifest/video.m3u8`;
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      
+      if (isSafari || !Hls.isSupported()) {
+        // Use native HLS on Safari/devices that don't support hls.js
+        video.src = hlsUrl;
+      } else {
+        // Use hls.js for other browsers
+        if (hlsRef.current) {
+          hlsRef.current.destroy();
+        }
+        
+        const hls = new Hls({
+          lowLatencyMode: true,
+          enableWorker: true,
+          startLevel: 0, // Start with lowest quality for fast first frame
+          maxBufferLength: 10,
+          backBufferLength: 30,
+          abrEwmaDefaultEstimate: 3e5 // Conservative bandwidth estimate
+        });
+        
+        hlsRef.current = hls;
+        hls.loadSource(hlsUrl);
+        hls.attachMedia(video);
+        
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          console.warn('HLS Error:', event, data);
+          if (data.fatal) {
+            // Fallback to direct MP4 on fatal error
+            video.src = `https://videodelivery.net/${uid}/downloads/default.mp4`;
+          }
+        });
+      }
+
+      return () => {
+        if (hlsRef.current) {
+          hlsRef.current.destroy();
+          hlsRef.current = null;
+        }
+      };
+    }, [uid]);
 
     // Mobile-friendly autoplay handling
     useEffect(() => {
@@ -40,15 +88,26 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
       const handleCanPlay = async () => {
         try {
           video.muted = true; // Ensure muted for autoplay
-          await video.play();
+          const playPromise = video.play();
+          if (playPromise) {
+            await playPromise;
+            onPlay?.();
+          }
         } catch (error) {
           console.log('Autoplay failed, will retry on user gesture:', error);
+          // Retry with muted guarantee
+          video.muted = true;
+          try {
+            await video.play();
+          } catch (retryError) {
+            console.log('Retry also failed:', retryError);
+          }
         }
       };
 
       video.addEventListener('canplay', handleCanPlay);
       return () => video.removeEventListener('canplay', handleCanPlay);
-    }, [autoplay, uid]);
+    }, [autoplay, uid, onPlay]);
 
     // Visibility change handling
     useEffect(() => {
@@ -70,21 +129,27 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
 
     return (
       <div className={className}>
-        <CloudflareVideo
+        <video
           ref={videoRef}
-          uid={uid}
-          controls={controls}
           autoPlay={autoplay}
           muted={muted}
           loop={loop}
+          controls={controls}
           poster={poster || `https://videodelivery.net/${uid}/thumbnails/thumbnail.jpg?time=1s&height=720`}
           playsInline
           webkit-playsinline="true"
           preload="auto"
-          style={{ width: '100%', height: '100%' }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           onPlay={onPlay}
           onPause={onPause}
           onLoadedMetadata={onLoadedMetadata}
+          onError={(e) => {
+            console.warn('Video error, trying MP4 fallback:', e);
+            const video = e.currentTarget;
+            if (!video.src.includes('downloads')) {
+              video.src = `https://videodelivery.net/${uid}/downloads/default.mp4`;
+            }
+          }}
         />
       </div>
     );

@@ -64,7 +64,7 @@ const ReelPlayer = ({
     }
   }, [globalMuted, isActive]);
 
-  // Tap gesture handling
+  // Handle tap gestures - single tap mute/unmute, double tap like
   const handleVideoTap = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -79,7 +79,15 @@ const ReelPlayer = ({
 
     tapTimeoutRef.current = window.setTimeout(() => {
       if (tapCountRef.current === 1) {
-        // Single tap - toggle mute
+        // Single tap - toggle mute (no restart)
+        const video = videoRef.current;
+        if (video) {
+          video.muted = !video.muted;
+          // If paused, try to play again (for mobile)
+          if (video.paused) {
+            video.play().catch(() => {});
+          }
+        }
         onMuteToggle();
         setShowVolumeToast(true);
         setTimeout(() => setShowVolumeToast(false), 1000);
