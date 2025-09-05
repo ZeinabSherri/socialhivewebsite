@@ -4,7 +4,6 @@ import { ChevronLeft } from 'lucide-react';
 import { generateAllReelsPosts } from '../data/categoryVideos';
 import ReelVideo from './ReelVideo';
 import ReelActionRail from './ReelActionRail';
-import DesktopReelsLayout from './DesktopReelsLayout';
 import { useVideoObserver } from '../hooks/useVideoObserver';
 
 /** Types */
@@ -267,18 +266,87 @@ const ReelsPage = () => {
         </div>
       </motion.div>
 
-      {/* Desktop Layout (lg+) - Use dedicated component */}
-      <DesktopReelsLayout
-        ref={containerRef}
-        reels={formattedReels}
-        currentIndex={currentIndex}
-        activeReels={activeReels}
-        likedReels={likedReels}
-        globalMuted={globalMuted}
-        handleLike={handleLike}
-        handleMuteToggle={handleMuteToggle}
-        navigate={navigate}
-      />
+      {/* Desktop Layout (lg+) - Mobile-like vertical scroller */}
+      <div className="hidden lg:block">
+        <div className="relative flex">
+          {/* Center scroll container */}
+          <div 
+            ref={containerRef}
+            className="flex-1 overflow-y-auto snap-y snap-mandatory scrollbar-hidden bg-transparent"
+            style={{ 
+              height: 'calc(100vh - 0px)',
+              WebkitOverflowScrolling: 'touch'
+            }}
+            onWheel={(e) => {
+              e.preventDefault();
+              const direction = e.deltaY > 0 ? 'next' : 'prev';
+              navigate(direction);
+            }}
+          >
+            {formattedReels.map((reel, index) => (
+              <div 
+                key={reel.id} 
+                className="snap-start snap-always flex justify-center items-center bg-transparent"
+                style={{ minHeight: '100vh' }}
+                data-reel-index={index}
+              >
+                {/* Video Stage */}
+                <div 
+                  className="relative bg-transparent"
+                  style={{
+                    width: 'clamp(420px, 32vw, 620px)',
+                    aspectRatio: '9 / 16',
+                    maxHeight: '86vh'
+                  }}
+                  ref={(el) => {
+                    // Debug sizing
+                    if (el && index === currentIndex) {
+                      const rect = el.getBoundingClientRect();
+                      console.log(`Stage ${index} dimensions:`, rect.width, 'x', rect.height);
+                      if (rect.width === 0 || rect.height === 0) {
+                        console.warn('Stage has zero dimensions!');
+                      }
+                    }
+                  }}
+                >
+                  <ReelVideo
+                    reel={reel}
+                    isActive={activeReels.has(index)}
+                    height={0} // Height controlled by aspect ratio
+                    onLike={handleLike}
+                    isLiked={likedReels.has(reel.id)}
+                    globalMuted={globalMuted}
+                    onMuteToggle={handleMuteToggle}
+                    layout="desktop-mobile-like"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Action Rail - Sticky beside the center */}
+          <div 
+            className="fixed z-20"
+            style={{
+              left: 'calc(50% + clamp(420px, 32vw, 620px) / 2 + 20px)',
+              top: '50%',
+              transform: 'translateY(-50%)'
+            }}
+          >
+            {formattedReels.length > 0 && (
+              <ReelActionRail
+                likes={formattedReels[currentIndex].likes}
+                comments={formattedReels[currentIndex].comments}
+                shares={formattedReels[currentIndex].shares || 0}
+                isLiked={likedReels.has(formattedReels[currentIndex].id)}
+                onLike={() => handleLike(formattedReels[currentIndex].id)}
+                avatar={formattedReels[currentIndex].avatar}
+                user={formattedReels[currentIndex].user}
+              />
+            )}
+          </div>
+        </div>
+      </div>
     </>
   );
 };

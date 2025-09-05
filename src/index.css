@@ -201,20 +201,3 @@ All colors MUST be HSL.
   background: linear-gradient(45deg, rgba(0,0,0,0.8), rgba(0,0,0,0.6));
   backdrop-filter: blur(4px);
 }
-
-/* Page-specific scoping to prevent CSS bleed */
-.reels-page {
-  /* Reels-specific styles scoped here */
-}
-
-.home-page {
-  /* Home-specific styles scoped here */
-}
-
-.explore-page {
-  /* Explore-specific styles scoped here */
-}
-
-.profile-page {
-  /* Profile-specific styles scoped here */
-}

@@ -4,7 +4,7 @@ import VerificationBadge from './VerificationBadge';
 import PostCard from './PostCard';
 import PostHoverStats from './PostHoverStats';
 import WhatsAppIcon from './WhatsAppIcon';
-import ReelsViewer from './ReelsViewer';
+import ReelModal from './ReelModal';
 import { useCounterAnimation } from '../hooks/useCounterAnimation';
 import { generateCategoryPosts, CATEGORY_KEYS, type CategoryKey } from '../data/categoryVideos';
 
@@ -20,7 +20,7 @@ const ProfilePage = ({
   const [showProfileSelector, setShowProfileSelector] = useState(false);
   const [showPostsFeed, setShowPostsFeed] = useState(false);
   const [selectedPostIndex, setSelectedPostIndex] = useState(0);
-  const [selectedReel, setSelectedReel] = useState<{reels: any[], initialIndex: number} | null>(null);
+  const [selectedReel, setSelectedReel] = useState<any>(null);
   const [showReelModal, setShowReelModal] = useState(false);
   const [hoveredPostId, setHoveredPostId] = useState<number | null>(null);
   const [showRecommendationsDropdown, setShowRecommendationsDropdown] = useState(false);
@@ -114,8 +114,7 @@ const ProfilePage = ({
         text: c.text
       })),
       type: 'video' as const,
-      cloudflareId: post.cloudflareId,
-      isCloudflare: true // Mark as Cloudflare video
+      cloudflareId: post.cloudflareId
     }));
   };
   const posts = getPostsForProfile(selectedProfile);
@@ -148,24 +147,7 @@ const ProfilePage = ({
   };
   const handlePostClick = (post: any, index: number) => {
     if (post.type === 'video') {
-      // Convert posts to proper reel format for ReelsViewer
-      const reelsData = posts.filter(p => p.type === 'video').map(p => ({
-        id: p.id,
-        title: p.caption,
-        description: p.caption,
-        thumbnail: p.image,
-        videoUrl: p.cloudflareId, // Use cloudflareId for Cloudflare videos
-        user: p.username,
-        avatar: p.userAvatar,
-        audioTitle: 'Original audio',
-        likes: p.likes,
-        comments: p.comments,
-        shares: Math.floor(Math.random() * 100) + 10,
-        isCloudflare: true // Mark as Cloudflare video
-      }));
-      
-      const reelIndex = reelsData.findIndex(r => r.id === post.id);
-      setSelectedReel({ reels: reelsData, initialIndex: Math.max(0, reelIndex) });
+      setSelectedReel(post);
       setShowReelModal(true);
     } else {
       setSelectedPostIndex(index);
@@ -173,7 +155,18 @@ const ProfilePage = ({
     }
   };
 
-  // Remove handleReelNavigate as ReelsViewer handles navigation internally
+  const handleReelNavigate = (direction: 'prev' | 'next') => {
+    if (!selectedReel) return;
+    
+    const reels = posts; // All posts are now videos
+    const currentIndex = reels.findIndex(r => r.id === selectedReel.id);
+    
+    if (direction === 'prev' && currentIndex > 0) {
+      setSelectedReel(reels[currentIndex - 1]);
+    } else if (direction === 'next' && currentIndex < reels.length - 1) {
+      setSelectedReel(reels[currentIndex + 1]);
+    }
+  };
   const handleLike = (postId: number) => {
     // Handle like functionality if needed
   };
@@ -334,13 +327,19 @@ const ProfilePage = ({
           </div>
         </div>}
 
-      {/* Reels Viewer Modal */}
+      {/* Reel Modal */}
       {showReelModal && selectedReel && (
-        <ReelsViewer
-          reels={selectedReel.reels}
-          initialIndex={selectedReel.initialIndex}
-          category={selectedProfile === 'Agency' ? 'Agency Posts' : selectedProfile as string}
+        <ReelModal
+          reel={{
+            ...selectedReel,
+            videoUrl: selectedReel.image
+          }}
+          allReels={posts.map(reel => ({
+            ...reel,
+            videoUrl: reel.image
+          }))}
           onClose={() => setShowReelModal(false)}
+          onNavigate={handleReelNavigate}
         />
       )}
     </div>;
