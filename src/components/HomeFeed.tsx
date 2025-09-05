@@ -36,7 +36,18 @@ export interface Post {
 const HomeFeed: React.FC<{ onNavigateToProfile?: () => void }> = ({
   onNavigateToProfile,
 }) => {
-  const [posts, setPosts] = useState<Post[]>([
+  const REMOVE_CAPTION_PREFIXES = [
+    "Founders & Managers",
+    "Content Creators", 
+    "Producers: Bringing ideas",
+    "Graphic Designers",
+  ];
+
+  const shouldRemove = (p: Post) =>
+    typeof p.caption === "string" &&
+    REMOVE_CAPTION_PREFIXES.some(prefix => p.caption.startsWith(prefix));
+
+  const originalPosts = [
     {
       id: 1,
       username: "socialhive.agency",
@@ -90,9 +101,9 @@ const HomeFeed: React.FC<{ onNavigateToProfile?: () => void }> = ({
       userAvatar: "/lovable-uploads/social-hive-logo.png",
       timestamp: "3h",
       media: [
-        { type: "image", url: "/images/IMG-20250728-WA0029.jpg" },
-        { type: "video", url: "/videos/VID-20250728-WA0002.mp4" },
-        { type: "video", url: "/videos/VID-20250728-WA0001.mp4" },
+        { type: "image" as const, url: "/images/IMG-20250728-WA0029.jpg" },
+        { type: "video" as const, url: "/videos/VID-20250728-WA0002.mp4" },
+        { type: "video" as const, url: "/videos/VID-20250728-WA0001.mp4" },
       ],
       caption: "Our Services: Swipe to explore what we offer.",
       likes: 780,
@@ -232,13 +243,22 @@ const HomeFeed: React.FC<{ onNavigateToProfile?: () => void }> = ({
         { id: 2, username: "chefqueen", text: "Looks delicious!" },
         { id: 3, username: "buzzbite", text: "That honey drizzle 🔥🐝" },
       ],
-    },
-    // Add Cloudflare video posts
-    ...CLOUDFLARE_POSTS.map(cloudPost => ({
-      ...cloudPost,
-      comments: cloudPost.commentsCount // Map array to count for compatibility
-    }))
-  ]);
+    }
+  ];
+
+  const cloudflarePosts = CLOUDFLARE_POSTS.map(cloudPost => ({
+    ...cloudPost,
+    comments: cloudPost.commentsCount // Map array to count for compatibility
+  }));
+
+  const dedup = (arr: Post[]) =>
+    arr.filter((p, i, a) =>
+      a.findIndex(q => (q.id ?? q.cloudflareId) === (p.id ?? p.cloudflareId)) === i
+    );
+
+  const allPosts = dedup([...originalPosts, ...cloudflarePosts]).filter(p => !shouldRemove(p));
+
+  const [posts, setPosts] = useState<Post[]>(allPosts);
 
   const postRefs = useRef<React.RefObject<HTMLDivElement>[]>([]);
   if (postRefs.current.length !== posts.length) {
