@@ -192,7 +192,7 @@ const ReelsPage = () => {
     const container = containerRef.current;
     if (!container) return;
 
-    // Register video elements with observer
+    // For mobile layout only - register video elements with observer
     const reelElements = container.querySelectorAll('[data-reel-index]');
     reelElements.forEach((element, index) => {
       observe(element, index);
@@ -202,6 +202,14 @@ const ReelsPage = () => {
       disconnect();
     };
   }, [formattedReels.length, observe, disconnect]);
+
+  // Desktop-specific observer setup
+  useEffect(() => {
+    // For desktop, we manage active state manually through navigation
+    if (window.innerWidth >= 1024) {
+      setActiveReels(new Set([currentIndex]));
+    }
+  }, [currentIndex]);
 
   return (
     <>
@@ -266,71 +274,63 @@ const ReelsPage = () => {
         </div>
       </motion.div>
 
-      {/* Desktop Layout (lg+) - Mobile-like vertical scroller */}
-      <div className="hidden lg:block">
-        <div className="relative flex">
-          {/* Center scroll container */}
+      {/* Desktop Layout (lg+) - Integrated with site shell */}
+      <div className="hidden lg:flex justify-center items-center min-h-screen">
+        <div className="relative">
+          {/* Center video stage */}
           <div 
-            ref={containerRef}
-            className="flex-1 overflow-y-auto snap-y snap-mandatory scrollbar-hidden bg-transparent"
-            style={{ 
-              height: 'calc(100vh - 0px)',
-              WebkitOverflowScrolling: 'touch'
-            }}
-            onWheel={(e) => {
-              e.preventDefault();
-              const direction = e.deltaY > 0 ? 'next' : 'prev';
-              navigate(direction);
+            className="relative bg-black rounded-xl overflow-hidden shadow-2xl"
+            style={{
+              width: 'clamp(420px, 32vw, 620px)',
+              aspectRatio: '9 / 16',
+              maxHeight: '86vh'
             }}
           >
-            {formattedReels.map((reel, index) => (
-              <div 
-                key={reel.id} 
-                className="snap-start snap-always flex justify-center items-center bg-transparent"
-                style={{ minHeight: '100vh' }}
-                data-reel-index={index}
-              >
-                {/* Video Stage */}
-                <div 
-                  className="relative bg-transparent"
-                  style={{
-                    width: 'clamp(420px, 32vw, 620px)',
-                    aspectRatio: '9 / 16',
-                    maxHeight: '86vh'
-                  }}
-                  ref={(el) => {
-                    // Debug sizing
-                    if (el && index === currentIndex) {
-                      const rect = el.getBoundingClientRect();
-                      console.log(`Stage ${index} dimensions:`, rect.width, 'x', rect.height);
-                      if (rect.width === 0 || rect.height === 0) {
-                        console.warn('Stage has zero dimensions!');
-                      }
-                    }
-                  }}
-                >
-                  <ReelVideo
-                    reel={reel}
-                    isActive={activeReels.has(index)}
-                    height={0} // Height controlled by aspect ratio
-                    onLike={handleLike}
-                    isLiked={likedReels.has(reel.id)}
-                    globalMuted={globalMuted}
-                    onMuteToggle={handleMuteToggle}
-                    layout="desktop-mobile-like"
-                  />
-                </div>
-              </div>
-            ))}
+            {formattedReels[currentIndex] && (
+              <ReelVideo
+                reel={formattedReels[currentIndex]}
+                isActive={true} // Always active on desktop
+                height={0} // Height controlled by aspect ratio
+                onLike={handleLike}
+                isLiked={likedReels.has(formattedReels[currentIndex].id)}
+                globalMuted={globalMuted}
+                onMuteToggle={handleMuteToggle}
+                layout="desktop-mobile-like"
+              />
+            )}
           </div>
 
-          {/* Action Rail - Sticky beside the center */}
+          {/* Navigation arrows */}
+          {currentIndex > 0 && (
+            <button
+              onClick={() => navigate('prev')}
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 -translate-x-full text-white hover:text-gray-300 z-30 bg-black/50 rounded-full p-2 backdrop-blur-sm"
+            >
+              <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+              </svg>
+            </button>
+          )}
+          
+          {currentIndex < formattedReels.length - 1 && (
+            <button
+              onClick={() => navigate('next')}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 translate-x-full text-white hover:text-gray-300 z-30 bg-black/50 rounded-full p-2 backdrop-blur-sm"
+            >
+              <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+              </svg>
+            </button>
+          )}
+
+          {/* Action rail beside the stage */}
           <div 
-            className="fixed z-20"
+            className="absolute z-20"
             style={{
-              left: 'calc(50% + clamp(420px, 32vw, 620px) / 2 + 20px)',
+              left: '100%',
               top: '50%',
-              transform: 'translateY(-50%)'
+              transform: 'translateY(-50%)',
+              marginLeft: '20px'
             }}
           >
             {formattedReels.length > 0 && (
@@ -344,6 +344,22 @@ const ReelsPage = () => {
                 user={formattedReels[currentIndex].user}
               />
             )}
+          </div>
+
+          {/* Progress indicator */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1">
+            {formattedReels.map((_, index) => (
+              <div
+                key={index}
+                className={`h-1 rounded-full transition-all cursor-pointer ${
+                  index === currentIndex ? 'bg-white w-8' : 'bg-white/50 w-1 hover:bg-white/75'
+                }`}
+                onClick={() => {
+                  setCurrentIndex(index);
+                  setActiveReels(new Set([index]));
+                }}
+              />
+            ))}
           </div>
         </div>
       </div>

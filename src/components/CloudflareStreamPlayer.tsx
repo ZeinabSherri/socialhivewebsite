@@ -49,6 +49,7 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
     const tapCountRef = useRef(0);
     const tapTimeoutRef = useRef<number | null>(null);
     const isWarmupLoadedRef = useRef(false);
+    const abortControllerRef = useRef<AbortController | null>(null);
     
     useImperativeHandle(ref, () => videoRef.current as HTMLVideoElement);
 
@@ -64,6 +65,12 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
     useEffect(() => {
       const video = videoRef.current;
       if (!video) return;
+
+      // Cancel any existing loads
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
 
       const hlsUrl = `https://videodelivery.net/${videoId}/manifest/video.m3u8`;
       const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
@@ -85,8 +92,8 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
           capLevelToPlayerSize: true,
           maxBufferLength: 10,
           backBufferLength: 30,
-          fragLoadingTimeOut: 8000,
-          manifestLoadingTimeOut: 8000,
+          fragLoadingTimeOut: 6000,
+          manifestLoadingTimeOut: 6000,
           abrEwmaDefaultEstimate: 3e5
         });
         
@@ -95,6 +102,7 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
         hls.attachMedia(video);
         
         hls.on(Hls.Events.ERROR, (event, data) => {
+          if (abortControllerRef.current?.signal.aborted) return;
           console.warn('HLS Error:', event, data);
           if (data.fatal) {
             video.src = `https://videodelivery.net/${videoId}/downloads/default.mp4`;
@@ -105,6 +113,9 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
       globalPlayerRegistry.add(pauseVideo);
 
       return () => {
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+        }
         globalPlayerRegistry.delete(pauseVideo);
         if (hlsRef.current) {
           hlsRef.current.destroy();
