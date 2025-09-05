@@ -75,7 +75,7 @@ const ReelActionRail = ({
   // Mobile layout (original)
   return (
     <div
-      className="absolute right-0 flex flex-col space-y-5 z-20 pointer-events-auto"
+      className="absolute right-0 flex flex-col space-y-5 z-20 pointer-events-none"
       style={{ 
         bottom: '72px',
         paddingRight: 'max(14px, env(safe-area-inset-right))'
@@ -86,7 +86,7 @@ const ReelActionRail = ({
           e.stopPropagation();
           onLike();
         }}
-        className="flex flex-col items-center text-white"
+        className="flex flex-col items-center text-white pointer-events-auto"
       >
         <Heart
           size={28}
@@ -97,21 +97,21 @@ const ReelActionRail = ({
         <span className="text-xs mt-1">{formatNumber(likes + (isLiked ? 1 : 0))}</span>
       </button>
 
-      <button className="flex flex-col items-center text-white">
+      <button className="flex flex-col items-center text-white pointer-events-auto">
         <MessageCircle size={28} />
         <span className="text-xs mt-1">{formatNumber(comments)}</span>
       </button>
 
-      <button className="flex flex-col items-center text-white">
+      <button className="flex flex-col items-center text-white pointer-events-auto">
         <Send size={28} />
         <span className="text-xs mt-1">Share</span>
       </button>
 
-      <button className="flex flex-col items-center text-white">
+      <button className="flex flex-col items-center text-white pointer-events-auto">
         <Bookmark size={28} />
       </button>
 
-      <button className="flex flex-col items-center text-white">
+      <button className="flex flex-col items-center text-white pointer-events-auto">
         <MoreHorizontal size={28} />
       </button>
 

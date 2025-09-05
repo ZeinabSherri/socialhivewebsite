@@ -66,7 +66,7 @@ const ReelMeta = ({ user, description, audioTitle, avatar, layout = 'mobile' }: 
   // Mobile layout (original)
   return (
     <div
-      className="absolute bottom-0 left-0 right-16 text-white z-20"
+      className="absolute bottom-0 left-0 right-16 text-white z-20 pointer-events-none"
       style={{
         paddingLeft: 'max(14px, env(safe-area-inset-left))',
         paddingBottom: '76px'
@@ -75,7 +75,7 @@ const ReelMeta = ({ user, description, audioTitle, avatar, layout = 'mobile' }: 
       {/* User info */}
       <div className="flex items-center space-x-2 mb-2">
         <span className="font-semibold text-sm">@{user}</span>
-        <button className="text-white border border-white px-2 py-1 rounded text-xs">
+        <button className="text-white border border-white px-2 py-1 rounded text-xs pointer-events-auto">
           Follow
         </button>
       </div>
@@ -90,7 +90,7 @@ const ReelMeta = ({ user, description, audioTitle, avatar, layout = 'mobile' }: 
                 e.stopPropagation();
                 setExpandedCaption(!expandedCaption);
               }}
-              className="text-gray-300 ml-1"
+              className="text-gray-300 ml-1 pointer-events-auto"
             >
               {expandedCaption ? 'less' : 'more'}
             </button>
