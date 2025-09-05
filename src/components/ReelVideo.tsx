@@ -60,9 +60,9 @@ const ReelVideo = ({
 
   if (layout === 'desktop') {
     return (
-      <div className="flex flex-col">
-        {/* Video container */}
-        <div className="relative bg-black rounded-lg overflow-hidden" style={{ width: '100%', aspectRatio: '9/16' }}>
+      <div className="flex flex-col h-full">
+        {/* Video container - fills the stage */}
+        <div className="relative bg-black flex-1 min-h-0">
           {/* Video Player */}
           <ReelPlayer
             videoUrl={reel.videoUrl}
@@ -71,7 +71,7 @@ const ReelVideo = ({
             globalMuted={globalMuted}
             onMuteToggle={onMuteToggle}
             onLike={handleLikeClick}
-            height={height}
+            height={0} // Height controlled by parent
           />
 
           {/* Progress bar */}
@@ -86,7 +86,7 @@ const ReelVideo = ({
         </div>
 
         {/* Meta info below video */}
-        <div className="mt-4">
+        <div className="mt-4 px-4">
           <ReelMeta
             user={reel.user}
             description={reel.description}

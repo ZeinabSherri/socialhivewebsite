@@ -65,13 +65,9 @@ const Index = () => {
 
         {/* Main Content Area */}
         <div className="flex-1 ml-64 mr-80">
-          {activeTab === 'reels' ? (
-            <ReelsPage />
-          ) : (
-            <main className="max-w-2xl mx-auto px-4 py-6">
-              {renderContent()}
-            </main>
-          )}
+          <main className="max-w-2xl mx-auto px-4 py-6">
+            {renderContent()}
+          </main>
         </div>
 
         {/* Right Sidebar */}
