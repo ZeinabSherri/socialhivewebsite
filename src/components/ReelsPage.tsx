@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ChevronLeft } from 'lucide-react';
 import { loadStreamItems, thumbSrc } from '../lib/stream';
 import ReelVideo from './ReelVideo';
+import ReelActionRail from './ReelActionRail';
 
 /** Types */
 type Reel = {
@@ -277,64 +278,84 @@ const ReelsPage = () => {
         </div>
       </div>
 
-      {/* Desktop Layout (lg+) */}
-      <div className="hidden lg:flex w-full h-full">
+      {/* Desktop Layout (lg+) - Integrated within 3-pane shell */}
+      <div className="hidden lg:block">
         {/* Header */}
-        <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-3 bg-gradient-to-b from-black/60 to-transparent">
-          <button
-            onClick={() => window.history.back()}
-            className="text-white hover:text-gray-300 p-2"
-          >
-            <ChevronLeft size={24} />
-          </button>
-          
-          <div className="text-white text-center">
-            <h2 className="text-lg font-semibold">Reels</h2>
-            <p className="text-sm text-gray-300">{currentIndex + 1} of {formattedReels.length}</p>
+        <div className="sticky top-0 z-50 bg-gradient-to-b from-black/60 to-transparent px-4 py-3 mb-4">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => window.history.back()}
+              className="text-white hover:text-gray-300 p-2"
+            >
+              <ChevronLeft size={24} />
+            </button>
+            
+            <div className="text-white text-center">
+              <h2 className="text-lg font-semibold">Reels</h2>
+              <p className="text-sm text-gray-300">{currentIndex + 1} of {formattedReels.length}</p>
+            </div>
+            
+            <div className="w-10" />
           </div>
-          
-          <div className="w-10" />
         </div>
 
-        {/* Desktop content container */}
-        <div className="flex-1 flex items-center justify-center pt-20 pb-8 px-8">
-          {/* Main video column */}
-          <div className="flex items-center gap-8">
-            {/* Video container */}
-            <div className="w-[520px] flex flex-col">
-              {formattedReels.length > 0 && (
-                <ReelVideo
-                  key={formattedReels[currentIndex].id}
-                  reel={formattedReels[currentIndex]}
-                  isActive={true}
-                  height={720} // 9:16 aspect ratio height for 520px width
-                  onLike={handleLike}
-                  isLiked={likedReels.has(formattedReels[currentIndex].id)}
-                  globalMuted={globalMuted}
-                  onMuteToggle={handleMuteToggle}
-                  layout="desktop"
-                />
-              )}
-            </div>
+        {/* Desktop content - Three column layout */}
+        <div className="flex gap-6 justify-center items-start">
+          {/* Video column */}
+          <div 
+            className="flex flex-col"
+            style={{ 
+              width: 'clamp(420px, 32vw, 620px)',
+              minHeight: 'min(86vh, calc(100vh - 160px))'
+            }}
+          >
+            {formattedReels.length > 0 && (
+              <ReelVideo
+                key={formattedReels[currentIndex].id}
+                reel={formattedReels[currentIndex]}
+                isActive={true}
+                height={Math.min(window.innerHeight * 0.86, window.innerHeight - 160)}
+                onLike={handleLike}
+                isLiked={likedReels.has(formattedReels[currentIndex].id)}
+                globalMuted={globalMuted}
+                onMuteToggle={handleMuteToggle}
+                layout="desktop"
+              />
+            )}
+          </div>
 
-            {/* Navigation arrows */}
-            <div className="flex flex-col gap-4">
-              <button
-                onClick={() => navigate('prev')}
-                disabled={currentIndex === 0}
-                className="p-3 rounded-full bg-white/10 text-white hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeft size={20} className="rotate-90" />
-              </button>
-              
-              <button
-                onClick={() => navigate('next')}
-                disabled={currentIndex === formattedReels.length - 1}
-                className="p-3 rounded-full bg-white/10 text-white hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeft size={20} className="-rotate-90" />
-              </button>
-            </div>
+          {/* Action rail column - sticky and vertically centered */}
+          <div className="flex flex-col items-center justify-center sticky top-32 h-screen">
+            {formattedReels.length > 0 && (
+              <ReelActionRail
+                likes={formattedReels[currentIndex].likes}
+                comments={formattedReels[currentIndex].comments}
+                shares={formattedReels[currentIndex].shares || 0}
+                isLiked={likedReels.has(formattedReels[currentIndex].id)}
+                onLike={() => handleLike(formattedReels[currentIndex].id)}
+                avatar={formattedReels[currentIndex].avatar}
+                user={formattedReels[currentIndex].user}
+              />
+            )}
+          </div>
+
+          {/* Navigation arrows column */}
+          <div className="flex flex-col items-center gap-4 sticky top-32">
+            <button
+              onClick={() => navigate('prev')}
+              disabled={currentIndex === 0}
+              className="p-3 rounded-full bg-white/10 text-white hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft size={20} className="rotate-90" />
+            </button>
+            
+            <button
+              onClick={() => navigate('next')}
+              disabled={currentIndex === formattedReels.length - 1}
+              className="p-3 rounded-full bg-white/10 text-white hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft size={20} className="-rotate-90" />
+            </button>
           </div>
         </div>
       </div>
