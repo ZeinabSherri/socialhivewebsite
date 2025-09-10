@@ -24,6 +24,7 @@ type ExploreReel = {
 const cfThumb = (uid: string, h = 360) => `https://videodelivery.net/${uid}/thumbnails/thumbnail.jpg?time=1s&height=${h}`;
 
 const ExplorePage = () => {
+  // Force rebuild - search functionality removed
   const [activeFilter, setActiveFilter] = useState<CategoryKey>('Beauty clinics');
   const [showReelsViewer, setShowReelsViewer] = useState(false);
   const [selectedReelIndex, setSelectedReelIndex] = useState(0);
