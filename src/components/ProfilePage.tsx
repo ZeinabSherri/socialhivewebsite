@@ -5,9 +5,6 @@ import PostCard from './PostCard';
 import PostHoverStats from './PostHoverStats';
 import WhatsAppIcon from './WhatsAppIcon';
 import ReelsViewer from './ReelsViewer';
-import CloudflareStreamPlayer from './CloudflareStreamPlayer';
-import { VirtualGrid } from './VirtualGrid';
-import { useLazyVideoObserver } from '../hooks/useLazyVideoObserver';
 import { useCounterAnimation } from '../hooks/useCounterAnimation';
 import { generateCategoryPosts, CATEGORY_KEYS, type CategoryKey } from '../data/categoryVideos';
 
@@ -27,18 +24,7 @@ const ProfilePage = ({
   const [showReelsViewer, setShowReelsViewer] = useState(false);
   const [hoveredPostId, setHoveredPostId] = useState<number | null>(null);
   const [showRecommendationsDropdown, setShowRecommendationsDropdown] = useState(false);
-  const [activeVideoIndex, setActiveVideoIndex] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const gridContainerRef = useRef<HTMLDivElement>(null);
-
-  // Lazy video observer for performance
-  const { observe, unobserve, disconnect } = useLazyVideoObserver({
-    root: gridContainerRef.current,
-    rootMargin: "200px 0px",
-    onActiveChange: (index, isActive) => {
-      setActiveVideoIndex(isActive ? index : null);
-    },
-  });
 
   // Profile options: main agency + 6 category profiles
   const profileOptions = [
@@ -203,9 +189,8 @@ const ProfilePage = ({
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      disconnect(); // Cleanup video observer
     };
-  }, [showRecommendationsDropdown, disconnect]);
+  }, [showRecommendationsDropdown]);
   return <div className="max-w-md mx-auto">
       {/* Profile Header */}
       <div className="p-4">
@@ -316,35 +301,12 @@ const ProfilePage = ({
         </div>
       </div>
 
-      <div 
-        ref={gridContainerRef} 
-        className="grid grid-cols-3 gap-1"
-      >
+      <div className="grid grid-cols-3 gap-1">
         {posts.map((post, index) => <div key={post.id} className="aspect-square bg-gray-900 relative cursor-pointer group" onClick={() => handlePostClick(post, index)} onMouseEnter={() => setHoveredPostId(post.id)} onMouseLeave={() => setHoveredPostId(null)}>
-            {post.type === 'video' && post.cloudflareId ? (
-              <div className="w-full h-full relative">
-                <CloudflareStreamPlayer
-                  videoId={post.cloudflareId}
-                  isActive={activeVideoIndex === index}
-                  muted={true}
-                  loop={true}
-                  controls={false}
-                  preload="metadata"
-                  className="w-full h-full"
-                />
-                <div className="absolute top-2 right-2 z-10">
-                  <Play size={16} className="text-white drop-shadow-lg" />
-                </div>
-              </div>
-            ) : (
-              <img 
-                src={post.image} 
-                alt={`Post ${post.id}`} 
-                className="w-full h-full object-cover transition-opacity duration-200 group-hover:opacity-80" 
-                loading="lazy"
-              />
-            )}
-            
+            <img src={post.image} alt={`Post ${post.id}`} className="w-full h-full object-cover transition-opacity duration-200 group-hover:opacity-80" />
+            {post.type === 'video' && <div className="absolute top-2 right-2">
+                <Play size={16} className="text-white" />
+              </div>}
             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
               <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white text-center">
                 <PostHoverStats likes={post.likes} comments={post.comments} isVisible={hoveredPostId === post.id} />

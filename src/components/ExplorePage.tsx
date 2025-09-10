@@ -4,8 +4,6 @@ import { Play } from 'lucide-react';
 import { formatCount } from '../lib/format';
 import ReelsViewer from './ReelsViewer';
 import ExploreCategoryChips from './ExploreCategoryChips';
-import { VirtualGrid } from './VirtualGrid';
-import { useCategoryDebounce } from '../hooks/useCategoryDebounce';
 import { CATEGORY_KEYS, CATEGORY_VIDEOS, generateCategoryPosts, type CategoryKey } from '../data/categoryVideos';
 
 type ExploreReel = {
@@ -26,26 +24,20 @@ type ExploreReel = {
 const cfThumb = (uid: string, h = 360) => `https://videodelivery.net/${uid}/thumbnails/thumbnail.jpg?time=1s&height=${h}`;
 
 const ExplorePage = () => {
-  // Fix category state - use debounce to prevent conflicts
+  // Force rebuild - search functionality removed
   const [activeFilter, setActiveFilter] = useState<CategoryKey>('Beauty clinics');
   const [showReelsViewer, setShowReelsViewer] = useState(false);
   const [selectedReelIndex, setSelectedReelIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  
-  const { debounceCategory, cancelPending } = useCategoryDebounce(200);
 
-  // Generate reels from category videos with debounced loading
+  // Generate reels from category videos
   const allReels: ExploreReel[] = useMemo(() => {
-    if (isLoading) return [];
-    
     const categoryPosts = generateCategoryPosts(activeFilter);
     return categoryPosts.map((post, index) => ({
       id: parseInt(post.id.replace(/\D/g, '')) || index,
       title: post.caption,
       category: activeFilter,
       thumbnail: cfThumb(post.cloudflareId, 360),
-      videoUrl: post.cloudflareId,
+      videoUrl: post.cloudflareId, // Use UID directly for CloudflareStreamPlayer
       description: post.caption,
       client: post.user.name,
       likes: post.likesCount,
@@ -54,18 +46,7 @@ const ExplorePage = () => {
       uid: post.cloudflareId,
       isCloudflare: true
     }));
-  }, [activeFilter, isLoading]);
-
-  // Handle category change with debounce
-  const handleCategoryChange = useCallback((newCategory: CategoryKey) => {
-    if (newCategory === activeFilter) return;
-    
-    setIsLoading(true);
-    debounceCategory(() => {
-      setActiveFilter(newCategory);
-      setIsLoading(false);
-    });
-  }, [activeFilter, debounceCategory]);
+  }, [activeFilter]);
 
   // Handle reel click
   const handleReelClick = (reel: ExploreReel, index: number) => {
@@ -79,12 +60,32 @@ const ExplorePage = () => {
     window.history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);
   };
 
-  // Cleanup on unmount
+  // Handle category change
+  const handleCategoryChange = (newCategory: CategoryKey) => {
+    setActiveFilter(newCategory);
+  };
+
+  // Handle deep linking on mount
   useEffect(() => {
-    return () => {
-      cancelPending();
-    };
-  }, [cancelPending]);
+    const params = new URLSearchParams(window.location.search);
+    const categoryParam = params.get('category') as CategoryKey;
+    const reelParam = params.get('reel');
+    
+    if (categoryParam && CATEGORY_KEYS.includes(categoryParam)) {
+      setActiveFilter(categoryParam);
+    }
+    
+    if (reelParam) {
+      const reelId = parseInt(reelParam);
+      setTimeout(() => {
+        const reelIndex = allReels.findIndex(r => r.id === reelId);
+        if (reelIndex >= 0) {
+          setSelectedReelIndex(reelIndex);
+          setShowReelsViewer(true);
+        }
+      }, 100);
+    }
+  }, [allReels]);
 
   const renderReelGridItem = useCallback((reel: ExploreReel, index: number) => {
     return (
@@ -139,27 +140,29 @@ const ExplorePage = () => {
         />
       </div>
 
-      {/* Reels grid - Virtualized for performance */}
+      {/* Reels grid */}
       <div 
-        ref={containerRef}
-        className="flex-1 overflow-hidden" 
+        className="flex-1 overflow-y-auto reels-safe-bottom" 
         style={{ height: 'calc(100vh - 140px - env(safe-area-inset-bottom))' }}
       >
-        {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-gray-400">Loading...</div>
-          </div>
-        ) : allReels.length > 0 ? (
-          <VirtualGrid
-            items={allReels}
-            renderItem={renderReelGridItem}
-            itemHeight={300} // Approximate height for aspect-square items
-            containerHeight={window.innerHeight - 140}
-            columns={3}
-            gap={4}
-            overscan={3}
-            className="pb-20"
-          />
+        {allReels.length > 0 ? (
+          <motion.div 
+            className="grid grid-cols-3 gap-1 p-1 pb-20"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            {allReels.map((reel, index) => (
+              <motion.div
+                key={reel.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05, duration: 0.3 }}
+              >
+                {renderReelGridItem(reel, index)}
+              </motion.div>
+            ))}
+          </motion.div>
         ) : (
           renderEmptyState()
         )}

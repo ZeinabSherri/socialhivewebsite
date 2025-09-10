@@ -4,7 +4,7 @@ import { ChevronLeft } from 'lucide-react';
 import { generateExploreAllPosts, EXPLORE_ALL_UNIQUE_VIDEO_IDS } from '../data/categoryVideos';
 import ReelVideo from './ReelVideo';
 import ReelActionRail from './ReelActionRail';
-import { useLazyVideoObserver } from '../hooks/useLazyVideoObserver';
+import { useVideoObserver } from '../hooks/useVideoObserver';
 
 /** Types */
 type Reel = {
@@ -62,18 +62,11 @@ const ReelsPage = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isNavigatingRef = useRef(false);
 
-  // Lazy video observer for performance - only load videos near viewport
-  const { observe, unobserve, disconnect } = useLazyVideoObserver({
+  // Video observer for autoplay control
+  const { observe, unobserve, disconnect } = useVideoObserver({
     root: containerRef.current,
-    rootMargin: "200px 0px", // Load videos 200px before they enter viewport
+    rootMargin: "300px 0px",
     threshold: 0.6,
-    onEnterViewport: (element, index) => {
-      // Trigger video loading when near viewport
-      const video = element.querySelector('video');
-      if (video && video.preload === 'none') {
-        video.preload = 'metadata';
-      }
-    },
     onActiveChange: (index, isActive) => {
       setActiveReels(prev => {
         const newSet = new Set(prev);
@@ -86,6 +79,17 @@ const ReelsPage = () => {
         return newSet;
       });
     },
+    onNearby: (index, isNearby) => {
+      setNearbyReels(prev => {
+        const newSet = new Set(prev);
+        if (isNearby) {
+          newSet.add(index);
+        } else {
+          newSet.delete(index);
+        }
+        return newSet;
+      });
+    }
   });
 
   // No need for additional loading - everything is generated from categories
@@ -200,7 +204,7 @@ const ReelsPage = () => {
     const container = containerRef.current;
     if (!container) return;
 
-    // Register video elements with observer for both mobile and desktop
+    // For mobile layout only - register video elements with observer
     const reelElements = container.querySelectorAll('[data-reel-index]');
     reelElements.forEach((element, index) => {
       observe(element, index);
@@ -210,6 +214,14 @@ const ReelsPage = () => {
       disconnect();
     };
   }, [formattedReels.length, observe, disconnect]);
+
+  // Desktop-specific observer setup
+  useEffect(() => {
+    // For desktop, we manage active state manually through navigation
+    if (window.innerWidth >= 1024) {
+      setActiveReels(new Set([currentIndex]));
+    }
+  }, [currentIndex]);
 
   return (
     <>
@@ -274,67 +286,93 @@ const ReelsPage = () => {
         </div>
       </motion.div>
 
-      {/* Desktop Layout (lg+) - Vertical scrolling reels with sidebars */}
-      <div className="hidden lg:block">
-        <div 
-          ref={containerRef}
-          className="w-full h-screen overflow-y-auto snap-y snap-mandatory"
-          style={{ WebkitOverflowScrolling: 'touch' }}
-        >
-          {formattedReels.map((reel, index) => (
-            <div
-              key={reel.id}
-              className="relative w-full h-screen snap-start flex items-center justify-center"
-              data-reel-index={index}
+      {/* Desktop Layout (lg+) - Integrated with site shell */}
+      <div className="hidden lg:flex justify-center items-center min-h-screen">
+        <div className="relative">
+          {/* Center video stage */}
+          <div 
+            className="relative bg-black rounded-xl overflow-hidden shadow-2xl"
+            style={{
+              width: 'clamp(420px, 32vw, 620px)',
+              aspectRatio: '9 / 16',
+              maxHeight: '86vh'
+            }}
+          >
+            {formattedReels[currentIndex] && (
+              <ReelVideo
+                reel={formattedReels[currentIndex]}
+                isActive={true} // Always active on desktop
+                height={0} // Height controlled by aspect ratio
+                onLike={handleLike}
+                isLiked={likedReels.has(formattedReels[currentIndex].id)}
+                globalMuted={globalMuted}
+                onMuteToggle={handleMuteToggle}
+                layout="desktop-mobile-like"
+              />
+            )}
+          </div>
+
+          {/* Navigation arrows */}
+          {currentIndex > 0 && (
+            <button
+              onClick={() => navigate('prev')}
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 -translate-x-full text-white hover:text-gray-300 z-30 bg-black/50 rounded-full p-2 backdrop-blur-sm"
             >
-              {/* Center video stage */}
-              <div 
-                className="relative bg-black rounded-xl overflow-hidden shadow-2xl"
-                style={{
-                  width: 'clamp(420px, 32vw, 620px)',
-                  aspectRatio: '9 / 16',
-                  maxHeight: '86vh'
-                }}
-              >
-                <ReelVideo
-                  reel={reel}
-                  isActive={activeReels.has(index)}
-                  height={0} // Height controlled by aspect ratio
-                  onLike={handleLike}
-                  isLiked={likedReels.has(reel.id)}
-                  globalMuted={globalMuted}
-                  onMuteToggle={handleMuteToggle}
-                  layout="desktop-mobile-like"
-                />
-              </div>
+              <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+              </svg>
+            </button>
+          )}
+          
+          {currentIndex < formattedReels.length - 1 && (
+            <button
+              onClick={() => navigate('next')}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 translate-x-full text-white hover:text-gray-300 z-30 bg-black/50 rounded-full p-2 backdrop-blur-sm"
+            >
+              <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+              </svg>
+            </button>
+          )}
 
-              {/* Action rail beside the stage */}
-              <div 
-                className="absolute z-20"
-                style={{
-                  left: '100%',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  marginLeft: '20px'
-                }}
-              >
-                <ReelActionRail
-                  likes={reel.likes}
-                  comments={reel.comments}
-                  shares={reel.shares || 0}
-                  isLiked={likedReels.has(reel.id)}
-                  onLike={() => handleLike(reel.id)}
-                  avatar={reel.avatar}
-                  user={reel.user}
-                />
-              </div>
+          {/* Action rail beside the stage */}
+          <div 
+            className="absolute z-20"
+            style={{
+              left: '100%',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              marginLeft: '20px'
+            }}
+          >
+            {formattedReels.length > 0 && (
+              <ReelActionRail
+                likes={formattedReels[currentIndex].likes}
+                comments={formattedReels[currentIndex].comments}
+                shares={formattedReels[currentIndex].shares || 0}
+                isLiked={likedReels.has(formattedReels[currentIndex].id)}
+                onLike={() => handleLike(formattedReels[currentIndex].id)}
+                avatar={formattedReels[currentIndex].avatar}
+                user={formattedReels[currentIndex].user}
+              />
+            )}
+          </div>
 
-              {/* Video counter */}
-              <div className="absolute top-4 right-4 bg-black/50 text-white text-sm px-3 py-1 rounded-full backdrop-blur-sm">
-                {index + 1} of {formattedReels.length}
-              </div>
-            </div>
-          ))}
+          {/* Progress indicator */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1">
+            {formattedReels.map((_, index) => (
+              <div
+                key={index}
+                className={`h-1 rounded-full transition-all cursor-pointer ${
+                  index === currentIndex ? 'bg-white w-8' : 'bg-white/50 w-1 hover:bg-white/75'
+                }`}
+                onClick={() => {
+                  setCurrentIndex(index);
+                  setActiveReels(new Set([index]));
+                }}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </>
