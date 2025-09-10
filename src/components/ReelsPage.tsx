@@ -274,17 +274,17 @@ const ReelsPage = () => {
         </div>
       </motion.div>
 
-      {/* Desktop Layout (lg+) - Vertical scrolling full-screen reels */}
-      <div className="hidden lg:block fixed inset-0 bg-black">
+      {/* Desktop Layout (lg+) - Vertical scrolling reels with sidebars */}
+      <div className="hidden lg:block">
         <div 
           ref={containerRef}
-          className="w-full h-full overflow-y-auto snap-y snap-mandatory"
+          className="w-full h-screen overflow-y-auto snap-y snap-mandatory"
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
           {formattedReels.map((reel, index) => (
             <div
               key={reel.id}
-              className="relative w-full h-screen snap-start flex items-center justify-center animate-fade-in"
+              className="relative w-full h-screen snap-start flex items-center justify-center"
               data-reel-index={index}
             >
               {/* Center video stage */}
@@ -312,9 +312,10 @@ const ReelsPage = () => {
               <div 
                 className="absolute z-20"
                 style={{
-                  right: 'calc((100vw - min(620px, 32vw)) / 2 - 80px)',
+                  left: '100%',
                   top: '50%',
-                  transform: 'translateY(-50%)'
+                  transform: 'translateY(-50%)',
+                  marginLeft: '20px'
                 }}
               >
                 <ReelActionRail
