@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useRef, useCallback } from "react";
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useCallback, useState } from "react";
 import Hls from 'hls.js';
 
 export type CloudflareStreamPlayerProps = {
@@ -17,7 +17,20 @@ export type CloudflareStreamPlayerProps = {
   onTap?: () => void;
   onDoubleTap?: () => void;
   warmupLoad?: boolean;
+  playsInline?: boolean;
+  preload?: 'none' | 'metadata' | 'auto';
+  showUnmuteButton?: boolean;
+  onMuteChange?: (muted: boolean) => void;
 };
+
+export interface CloudflareStreamPlayerRef {
+  play: () => Promise<void>;
+  pause: () => void;
+  mute: () => void;
+  unmute: () => void;
+  videoEl: HTMLVideoElement | null;
+  startWarmupLoad: () => void;
+}
 
 // Global registry for "one playing" rule
 const globalPlayerRegistry = new Set<() => void>();
@@ -26,11 +39,11 @@ const globalPlayerRegistry = new Set<() => void>();
  * Unified Cloudflare Stream Player - native video + HLS.js
  * Optimized for mobile autoplay, instant start, tap controls without restart
  */
-const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlayerProps>(
+const CloudflareStreamPlayer = forwardRef<CloudflareStreamPlayerRef, CloudflareStreamPlayerProps>(
   ({ 
     videoId,
     autoPlay = true,
-    muted = true,
+    muted = false, // Default to unmuted for home page requirement
     loop = true,
     controls = false,
     poster,
@@ -43,6 +56,10 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
     onTap,
     onDoubleTap,
     warmupLoad = false,
+    playsInline = true,
+    preload = 'metadata',
+    showUnmuteButton = false,
+    onMuteChange,
   }, ref) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const hlsRef = useRef<Hls | null>(null);
@@ -50,8 +67,44 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
     const tapTimeoutRef = useRef<number | null>(null);
     const isWarmupLoadedRef = useRef(false);
     const abortControllerRef = useRef<AbortController | null>(null);
+    const [showUnmuteOverlay, setShowUnmuteOverlay] = useState(false);
+    const [internalMuted, setInternalMuted] = useState(muted);
     
-    useImperativeHandle(ref, () => videoRef.current as HTMLVideoElement);
+    // Expose methods via ref
+    useImperativeHandle(ref, () => ({
+      play: async () => {
+        const video = videoRef.current;
+        if (video) {
+          return video.play();
+        }
+        return Promise.resolve();
+      },
+      pause: () => {
+        const video = videoRef.current;
+        if (video) {
+          video.pause();
+        }
+      },
+      mute: () => {
+        const video = videoRef.current;
+        if (video) {
+          video.muted = true;
+          setInternalMuted(true);
+          onMuteChange?.(true);
+        }
+      },
+      unmute: () => {
+        const video = videoRef.current;
+        if (video) {
+          video.muted = false;
+          setInternalMuted(false);
+          onMuteChange?.(false);
+          setShowUnmuteOverlay(false);
+        }
+      },
+      videoEl: videoRef.current,
+      startWarmupLoad
+    }));
 
     // Pause function for global registry
     const pauseVideo = useCallback(() => {
@@ -137,14 +190,24 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
           }
         });
 
-        // Start playing this video
-        video.muted = true; // Always start muted for autoplay
+        // Start playing this video - try unmuted first for home page
+        video.muted = internalMuted;
         const playPromise = video.play();
         if (playPromise) {
           playPromise.then(() => {
             onPlay?.();
+            setShowUnmuteOverlay(false);
           }).catch((error) => {
-            console.log('Autoplay failed, will retry on user gesture:', error);
+            console.log('Autoplay failed, trying muted fallback:', error);
+            // Fallback to muted autoplay
+            if (!video.muted) {
+              video.muted = true;
+              setInternalMuted(true);
+              setShowUnmuteOverlay(showUnmuteButton);
+              video.play().catch(() => {
+                console.log('Muted autoplay also failed');
+              });
+            }
           });
         }
       } else {
@@ -175,10 +238,11 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
     // Sync video muted state with prop
     useEffect(() => {
       const video = videoRef.current;
-      if (video && video.muted !== muted) {
-        video.muted = muted;
+      if (video && video.muted !== internalMuted) {
+        video.muted = internalMuted;
+        onMuteChange?.(internalMuted);
       }
-    }, [muted]);
+    }, [internalMuted, onMuteChange]);
     useEffect(() => {
       const video = videoRef.current;
       if (!video || !warmupLoad || isWarmupLoadedRef.current) return;
@@ -224,13 +288,19 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
       }
 
       tapTimeoutRef.current = window.setTimeout(() => {
+        const video = videoRef.current;
+        if (!video) return;
+
         if (tapCountRef.current === 1) {
-          // Single tap - call external onTap callback for mute toggle
-          const video = videoRef.current;
-          if (video && video.paused && isActive) {
-            // If paused due to policy, try to play
+          // Single tap - toggle mute/unmute
+          const newMuted = !internalMuted;
+          video.muted = newMuted;
+          setInternalMuted(newMuted);
+          
+          if (video.paused && isActive) {
             video.play().catch(() => {});
           }
+          
           onTap?.();
         } else if (tapCountRef.current === 2) {
           // Double tap - like animation
@@ -242,20 +312,20 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
         }
         tapCountRef.current = 0;
       }, 250);
-    }, [isActive, onTap, onDoubleTap]);
+    }, [isActive, internalMuted, onTap, onDoubleTap]);
 
     return (
-      <div className={className}>
+      <div className={`relative ${className || ''}`}>
         <video
           ref={videoRef}
           autoPlay={autoPlay}
-          muted={muted}
+          muted={internalMuted}
           loop={loop}
           controls={controls}
           poster={poster || `https://videodelivery.net/${videoId}/thumbnails/thumbnail.jpg?time=1s&height=720`}
-          playsInline
+          playsInline={playsInline}
           webkit-playsinline="true"
-          preload="auto"
+          preload={preload}
           crossOrigin="anonymous"
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           onPlay={onPlay}
@@ -271,6 +341,28 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
             }
           }}
         />
+        
+        {/* Unmute button overlay for browsers that block unmuted autoplay */}
+        {showUnmuteOverlay && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10">
+            <button
+              onClick={() => {
+                const video = videoRef.current;
+                if (video) {
+                  video.muted = false;
+                  setInternalMuted(false);
+                  setShowUnmuteOverlay(false);
+                  if (video.paused) {
+                    video.play().catch(() => {});
+                  }
+                }
+              }}
+              className="bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-full hover:bg-white/30 transition-colors"
+            >
+              🔊 Tap to unmute
+            </button>
+          </div>
+        )}
       </div>
     );
   }

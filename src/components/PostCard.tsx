@@ -13,7 +13,7 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar'
 import VerificationBadge from './VerificationBadge'
 import DrippingHoney from './DrippingHoney'
-import CloudflareStreamPlayer from './CloudflareStreamPlayer'
+import CloudflareStreamPlayer, { CloudflareStreamPlayerRef } from './CloudflareStreamPlayer'
 import { formatCount } from '../lib/format'
 
 interface Comment {
@@ -94,7 +94,7 @@ const PostCard: React.FC<PostCardProps> = ({
   const [lastTap, setLastTap] = useState(0)
   const [videoMuted, setVideoMuted] = useState(true)
   const [isVideoActive, setIsVideoActive] = useState(false)
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const videoRef = useRef<CloudflareStreamPlayerRef>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
   // IntersectionObserver for video autoplay
@@ -110,7 +110,7 @@ const PostCard: React.FC<PostCardProps> = ({
           if (isIntersecting) {
             // Pause all other videos
             document.querySelectorAll('video').forEach((video) => {
-              if (video !== videoRef.current) {
+              if (video !== videoRef.current?.videoEl) {
                 video.pause();
               }
             });
@@ -129,7 +129,7 @@ const PostCard: React.FC<PostCardProps> = ({
 
   // Handle video play/pause based on active state
   useEffect(() => {
-    const video = videoRef.current;
+    const video = videoRef.current?.videoEl;
     if (!video || post.type !== 'video') return;
 
     if (isVideoActive) {
@@ -171,20 +171,14 @@ const PostCard: React.FC<PostCardProps> = ({
   // Mobile-safe sound toggle
   const toggleSound = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    const video = videoRef.current;
-    if (!video) return;
+    const player = videoRef.current;
+    if (!player) return;
 
     if (videoMuted) {
-      // First tap may need to trigger play() for mobile browsers
-      video.muted = false;
-      if (video.paused) {
-        video.play().catch(() => {
-          video.muted = true; // Fallback to muted if unmuted play fails
-        });
-      }
+      player.unmute();
       setVideoMuted(false);
     } else {
-      video.muted = true;
+      player.mute();
       setVideoMuted(true);
     }
   }, [videoMuted]);
@@ -213,12 +207,13 @@ const PostCard: React.FC<PostCardProps> = ({
             ref={videoRef}
             videoId={post.cloudflareId!}
             isActive={isVideoActive}
-            muted={videoMuted}
+            muted={false} // Start unmuted for home feed
             loop={true}
             controls={false}
+            showUnmuteButton={true} // Show unmute overlay if autoplay blocked
             className="w-full h-full rounded-lg overflow-hidden"
             onTap={() => {
-              // Single tap mute toggle
+              // Single tap mute toggle handled by unified player
               setVideoMuted(!videoMuted);
             }}
             onDoubleTap={() => {
@@ -227,6 +222,7 @@ const PostCard: React.FC<PostCardProps> = ({
               setShowLoveIcon(true);
               setTimeout(() => setShowLoveIcon(false), 1000);
             }}
+            onMuteChange={setVideoMuted}
             warmupLoad={!isVideoActive}
           />
           

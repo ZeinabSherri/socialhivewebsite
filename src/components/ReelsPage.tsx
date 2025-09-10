@@ -4,7 +4,7 @@ import { ChevronLeft } from 'lucide-react';
 import { generateExploreAllPosts, EXPLORE_ALL_UNIQUE_VIDEO_IDS } from '../data/categoryVideos';
 import ReelVideo from './ReelVideo';
 import ReelActionRail from './ReelActionRail';
-import { useVideoObserver } from '../hooks/useVideoObserver';
+import { useLazyVideoObserver } from '../hooks/useLazyVideoObserver';
 
 /** Types */
 type Reel = {
@@ -62,11 +62,18 @@ const ReelsPage = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isNavigatingRef = useRef(false);
 
-  // Video observer for autoplay control
-  const { observe, unobserve, disconnect } = useVideoObserver({
+  // Lazy video observer for performance - only load videos near viewport
+  const { observe, unobserve, disconnect } = useLazyVideoObserver({
     root: containerRef.current,
-    rootMargin: "300px 0px",
+    rootMargin: "200px 0px", // Load videos 200px before they enter viewport
     threshold: 0.6,
+    onEnterViewport: (element, index) => {
+      // Trigger video loading when near viewport
+      const video = element.querySelector('video');
+      if (video && video.preload === 'none') {
+        video.preload = 'metadata';
+      }
+    },
     onActiveChange: (index, isActive) => {
       setActiveReels(prev => {
         const newSet = new Set(prev);
@@ -79,17 +86,6 @@ const ReelsPage = () => {
         return newSet;
       });
     },
-    onNearby: (index, isNearby) => {
-      setNearbyReels(prev => {
-        const newSet = new Set(prev);
-        if (isNearby) {
-          newSet.add(index);
-        } else {
-          newSet.delete(index);
-        }
-        return newSet;
-      });
-    }
   });
 
   // No need for additional loading - everything is generated from categories
