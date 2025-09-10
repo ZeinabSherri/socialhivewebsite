@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Search } from 'lucide-react';
+import { Play } from 'lucide-react';
 import { formatCount } from '../lib/format';
 import ReelsViewer from './ReelsViewer';
 import ExploreCategoryChips from './ExploreCategoryChips';
@@ -27,7 +27,6 @@ const ExplorePage = () => {
   const [activeFilter, setActiveFilter] = useState<CategoryKey>('Beauty clinics');
   const [showReelsViewer, setShowReelsViewer] = useState(false);
   const [selectedReelIndex, setSelectedReelIndex] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
 
   // Generate reels from category videos
   const allReels: ExploreReel[] = useMemo(() => {
@@ -48,17 +47,6 @@ const ExplorePage = () => {
     }));
   }, [activeFilter]);
 
-  // Filtered reels based on search
-  const filteredReels = useMemo(() => {
-    if (!searchQuery.trim()) return allReels;
-    const query = searchQuery.toLowerCase();
-    return allReels.filter(reel => 
-      reel.title.toLowerCase().includes(query) ||
-      reel.description?.toLowerCase().includes(query) ||
-      reel.client?.toLowerCase().includes(query)
-    );
-  }, [allReels, searchQuery]);
-
   // Handle reel click
   const handleReelClick = (reel: ExploreReel, index: number) => {
     setSelectedReelIndex(index);
@@ -74,7 +62,6 @@ const ExplorePage = () => {
   // Handle category change
   const handleCategoryChange = (newCategory: CategoryKey) => {
     setActiveFilter(newCategory);
-    setSearchQuery(''); // Clear search when changing category
   };
 
   // Handle deep linking on mount
@@ -139,20 +126,10 @@ const ExplorePage = () => {
 
   return (
     <div className="max-w-md mx-auto h-full bg-black">
-      {/* Header with search */}
+      {/* Header */}
       <div className="reels-safe-padding reels-safe-top py-2 bg-black sticky top-0 z-20">
-        <div className="flex items-center space-x-3 mb-3 mt-2">
+        <div className="flex items-center mb-3 mt-2">
           <h1 className="text-white text-xl font-bold">Explore</h1>
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search reels..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-800 text-white pl-10 pr-4 py-2 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
-            />
-          </div>
         </div>
 
         <ExploreCategoryChips
@@ -167,14 +144,14 @@ const ExplorePage = () => {
         className="flex-1 overflow-y-auto reels-safe-bottom" 
         style={{ height: 'calc(100vh - 140px - env(safe-area-inset-bottom))' }}
       >
-        {filteredReels.length > 0 ? (
+        {allReels.length > 0 ? (
           <motion.div 
             className="grid grid-cols-3 gap-1 p-1 pb-20"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
-            {filteredReels.map((reel, index) => (
+            {allReels.map((reel, index) => (
               <motion.div
                 key={reel.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -185,12 +162,6 @@ const ExplorePage = () => {
               </motion.div>
             ))}
           </motion.div>
-        ) : searchQuery.trim() ? (
-          <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-            <Search className="w-12 h-12 mb-4 opacity-50" />
-            <p className="text-lg font-medium">No reels found</p>
-            <p className="text-sm">Try a different search or category</p>
-          </div>
         ) : (
           renderEmptyState()
         )}
@@ -200,7 +171,7 @@ const ExplorePage = () => {
       <AnimatePresence>
         {showReelsViewer && (
           <ReelsViewer
-            reels={filteredReels.map(reel => ({
+            reels={allReels.map(reel => ({
               id: reel.id,
               title: reel.title,
               description: reel.description,
