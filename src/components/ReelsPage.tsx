@@ -274,51 +274,66 @@ const ReelsPage = () => {
         </div>
       </motion.div>
 
-      {/* Desktop Layout (lg+) - Vertical scrolling feed */}
-      <div className="hidden lg:block min-h-screen bg-black">
-        <div className="max-w-2xl mx-auto">
-          {/* Header */}
-          <div className="sticky top-0 z-50 bg-black/90 backdrop-blur-sm border-b border-gray-800 px-4 py-4">
-            <div className="flex items-center justify-between">
-              <h1 className="text-white text-xl font-bold">Reels</h1>
-              <div className="text-white text-sm">
-                {formattedReels.length} videos
+      {/* Desktop Layout (lg+) - Vertical scrolling full-screen reels */}
+      <div className="hidden lg:block fixed inset-0 bg-black">
+        <div 
+          ref={containerRef}
+          className="w-full h-full overflow-y-auto snap-y snap-mandatory"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
+          {formattedReels.map((reel, index) => (
+            <div
+              key={reel.id}
+              className="relative w-full h-screen snap-start flex items-center justify-center animate-fade-in"
+              data-reel-index={index}
+            >
+              {/* Center video stage */}
+              <div 
+                className="relative bg-black rounded-xl overflow-hidden shadow-2xl"
+                style={{
+                  width: 'clamp(420px, 32vw, 620px)',
+                  aspectRatio: '9 / 16',
+                  maxHeight: '86vh'
+                }}
+              >
+                <ReelVideo
+                  reel={reel}
+                  isActive={activeReels.has(index)}
+                  height={0} // Height controlled by aspect ratio
+                  onLike={handleLike}
+                  isLiked={likedReels.has(reel.id)}
+                  globalMuted={globalMuted}
+                  onMuteToggle={handleMuteToggle}
+                  layout="desktop-mobile-like"
+                />
+              </div>
+
+              {/* Action rail beside the stage */}
+              <div 
+                className="absolute z-20"
+                style={{
+                  right: 'calc((100vw - min(620px, 32vw)) / 2 - 80px)',
+                  top: '50%',
+                  transform: 'translateY(-50%)'
+                }}
+              >
+                <ReelActionRail
+                  likes={reel.likes}
+                  comments={reel.comments}
+                  shares={reel.shares || 0}
+                  isLiked={likedReels.has(reel.id)}
+                  onLike={() => handleLike(reel.id)}
+                  avatar={reel.avatar}
+                  user={reel.user}
+                />
+              </div>
+
+              {/* Video counter */}
+              <div className="absolute top-4 right-4 bg-black/50 text-white text-sm px-3 py-1 rounded-full backdrop-blur-sm">
+                {index + 1} of {formattedReels.length}
               </div>
             </div>
-          </div>
-
-          {/* Vertical scrolling reels feed */}
-          <div 
-            ref={containerRef}
-            className="overflow-y-auto"
-            style={{ height: 'calc(100vh - 80px)' }}
-          >
-            <div className="space-y-4 pb-8">
-              {formattedReels.map((reel, index) => (
-                <div
-                  key={reel.id}
-                  className="relative mx-auto bg-black rounded-xl overflow-hidden shadow-2xl animate-fade-in"
-                  style={{
-                    width: 'min(420px, 90vw)',
-                    aspectRatio: '9 / 16',
-                    maxHeight: '80vh'
-                  }}
-                  data-reel-index={index}
-                >
-                  <ReelVideo
-                    reel={reel}
-                    isActive={activeReels.has(index)}
-                    height={0} // Height controlled by aspect ratio
-                    onLike={handleLike}
-                    isLiked={likedReels.has(reel.id)}
-                    globalMuted={globalMuted}
-                    onMuteToggle={handleMuteToggle}
-                    layout="desktop"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </>
