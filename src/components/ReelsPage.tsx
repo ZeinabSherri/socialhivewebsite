@@ -200,7 +200,7 @@ const ReelsPage = () => {
     const container = containerRef.current;
     if (!container) return;
 
-    // For mobile layout only - register video elements with observer
+    // Register video elements with observer for both mobile and desktop
     const reelElements = container.querySelectorAll('[data-reel-index]');
     reelElements.forEach((element, index) => {
       observe(element, index);
@@ -210,14 +210,6 @@ const ReelsPage = () => {
       disconnect();
     };
   }, [formattedReels.length, observe, disconnect]);
-
-  // Desktop-specific observer setup
-  useEffect(() => {
-    // For desktop, we manage active state manually through navigation
-    if (window.innerWidth >= 1024) {
-      setActiveReels(new Set([currentIndex]));
-    }
-  }, [currentIndex]);
 
   return (
     <>
@@ -282,92 +274,50 @@ const ReelsPage = () => {
         </div>
       </motion.div>
 
-      {/* Desktop Layout (lg+) - Integrated with site shell */}
-      <div className="hidden lg:flex justify-center items-center min-h-screen">
-        <div className="relative">
-          {/* Center video stage */}
-          <div 
-            className="relative bg-black rounded-xl overflow-hidden shadow-2xl"
-            style={{
-              width: 'clamp(420px, 32vw, 620px)',
-              aspectRatio: '9 / 16',
-              maxHeight: '86vh'
-            }}
-          >
-            {formattedReels[currentIndex] && (
-              <ReelVideo
-                reel={formattedReels[currentIndex]}
-                isActive={true} // Always active on desktop
-                height={0} // Height controlled by aspect ratio
-                onLike={handleLike}
-                isLiked={likedReels.has(formattedReels[currentIndex].id)}
-                globalMuted={globalMuted}
-                onMuteToggle={handleMuteToggle}
-                layout="desktop-mobile-like"
-              />
-            )}
+      {/* Desktop Layout (lg+) - Vertical scrolling feed */}
+      <div className="hidden lg:block min-h-screen bg-black">
+        <div className="max-w-2xl mx-auto">
+          {/* Header */}
+          <div className="sticky top-0 z-50 bg-black/90 backdrop-blur-sm border-b border-gray-800 px-4 py-4">
+            <div className="flex items-center justify-between">
+              <h1 className="text-white text-xl font-bold">Reels</h1>
+              <div className="text-white text-sm">
+                {formattedReels.length} videos
+              </div>
+            </div>
           </div>
 
-          {/* Navigation arrows */}
-          {currentIndex > 0 && (
-            <button
-              onClick={() => navigate('prev')}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 -translate-x-full text-white hover:text-gray-300 z-30 bg-black/50 rounded-full p-2 backdrop-blur-sm"
-            >
-              <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-              </svg>
-            </button>
-          )}
-          
-          {currentIndex < formattedReels.length - 1 && (
-            <button
-              onClick={() => navigate('next')}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 translate-x-full text-white hover:text-gray-300 z-30 bg-black/50 rounded-full p-2 backdrop-blur-sm"
-            >
-              <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
-              </svg>
-            </button>
-          )}
-
-          {/* Action rail beside the stage */}
+          {/* Vertical scrolling reels feed */}
           <div 
-            className="absolute z-20"
-            style={{
-              left: '100%',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              marginLeft: '20px'
-            }}
+            ref={containerRef}
+            className="overflow-y-auto"
+            style={{ height: 'calc(100vh - 80px)' }}
           >
-            {formattedReels.length > 0 && (
-              <ReelActionRail
-                likes={formattedReels[currentIndex].likes}
-                comments={formattedReels[currentIndex].comments}
-                shares={formattedReels[currentIndex].shares || 0}
-                isLiked={likedReels.has(formattedReels[currentIndex].id)}
-                onLike={() => handleLike(formattedReels[currentIndex].id)}
-                avatar={formattedReels[currentIndex].avatar}
-                user={formattedReels[currentIndex].user}
-              />
-            )}
-          </div>
-
-          {/* Progress indicator */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1">
-            {formattedReels.map((_, index) => (
-              <div
-                key={index}
-                className={`h-1 rounded-full transition-all cursor-pointer ${
-                  index === currentIndex ? 'bg-white w-8' : 'bg-white/50 w-1 hover:bg-white/75'
-                }`}
-                onClick={() => {
-                  setCurrentIndex(index);
-                  setActiveReels(new Set([index]));
-                }}
-              />
-            ))}
+            <div className="space-y-4 pb-8">
+              {formattedReels.map((reel, index) => (
+                <div
+                  key={reel.id}
+                  className="relative mx-auto bg-black rounded-xl overflow-hidden shadow-2xl animate-fade-in"
+                  style={{
+                    width: 'min(420px, 90vw)',
+                    aspectRatio: '9 / 16',
+                    maxHeight: '80vh'
+                  }}
+                  data-reel-index={index}
+                >
+                  <ReelVideo
+                    reel={reel}
+                    isActive={activeReels.has(index)}
+                    height={0} // Height controlled by aspect ratio
+                    onLike={handleLike}
+                    isLiked={likedReels.has(reel.id)}
+                    globalMuted={globalMuted}
+                    onMuteToggle={handleMuteToggle}
+                    layout="desktop"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
