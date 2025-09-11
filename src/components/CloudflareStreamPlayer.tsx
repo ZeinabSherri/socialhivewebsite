@@ -1,5 +1,3 @@
-'use client';
-
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useCallback } from "react";
 import Hls from 'hls.js';
 
