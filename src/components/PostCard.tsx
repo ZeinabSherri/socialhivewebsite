@@ -92,7 +92,7 @@ const PostCard: React.FC<PostCardProps> = ({
   const [showFullCaption, setShowFullCaption] = useState(false)
   const [showLoveIcon, setShowLoveIcon] = useState(false)
   const [lastTap, setLastTap] = useState(0)
-  const [videoMuted, setVideoMuted] = useState(true)
+  const [videoMuted, setVideoMuted] = useState(false)
   const [isVideoActive, setIsVideoActive] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -133,7 +133,7 @@ const PostCard: React.FC<PostCardProps> = ({
     if (!video || post.type !== 'video') return;
 
     if (isVideoActive) {
-      video.muted = true;
+      video.muted = false;
       video.play().catch((error) => {
         console.log('Autoplay failed:', error);
       });
@@ -168,26 +168,6 @@ const PostCard: React.FC<PostCardProps> = ({
     setLastTap(now)
   }
 
-  // Mobile-safe sound toggle
-  const toggleSound = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (videoMuted) {
-      // First tap may need to trigger play() for mobile browsers
-      video.muted = false;
-      if (video.paused) {
-        video.play().catch(() => {
-          video.muted = true; // Fallback to muted if unmuted play fails
-        });
-      }
-      setVideoMuted(false);
-    } else {
-      video.muted = true;
-      setVideoMuted(true);
-    }
-  }, [videoMuted]);
 
   const carouselProps = {
     responsive,
@@ -213,14 +193,10 @@ const PostCard: React.FC<PostCardProps> = ({
             ref={videoRef}
             videoId={post.cloudflareId!}
             isActive={isVideoActive}
-            muted={videoMuted}
+            muted={false}
             loop={true}
             controls={false}
             className="w-full h-full rounded-lg overflow-hidden"
-            onTap={() => {
-              // Single tap mute toggle
-              setVideoMuted(!videoMuted);
-            }}
             onDoubleTap={() => {
               // Double tap like
               if (!post.isLiked) onLike();
@@ -229,13 +205,6 @@ const PostCard: React.FC<PostCardProps> = ({
             }}
             warmupLoad={!isVideoActive}
           />
-          
-          <button
-            onClick={toggleSound}
-            className="absolute bottom-3 right-3 bg-black/70 text-white p-2 rounded-full z-20"
-          >
-            {videoMuted ? <VolumeX size={18}/> : <Volume2 size={18}/>}
-          </button>
 
           {showLoveIcon && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
@@ -267,7 +236,7 @@ const PostCard: React.FC<PostCardProps> = ({
                   <video
                     autoPlay
                     loop
-                    muted={videoMuted}
+                    muted={false}
                     playsInline
                     webkit-playsinline="true"
                     preload="auto"
@@ -275,13 +244,6 @@ const PostCard: React.FC<PostCardProps> = ({
                   >
                     <source src={m.url} type="video/mp4" />
                   </video>
-
-                  <button
-                    onClick={toggleSound}
-                    className="absolute bottom-3 right-3 bg-black/70 text-white p-2 rounded-full z-20"
-                  >
-                    {videoMuted ? <VolumeX size={18}/> : <Volume2 size={18}/>}
-                  </button>
                 </div>
               )}
 
