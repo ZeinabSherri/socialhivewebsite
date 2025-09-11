@@ -92,7 +92,7 @@ const PostCard: React.FC<PostCardProps> = ({
   const [showFullCaption, setShowFullCaption] = useState(false)
   const [showLoveIcon, setShowLoveIcon] = useState(false)
   const [lastTap, setLastTap] = useState(0)
-  const [videoMuted, setVideoMuted] = useState(false)
+  const [videoMuted, setVideoMuted] = useState(true)
   const [isVideoActive, setIsVideoActive] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -134,10 +134,13 @@ const PostCard: React.FC<PostCardProps> = ({
 
     if (isVideoActive) {
       video.muted = false;
+      setVideoMuted(false);
       video.play().catch((error) => {
         console.log('Autoplay failed:', error);
       });
     } else {
+      video.muted = true;
+      setVideoMuted(true);
       video.pause();
     }
   }, [isVideoActive, post.type]);
@@ -193,7 +196,7 @@ const PostCard: React.FC<PostCardProps> = ({
             ref={videoRef}
             videoId={post.cloudflareId!}
             isActive={isVideoActive}
-            muted={false}
+            muted={!isVideoActive}
             loop={true}
             controls={false}
             className="w-full h-full rounded-lg overflow-hidden"
@@ -236,7 +239,7 @@ const PostCard: React.FC<PostCardProps> = ({
                   <video
                     autoPlay
                     loop
-                    muted={false}
+                    muted={!isVideoActive}
                     playsInline
                     webkit-playsinline="true"
                     preload="auto"
