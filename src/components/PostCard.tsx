@@ -224,6 +224,7 @@ const PostCard: React.FC<PostCardProps> = ({
           {post.media.map((m,i) => (
             <div
               key={i}
+              ref={i === 0 ? containerRef : undefined}
               className="aspect-[4/5] bg-gray-900 relative"
               onClick={handleDoubleTap}
               onTouchEnd={handleDoubleTap}
