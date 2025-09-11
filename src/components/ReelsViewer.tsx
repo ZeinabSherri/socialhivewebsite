@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft } from 'lucide-react';
-import ReelViewer from './reels/ReelViewer';
-import type { ReelData } from './reels/ReelViewer';
+import ReelVideo from './ReelVideo';
 
 export interface Reel {
   id: number;
@@ -34,22 +33,19 @@ const ReelsViewer = ({ reels, initialIndex, category, onClose }: ReelsViewerProp
   const containerRef = useRef<HTMLDivElement>(null);
   const isNavigatingRef = useRef(false);
 
-  // Convert reels to ReelData format
-  const reelData: ReelData[] = reels.map(reel => ({
+  // Convert reels to proper format
+  const formattedReels = reels.map(reel => ({
     id: reel.id,
-    title: reel.title,
-    description: reel.description,
-    thumbnail: reel.thumbnail,
+    description: reel.description || reel.title || '',
+    likes: reel.likes || Math.floor(Math.random() * 50000) + 1000,
+    comments: reel.comments || Math.floor(Math.random() * 1000) + 50,
+    shares: reel.shares || Math.floor(Math.random() * 500) + 25,
+    user: reel.user || 'socialhive.agency',
+    avatar: reel.avatar || '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png',
+    audioTitle: reel.audioTitle || 'Original audio',
     videoUrl: reel.videoUrl,
-    uid: reel.uid,
-    viewCount: reel.viewCount,
-    likes: reel.likes,
-    comments: reel.comments,
-    shares: reel.shares,
-    user: reel.user,
-    avatar: reel.avatar,
-    audioTitle: reel.audioTitle,
-    isCloudflare: true
+    poster: reel.thumbnail,
+    viewCount: reel.viewCount || Math.floor(Math.random() * 100000) + 10000
   }));
 
   const navigate = useCallback((direction: 'prev' | 'next') => {
@@ -58,7 +54,7 @@ const ReelsViewer = ({ reels, initialIndex, category, onClose }: ReelsViewerProp
     let newIndex = currentIndex;
     if (direction === 'prev' && currentIndex > 0) {
       newIndex = currentIndex - 1;
-    } else if (direction === 'next' && currentIndex < reelData.length - 1) {
+    } else if (direction === 'next' && currentIndex < formattedReels.length - 1) {
       newIndex = currentIndex + 1;
     }
 
@@ -77,7 +73,7 @@ const ReelsViewer = ({ reels, initialIndex, category, onClose }: ReelsViewerProp
         isNavigatingRef.current = false;
       }, 300);
     }
-  }, [currentIndex, reelData.length]);
+  }, [currentIndex, formattedReels.length]);
 
   // Handle touch/swipe navigation
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -136,14 +132,14 @@ const ReelsViewer = ({ reels, initialIndex, category, onClose }: ReelsViewerProp
       if (isNavigatingRef.current) return;
       
       const newIndex = Math.round(container.scrollTop / window.innerHeight);
-      if (newIndex !== currentIndex && newIndex >= 0 && newIndex < reelData.length) {
+      if (newIndex !== currentIndex && newIndex >= 0 && newIndex < formattedReels.length) {
         setCurrentIndex(newIndex);
       }
     };
 
     container.addEventListener('scroll', handleScroll, { passive: true });
     return () => container.removeEventListener('scroll', handleScroll);
-  }, [currentIndex, reelData.length]);
+  }, [currentIndex, formattedReels.length]);
 
   const handleLike = useCallback((reelId: number) => {
     setLikedReels(prev => {
@@ -189,7 +185,7 @@ const ReelsViewer = ({ reels, initialIndex, category, onClose }: ReelsViewerProp
         
         <div className="relative text-white text-center">
           <h2 className="font-semibold">{category}</h2>
-          <p className="text-xs text-gray-300">{currentIndex + 1} of {reelData.length}</p>
+          <p className="text-xs text-gray-300">{currentIndex + 1} of {formattedReels.length}</p>
         </div>
         
         <div className="w-10" /> {/* Spacer for centering */}
@@ -203,12 +199,12 @@ const ReelsViewer = ({ reels, initialIndex, category, onClose }: ReelsViewerProp
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        {reelData.map((reel, index) => (
-          <ReelViewer
+        {formattedReels.map((reel, index) => (
+          <ReelVideo
             key={reel.id}
             reel={reel}
             isActive={index === currentIndex}
-            layout="mobile"
+            height={window.innerHeight}
             onLike={handleLike}
             isLiked={likedReels.has(reel.id)}
             globalMuted={globalMuted}
