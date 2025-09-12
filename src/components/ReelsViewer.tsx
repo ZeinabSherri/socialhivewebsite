@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft } from 'lucide-react';
 import ReelVideo from './ReelVideo';
+import ReelActionRail from './ReelActionRail';
 
 export interface Reel {
   id: number;
@@ -123,6 +124,20 @@ const ReelsViewer = ({ reels, initialIndex, category, onClose }: ReelsViewerProp
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [navigate, onClose, globalMuted]);
 
+  // Desktop scroll wheel navigation (vertical)
+  useEffect(() => {
+    const onWheel = (e: WheelEvent) => {
+      if (window.innerWidth >= 1024) {
+        if (Math.abs(e.deltaY) > 30) {
+          e.preventDefault();
+          navigate(e.deltaY > 0 ? 'next' : 'prev');
+        }
+      }
+    };
+    window.addEventListener('wheel', onWheel, { passive: false });
+    return () => window.removeEventListener('wheel', onWheel);
+  }, [navigate]);
+
   // Handle scroll-based navigation
   useEffect(() => {
     const container = containerRef.current;
@@ -191,10 +206,10 @@ const ReelsViewer = ({ reels, initialIndex, category, onClose }: ReelsViewerProp
         <div className="w-10" /> {/* Spacer for centering */}
       </div>
 
-      {/* Reels container */}
+      {/* Reels container - mobile */}
       <div
         ref={containerRef}
-        className="w-full h-full overflow-y-auto snap-y snap-mandatory scrollbar-hidden"
+        className="lg:hidden w-full h-full overflow-y-auto snap-y snap-mandatory scrollbar-hidden"
         style={{ WebkitOverflowScrolling: 'touch' }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
@@ -211,6 +226,56 @@ const ReelsViewer = ({ reels, initialIndex, category, onClose }: ReelsViewerProp
             onMuteToggle={handleMuteToggle}
           />
         ))}
+      </div>
+
+      {/* Desktop stage */}
+      <div className="hidden lg:flex justify-center items-center h-full">
+        <div className="relative">
+          <div 
+            className="relative bg-black rounded-xl overflow-hidden shadow-2xl"
+            style={{
+              width: 'clamp(420px, 32vw, 620px)',
+              aspectRatio: '9 / 16',
+              maxHeight: '86vh'
+            }}
+          >
+            {formattedReels[currentIndex] && (
+              <ReelVideo
+                reel={formattedReels[currentIndex]}
+                isActive={true}
+                height={0}
+                onLike={handleLike}
+                isLiked={likedReels.has(formattedReels[currentIndex].id)}
+                globalMuted={globalMuted}
+                onMuteToggle={handleMuteToggle}
+                layout="desktop-mobile-like"
+              />
+            )}
+          </div>
+
+          {/* Action rail beside the stage */}
+          <div 
+            className="absolute z-20"
+            style={{
+              left: '100%',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              marginLeft: '20px'
+            }}
+          >
+            {formattedReels.length > 0 && (
+              <ReelActionRail
+                likes={formattedReels[currentIndex].likes || 0}
+                comments={formattedReels[currentIndex].comments || 0}
+                shares={formattedReels[currentIndex].shares || 0}
+                isLiked={likedReels.has(formattedReels[currentIndex].id)}
+                onLike={() => handleLike(formattedReels[currentIndex].id)}
+                avatar={formattedReels[currentIndex].avatar || '/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png'}
+                user={formattedReels[currentIndex].user || 'socialhive.agency'}
+              />
+            )}
+          </div>
+        </div>
       </div>
     </motion.div>
   );

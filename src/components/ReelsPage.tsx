@@ -18,23 +18,15 @@ type Reel = {
   audioTitle: string;
   videoUrl: string;
   poster?: string;
+  isCloudflare?: boolean;
 };
 
 const ReelsPage = () => {
   // Use Explore as the single source of truth - all category videos
   const allVideosPosts = useMemo(() => generateExploreAllPosts(), []);
 
-  // Empty state if no videos
-  if (!EXPLORE_ALL_UNIQUE_VIDEO_IDS.length) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white">
-        <div className="text-center p-8">
-          <h2 className="text-2xl font-bold mb-2">No reels yet</h2>
-          <p className="text-gray-400">Add videos to Explore to see them here.</p>
-        </div>
-      </div>
-    );
-  }
+  // Empty state flag
+  const isEmpty = !EXPLORE_ALL_UNIQUE_VIDEO_IDS.length;
 
   // Convert to reel format
   const reels = useMemo<Reel[]>(() => {
@@ -58,12 +50,13 @@ const ReelsPage = () => {
   const [likedReels, setLikedReels] = useState<Set<number>>(new Set());
   const [globalMuted, setGlobalMuted] = useState(true);
   const [activeReels, setActiveReels] = useState<Set<number>>(new Set());
-  const [nearbyReels, setNearbyReels] = useState<Set<number>>(new Set());
+  const [, setNearbyReels] = useState<Set<number>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
   const isNavigatingRef = useRef(false);
 
+
   // Video observer for autoplay control
-  const { observe, unobserve, disconnect } = useVideoObserver({
+  const { observe, disconnect } = useVideoObserver({
     root: containerRef.current,
     rootMargin: "300px 0px",
     threshold: 0.6,
@@ -107,7 +100,7 @@ const ReelsPage = () => {
     videoUrl: reel.videoUrl,
     poster: reel.poster,
     viewCount: Math.floor(Math.random() * 100000) + 10000,
-    isCloudflare: (reel as any).isCloudflare || false
+    isCloudflare: reel.isCloudflare ?? false
   }));
 
   const navigate = useCallback((direction: 'prev' | 'next') => {
@@ -125,8 +118,11 @@ const ReelsPage = () => {
       setCurrentIndex(newIndex);
       
       if (containerRef.current) {
+        const items = containerRef.current.querySelectorAll('section[data-reel-id]');
+        const target = items[newIndex] as HTMLElement | null;
+        const top = target ? target.offsetTop : newIndex * window.innerHeight;
         containerRef.current.scrollTo({
-          top: newIndex * window.innerHeight,
+          top,
           behavior: 'smooth'
         });
       }
@@ -199,13 +195,27 @@ const ReelsPage = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [navigate, globalMuted]);
 
+  // Desktop scroll wheel navigation (vertical)
+  useEffect(() => {
+    const onWheel = (e: WheelEvent) => {
+      if (window.innerWidth >= 1024) {
+        if (Math.abs(e.deltaY) > 30) {
+          e.preventDefault();
+          navigate(e.deltaY > 0 ? 'next' : 'prev');
+        }
+      }
+    };
+    window.addEventListener('wheel', onWheel, { passive: false });
+    return () => window.removeEventListener('wheel', onWheel);
+  }, [navigate]);
+
   // Handle scroll-based navigation and IntersectionObserver
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    // For mobile layout only - register video elements with observer
-    const reelElements = container.querySelectorAll('[data-reel-index]');
+    // Register video elements with observer
+    const reelElements = container.querySelectorAll('section[data-reel-id]');
     reelElements.forEach((element, index) => {
       observe(element, index);
     });
@@ -215,76 +225,77 @@ const ReelsPage = () => {
     };
   }, [formattedReels.length, observe, disconnect]);
 
-  // Desktop-specific observer setup
-  useEffect(() => {
-    // For desktop, we manage active state manually through navigation
-    if (window.innerWidth >= 1024) {
-      setActiveReels(new Set([currentIndex]));
-    }
-  }, [currentIndex]);
 
   return (
     <>
-      {/* Mobile/Tablet Layout (< lg) - Full Screen */}
-      <motion.div
-        className="lg:hidden fixed inset-0 bg-black z-50"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-      >
-        <div className="w-full h-full">
-          {/* Header */}
-          <div
-            className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2"
-            style={{
-              paddingTop: 'max(8px, env(safe-area-inset-top))',
-              paddingLeft: 'max(16px, env(safe-area-inset-left))',
-              paddingRight: 'max(16px, env(safe-area-inset-right))'
-            }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-transparent pointer-events-none" />
-            
-            <button
-              onClick={() => window.history.back()}
-              className="relative text-white hover:text-gray-300 p-2"
-            >
-              <ChevronLeft size={24} />
-            </button>
-            
-            <div className="relative text-white text-center">
-              <h2 className="font-semibold">Reels</h2>
-              <p className="text-xs text-gray-300">{currentIndex + 1} of {formattedReels.length}</p>
-            </div>
-            
-            <div className="w-10" /> {/* Spacer for centering */}
-          </div>
-
-          {/* Reels container */}
-          <div
-            ref={containerRef}
-            className="w-full h-full overflow-y-auto snap-y snap-mandatory scrollbar-hidden"
-            style={{ WebkitOverflowScrolling: 'touch' }}
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-          >
-            {formattedReels.map((reel, index) => (
-              <ReelVideo
-                key={reel.id}
-                reel={reel}
-                isActive={activeReels.has(index)}
-                height={window.innerHeight}
-                onLike={handleLike}
-                isLiked={likedReels.has(reel.id)}
-                globalMuted={globalMuted}
-                onMuteToggle={handleMuteToggle}
-                layout="mobile"
-                data-reel-index={index}
-              />
-            ))}
+      {isEmpty ? (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white">
+          <div className="text-center p-8">
+            <h2 className="text-2xl font-bold mb-2">No reels yet</h2>
+            <p className="text-gray-400">Add videos to Explore to see them here.</p>
           </div>
         </div>
-      </motion.div>
+      ) : (
+        <>
+          {/* Mobile/Tablet Layout (< lg) - Full Screen */}
+          <motion.div
+            className="lg:hidden fixed inset-0 bg-black z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="w-full h-full">
+              {/* Header */}
+              <div
+                className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2"
+                style={{
+                  paddingTop: 'max(8px, env(safe-area-inset-top))',
+                  paddingLeft: 'max(16px, env(safe-area-inset-left))',
+                  paddingRight: 'max(16px, env(safe-area-inset-right))'
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-transparent pointer-events-none" />
+                
+                <button
+                  onClick={() => window.history.back()}
+                  className="relative text-white hover:text-gray-300 p-2"
+                >
+                  <ChevronLeft size={24} />
+                </button>
+                
+                <div className="relative text-white text-center">
+                  <h2 className="font-semibold">Reels</h2>
+                  <p className="text-xs text-gray-300">{currentIndex + 1} of {formattedReels.length}</p>
+                </div>
+                
+                <div className="w-10" /> {/* Spacer for centering */}
+              </div>
+
+              {/* Reels container */}
+              <div
+                ref={(el) => { if (window.innerWidth < 1024) containerRef.current = el; }}
+                className="w-full h-full overflow-y-auto snap-y snap-mandatory scrollbar-hidden"
+                style={{ WebkitOverflowScrolling: 'touch' }}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+              >
+                {formattedReels.map((reel, index) => (
+                  <ReelVideo
+                    key={reel.id}
+                    reel={reel}
+                    isActive={activeReels.has(index)}
+                    height={window.innerHeight}
+                    onLike={handleLike}
+                    isLiked={likedReels.has(reel.id)}
+                    globalMuted={globalMuted}
+                    onMuteToggle={handleMuteToggle}
+                    layout="mobile"
+                  />
+                ))}
+              </div>
+            </div>
+          </motion.div>
 
       {/* Desktop Layout (lg+) - Integrated with site shell */}
       <div className="hidden lg:flex justify-center items-center min-h-screen">
@@ -312,28 +323,6 @@ const ReelsPage = () => {
             )}
           </div>
 
-          {/* Navigation arrows */}
-          {currentIndex > 0 && (
-            <button
-              onClick={() => navigate('prev')}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 -translate-x-full text-white hover:text-gray-300 z-30 bg-black/50 rounded-full p-2 backdrop-blur-sm"
-            >
-              <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-              </svg>
-            </button>
-          )}
-          
-          {currentIndex < formattedReels.length - 1 && (
-            <button
-              onClick={() => navigate('next')}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 translate-x-full text-white hover:text-gray-300 z-30 bg-black/50 rounded-full p-2 backdrop-blur-sm"
-            >
-              <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
-              </svg>
-            </button>
-          )}
 
           {/* Action rail beside the stage */}
           <div 
@@ -358,23 +347,10 @@ const ReelsPage = () => {
             )}
           </div>
 
-          {/* Progress indicator */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1">
-            {formattedReels.map((_, index) => (
-              <div
-                key={index}
-                className={`h-1 rounded-full transition-all cursor-pointer ${
-                  index === currentIndex ? 'bg-white w-8' : 'bg-white/50 w-1 hover:bg-white/75'
-                }`}
-                onClick={() => {
-                  setCurrentIndex(index);
-                  setActiveReels(new Set([index]));
-                }}
-              />
-            ))}
-          </div>
         </div>
       </div>
+        </>
+      )}
     </>
   );
 };
