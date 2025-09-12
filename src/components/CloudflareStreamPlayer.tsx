@@ -84,17 +84,20 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
       if (isSafari || !Hls.isSupported()) {
         video.src = hlsUrl;
       } else {
-        // Optimized HLS.js settings for instant start
+        // Optimized HLS.js settings for instant start and better error handling
         const hls = new Hls({
           enableWorker: true,
           lowLatencyMode: true,
           startLevel: 0, // Fastest first frame
           capLevelToPlayerSize: true,
           maxBufferLength: 10,
-          backBufferLength: 30,
-          fragLoadingTimeOut: 6000,
-          manifestLoadingTimeOut: 6000,
-          abrEwmaDefaultEstimate: 3e5
+          backBufferLength: 15,
+          fragLoadingTimeOut: 10000, // Increased timeout
+          manifestLoadingTimeOut: 10000, // Increased timeout
+          abrEwmaDefaultEstimate: 3e5,
+          fragLoadingMaxRetry: 3,
+          manifestLoadingMaxRetry: 3,
+          levelLoadingMaxRetry: 3
         });
         
         hlsRef.current = hls;
@@ -103,9 +106,16 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
         
         hls.on(Hls.Events.ERROR, (event, data) => {
           if (abortControllerRef.current?.signal.aborted) return;
-          console.warn('HLS Error:', event, data);
+          
           if (data.fatal) {
-            video.src = `https://videodelivery.net/${videoId}/downloads/default.mp4`;
+            console.warn('HLS Fatal Error, falling back to MP4:', data);
+            // Single fallback to MP4 - don't retry HLS
+            if (!video.src.includes('downloads')) {
+              video.src = `https://videodelivery.net/${videoId}/downloads/default.mp4`;
+            }
+          } else {
+            // Non-fatal errors - let HLS.js handle recovery
+            console.warn('HLS Non-fatal Error:', data.type, data.details);
           }
         });
       }
@@ -255,7 +265,7 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
           poster={poster || `https://videodelivery.net/${videoId}/thumbnails/thumbnail.jpg?time=1s&height=720`}
           playsInline
           webkit-playsinline="true"
-          preload="auto"
+          preload={isActive ? "auto" : "metadata"}
           crossOrigin="anonymous"
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           onPlay={onPlay}

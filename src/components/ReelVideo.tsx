@@ -41,12 +41,11 @@ const ReelVideo = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [progress, setProgress] = useState(0);
 
-  // Progress tracking
+  // Progress tracking - use the ref directly instead of DOM query
   useEffect(() => {
-    if (!isActive) return;
+    if (!isActive || !videoRef.current) return;
 
-    const video = document.querySelector(`[data-reel-id="${reel.id}"] video`) as HTMLVideoElement;
-    if (!video) return;
+    const video = videoRef.current;
 
     const updateProgress = () => {
       if (video.duration) {
@@ -56,7 +55,7 @@ const ReelVideo = ({
 
     const interval = setInterval(updateProgress, 100);
     return () => clearInterval(interval);
-  }, [isActive, reel.id]);
+  }, [isActive]);
 
   const handleLikeClick = useCallback(() => {
     onLike(reel.id);
@@ -70,6 +69,7 @@ const ReelVideo = ({
           {/* Video Player */}
         {reel.isCloudflare ? (
           <CloudflareStreamPlayer
+            ref={videoRef}
             videoId={reel.videoUrl}
             isActive={isActive}
             muted={globalMuted}
@@ -123,6 +123,7 @@ const ReelVideo = ({
         {/* Video Player with interactions - fills the stage */}
         {reel.isCloudflare ? (
           <CloudflareStreamPlayer
+            ref={videoRef}
             videoId={reel.videoUrl}
             isActive={isActive}
             muted={globalMuted}
@@ -179,6 +180,7 @@ const ReelVideo = ({
       {/* Video Player with interactions */}
       {reel.isCloudflare ? (
         <CloudflareStreamPlayer
+          ref={videoRef}
           videoId={reel.videoUrl}
           isActive={isActive}
           muted={globalMuted}

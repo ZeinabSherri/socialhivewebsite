@@ -103,6 +103,22 @@ const ReelsPage = () => {
     isCloudflare: reel.isCloudflare ?? false
   }));
 
+  // Warmup next reel when current becomes active
+  useEffect(() => {
+    if (currentIndex < formattedReels.length - 1) {
+      const nextReel = formattedReels[currentIndex + 1];
+      if (nextReel?.isCloudflare) {
+        // Find the next reel's video player and trigger warmup
+        setTimeout(() => {
+          const nextReelElement = document.querySelector(`[data-reel-id="${nextReel.id}"] video`) as any;
+          if (nextReelElement?.startWarmupLoad) {
+            nextReelElement.startWarmupLoad();
+          }
+        }, 500); // Small delay to avoid interfering with current playback
+      }
+    }
+  }, [currentIndex, formattedReels]);
+
   const navigate = useCallback((direction: 'prev' | 'next') => {
     if (isNavigatingRef.current) return;
 
@@ -209,10 +225,10 @@ const ReelsPage = () => {
     return () => window.removeEventListener('wheel', onWheel);
   }, [navigate]);
 
-  // Handle scroll-based navigation and IntersectionObserver
+  // Handle scroll-based navigation and IntersectionObserver (mobile only)
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container || window.innerWidth >= 1024) return; // Only for mobile
 
     // Register video elements with observer
     const reelElements = container.querySelectorAll('section[data-reel-id]');
