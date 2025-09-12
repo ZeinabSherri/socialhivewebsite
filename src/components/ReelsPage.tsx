@@ -47,30 +47,24 @@ const ReelsPage = () => {
 
   // UI state
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(0); // Single active reel
   const [likedReels, setLikedReels] = useState<Set<number>>(new Set());
   const [globalMuted, setGlobalMuted] = useState(true);
-  const [activeReels, setActiveReels] = useState<Set<number>>(new Set());
   const [, setNearbyReels] = useState<Set<number>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
   const isNavigatingRef = useRef(false);
 
 
-  // Video observer for autoplay control
+  // Video observer for autoplay control - single active only
   const { observe, disconnect } = useVideoObserver({
     root: containerRef.current,
     rootMargin: "300px 0px",
-    threshold: 0.6,
+    threshold: 0.65, // Slightly higher threshold for cleaner switching
     onActiveChange: (index, isActive) => {
-      setActiveReels(prev => {
-        const newSet = new Set(prev);
-        if (isActive) {
-          newSet.add(index);
-          setCurrentIndex(index);
-        } else {
-          newSet.delete(index);
-        }
-        return newSet;
-      });
+      if (isActive) {
+        setActiveIndex(index);
+        setCurrentIndex(index);
+      }
     },
     onNearby: (index, isNearby) => {
       setNearbyReels(prev => {
@@ -102,22 +96,6 @@ const ReelsPage = () => {
     viewCount: Math.floor(Math.random() * 100000) + 10000,
     isCloudflare: reel.isCloudflare ?? false
   }));
-
-  // Warmup next reel when current becomes active
-  useEffect(() => {
-    if (currentIndex < formattedReels.length - 1) {
-      const nextReel = formattedReels[currentIndex + 1];
-      if (nextReel?.isCloudflare) {
-        // Find the next reel's video player and trigger warmup
-        setTimeout(() => {
-          const nextReelElement = document.querySelector(`[data-reel-id="${nextReel.id}"] video`) as any;
-          if (nextReelElement?.startWarmupLoad) {
-            nextReelElement.startWarmupLoad();
-          }
-        }, 500); // Small delay to avoid interfering with current playback
-      }
-    }
-  }, [currentIndex, formattedReels]);
 
   const navigate = useCallback((direction: 'prev' | 'next') => {
     if (isNavigatingRef.current) return;
@@ -300,7 +278,7 @@ const ReelsPage = () => {
                   <ReelVideo
                     key={reel.id}
                     reel={reel}
-                    isActive={activeReels.has(index)}
+                    isActive={index === activeIndex}
                     height={window.innerHeight}
                     onLike={handleLike}
                     isLiked={likedReels.has(reel.id)}

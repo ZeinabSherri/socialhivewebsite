@@ -1,5 +1,6 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useCallback } from "react";
 import Hls from 'hls.js';
+import { playbackBus } from '../lib/playbackBus';
 
 export type CloudflareStreamPlayerProps = {
   videoId: string;
@@ -50,21 +51,51 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
     const tapTimeoutRef = useRef<number | null>(null);
     const isWarmupLoadedRef = useRef(false);
     const abortControllerRef = useRef<AbortController | null>(null);
+    const reelIdRef = useRef(`reel-${videoId}-${Date.now()}`);
+    const isInitializedRef = useRef(false);
+    const retryTimeoutRef = useRef<number | null>(null);
     
     useImperativeHandle(ref, () => videoRef.current as HTMLVideoElement);
 
-    // Pause function for global registry
-    const pauseVideo = useCallback(() => {
-      const video = videoRef.current;
-      if (video && !video.paused) {
-        video.pause();
-      }
-    }, []);
-
-    // Initialize HLS or native video
-    useEffect(() => {
+    // Complete teardown function
+    const teardownVideo = useCallback(() => {
       const video = videoRef.current;
       if (!video) return;
+
+      // Stop playback
+      video.pause();
+      video.muted = true;
+
+      // Clear any retry timeouts
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
+      }
+
+      // Stop HLS loading and destroy instance
+      if (hlsRef.current) {
+        hlsRef.current.stopLoad();
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+
+      // Complete audio detachment
+      video.removeAttribute('src');
+      video.load(); // This keeps poster visible but guarantees no ghost audio
+      isInitializedRef.current = false;
+    }, []);
+
+    // Legacy pause function for global registry
+    const pauseVideo = useCallback(() => {
+      teardownVideo();
+    }, [teardownVideo]);
+
+    // Initialize video source only when active or warmup
+    const initializeVideo = useCallback(() => {
+      const video = videoRef.current;
+      if (!video || isInitializedRef.current) return;
+
+      isInitializedRef.current = true;
 
       // Cancel any existing loads
       if (abortControllerRef.current) {
@@ -80,6 +111,11 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
         hlsRef.current.destroy();
         hlsRef.current = null;
       }
+
+      // Set basic video properties
+      video.playsInline = true;
+      video.muted = true; // Always start muted for autoplay policy
+      video.preload = "metadata";
       
       if (isSafari || !Hls.isSupported()) {
         video.src = hlsUrl;
@@ -120,49 +156,89 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
         });
       }
 
+      // Try to play once metadata is loaded
+      const onLoadedMetadata = () => {
+        if (isActive) {
+          video.muted = muted;
+          const playPromise = video.play();
+          if (playPromise) {
+            playPromise.catch((error) => {
+              console.log('Play failed on loadedmetadata, will retry on canplay:', error);
+              // Retry on canplay event
+              const onCanPlay = () => {
+                video.removeEventListener('canplay', onCanPlay);
+                video.play().catch(() => {
+                  console.log('Second play attempt failed');
+                });
+              };
+              video.addEventListener('canplay', onCanPlay, { once: true });
+            });
+          }
+        }
+        onLoadedMetadata?.();
+      };
+
+      video.addEventListener('loadedmetadata', onLoadedMetadata, { once: true });
+    }, [videoId, isActive, muted, onLoadedMetadata]);
+
+    // Setup cleanup and registry
+    useEffect(() => {
       globalPlayerRegistry.add(pauseVideo);
 
       return () => {
         if (abortControllerRef.current) {
           abortControllerRef.current.abort();
         }
-        globalPlayerRegistry.delete(pauseVideo);
-        if (hlsRef.current) {
-          hlsRef.current.destroy();
-          hlsRef.current = null;
+        if (retryTimeoutRef.current) {
+          clearTimeout(retryTimeoutRef.current);
         }
+        globalPlayerRegistry.delete(pauseVideo);
+        teardownVideo();
       };
-    }, [videoId, pauseVideo]);
+    }, [pauseVideo, teardownVideo]);
 
-    // Handle active state changes
+    // Playback bus listener for global coordination
+    useEffect(() => {
+      const unsubscribe = playbackBus.subscribe((activeReelId) => {
+        if (activeReelId !== reelIdRef.current) {
+          teardownVideo();
+        }
+      });
+
+      return unsubscribe;
+    }, [teardownVideo]);
+
+    // Handle active state changes with complete teardown/restart
     useEffect(() => {
       const video = videoRef.current;
       if (!video) return;
 
       if (isActive) {
-        // Pause all other players first (one-playing rule)
-        globalPlayerRegistry.forEach(pauseFn => {
-          if (pauseFn !== pauseVideo) {
-            pauseFn();
-          }
-        });
+        // Signal this reel is becoming active
+        playbackBus.setActive(reelIdRef.current);
 
-        // Start playing this video
-        video.muted = true; // Always start muted for autoplay
-        const playPromise = video.play();
-        if (playPromise) {
-          playPromise.then(() => {
-            onPlay?.();
-          }).catch((error) => {
-            console.log('Autoplay failed, will retry on user gesture:', error);
-          });
+        // Initialize video if not already done
+        if (!isInitializedRef.current) {
+          initializeVideo();
+        } else {
+          // Video already initialized, just play
+          video.muted = muted;
+          const playPromise = video.play();
+          if (playPromise) {
+            playPromise.then(() => {
+              onPlay?.();
+            }).catch((error) => {
+              console.log('Autoplay failed, will retry on user gesture:', error);
+            });
+          }
         }
       } else {
-        video.pause();
+        // Complete teardown when not active
+        teardownVideo();
       }
 
       onActiveChange?.(isActive);
-    }, [isActive, onPlay, pauseVideo, onActiveChange]);
+    }, [isActive, muted, onPlay, initializeVideo, teardownVideo, onActiveChange]);
 
     // Visibility change handling
     useEffect(() => {
@@ -189,38 +265,19 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
         video.muted = muted;
       }
     }, [muted]);
+    // Warmup effect - only initialize metadata, don't start loading
     useEffect(() => {
-      const video = videoRef.current;
-      if (!video || !warmupLoad || isWarmupLoadedRef.current) return;
+      if (!warmupLoad || isWarmupLoadedRef.current || isActive) return;
 
       isWarmupLoadedRef.current = true;
       
-      if (hlsRef.current) {
-        hlsRef.current.startLoad();
-      } else {
-        video.load();
-      }
-    }, [warmupLoad]);
-
-    // Expose warmup method via ref
-    const startWarmupLoad = useCallback(() => {
-      const video = videoRef.current;
-      if (!video || isWarmupLoadedRef.current) return;
-
-      isWarmupLoadedRef.current = true;
-      
-      if (hlsRef.current) {
-        hlsRef.current.startLoad();
-      } else {
-        video.load();
-      }
-    }, []);
-
-    useEffect(() => {
-      if (videoRef.current) {
-        (videoRef.current as any).startWarmupLoad = startWarmupLoad;
-      }
-    }, [startWarmupLoad]);
+      // For warmup, just initialize the video but don't start heavy loading
+      setTimeout(() => {
+        if (!isActive && !isInitializedRef.current) {
+          initializeVideo();
+        }
+      }, 100);
+    }, [warmupLoad, isActive, initializeVideo]);
 
     // Handle tap gestures - single tap mute/unmute, double tap callback
     const handleVideoTap = useCallback((e: React.TouchEvent | React.MouseEvent) => {
