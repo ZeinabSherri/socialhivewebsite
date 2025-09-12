@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import ReelPlayer from './ReelPlayer';
 import ReelActionRail from './ReelActionRail';
 import ReelMeta from './ReelMeta';
 import CloudflareStreamPlayer from './CloudflareStreamPlayer';
+import VolumeToast from './VolumeToast';
+import HeartBurst from './HeartBurst';
 
 interface ReelVideoProps {
   reel: {
@@ -40,6 +43,8 @@ const ReelVideo = ({
 }: ReelVideoProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [progress, setProgress] = useState(0);
+  const [showVolumeToast, setShowVolumeToast] = useState(false);
+  const [showHeartBurst, setShowHeartBurst] = useState(false);
 
   // Progress tracking - use the ref directly instead of DOM query
   useEffect(() => {
@@ -61,6 +66,17 @@ const ReelVideo = ({
     onLike(reel.id);
   }, [onLike, reel.id]);
 
+  const handleMuteToggle = useCallback(() => {
+    onMuteToggle();
+    setShowVolumeToast(true);
+    setTimeout(() => setShowVolumeToast(false), 1000);
+  }, [onMuteToggle]);
+
+  const handleDoubleTap = useCallback(() => {
+    onLike(reel.id);
+    setShowHeartBurst(true);
+  }, [onLike, reel.id]);
+
   if (layout === 'desktop') {
     return (
       <div className="flex flex-col h-full w-full">
@@ -76,8 +92,8 @@ const ReelVideo = ({
             loop={true}
             controls={false}
             className="w-full h-full"
-            onTap={onMuteToggle}
-            onDoubleTap={() => onLike(reel.id)}
+            onTap={handleMuteToggle}
+            onDoubleTap={handleDoubleTap}
             warmupLoad={!isActive}
           />
         ) : (
@@ -130,8 +146,8 @@ const ReelVideo = ({
             loop={true}
             controls={false}
             className="w-full h-full"
-            onTap={onMuteToggle}
-            onDoubleTap={() => onLike(reel.id)}
+            onTap={handleMuteToggle}
+            onDoubleTap={handleDoubleTap}
             warmupLoad={!isActive}
           />
         ) : (
@@ -166,6 +182,16 @@ const ReelVideo = ({
             layout="desktop"
           />
         </div>
+
+        {/* Volume Toast */}
+        <VolumeToast isMuted={globalMuted} isVisible={showVolumeToast} />
+
+        {/* Heart burst animation */}
+        <AnimatePresence>
+          {showHeartBurst && (
+            <HeartBurst onComplete={() => setShowHeartBurst(false)} />
+          )}
+        </AnimatePresence>
       </div>
     );
   }
@@ -187,8 +213,8 @@ const ReelVideo = ({
           loop={true}
           controls={false}
           className="absolute inset-0 w-full h-full"
-          onTap={onMuteToggle}
-          onDoubleTap={() => onLike(reel.id)}
+          onTap={handleMuteToggle}
+          onDoubleTap={handleDoubleTap}
           warmupLoad={!isActive}
         />
       ) : (
@@ -238,6 +264,16 @@ const ReelVideo = ({
         audioTitle={reel.audioTitle}
         avatar={reel.avatar}
       />
+
+      {/* Volume Toast */}
+      <VolumeToast isMuted={globalMuted} isVisible={showVolumeToast} />
+
+      {/* Heart burst animation */}
+      <AnimatePresence>
+        {showHeartBurst && (
+          <HeartBurst onComplete={() => setShowHeartBurst(false)} />
+        )}
+      </AnimatePresence>
     </section>
   );
 };

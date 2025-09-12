@@ -59,7 +59,7 @@ const ReelsPage = () => {
   const { observe, disconnect } = useVideoObserver({
     root: containerRef.current,
     rootMargin: "0px 0px -30% 0px", // Avoid two items being active at once
-    threshold: 0.8, // High threshold for cleaner single-active behavior
+    threshold: 0.7, // Adjusted threshold for cleaner single-active behavior
     onActiveChange: (index, isActive) => {
       if (isActive) {
         setActiveIndex(index);
