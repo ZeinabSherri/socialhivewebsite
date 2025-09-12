@@ -54,48 +54,59 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
     const reelIdRef = useRef(`reel-${videoId}-${Date.now()}`);
     const isInitializedRef = useRef(false);
     const retryTimeoutRef = useRef<number | null>(null);
+    const playGenRef = useRef(0); // Race-condition guard token
     
     useImperativeHandle(ref, () => videoRef.current as HTMLVideoElement);
 
-    // Complete teardown function
-    const teardownVideo = useCallback(() => {
+    // Hard stop routine - complete teardown with race-condition guard
+    const hardStop = useCallback(() => {
       const video = videoRef.current;
       if (!video) return;
 
-      // Stop playback
-      video.pause();
-      video.muted = true;
+      try {
+        // Invalidate current play generation
+        playGenRef.current++;
+        
+        // Stop playback and reset
+        video.pause();
+        video.muted = true;
+        video.currentTime = 0;
 
-      // Clear any retry timeouts
-      if (retryTimeoutRef.current) {
-        clearTimeout(retryTimeoutRef.current);
-        retryTimeoutRef.current = null;
+        // Clear any retry timeouts
+        if (retryTimeoutRef.current) {
+          clearTimeout(retryTimeoutRef.current);
+          retryTimeoutRef.current = null;
+        }
+
+        // Stop HLS loading and destroy instance
+        if (hlsRef.current) {
+          hlsRef.current.stopLoad?.();
+          hlsRef.current.detachMedia?.();
+          hlsRef.current.destroy?.();
+          hlsRef.current = null;
+        }
+
+        // Fully detach audio pipeline - guarantees no ghost audio on all browsers
+        video.removeAttribute('src');
+        video.load(); // Keeps poster visible but completely detaches audio
+        isInitializedRef.current = false;
+      } catch (error) {
+        console.warn('Error in hardStop:', error);
       }
-
-      // Stop HLS loading and destroy instance
-      if (hlsRef.current) {
-        hlsRef.current.stopLoad();
-        hlsRef.current.destroy();
-        hlsRef.current = null;
-      }
-
-      // Complete audio detachment
-      video.removeAttribute('src');
-      video.load(); // This keeps poster visible but guarantees no ghost audio
-      isInitializedRef.current = false;
     }, []);
 
     // Legacy pause function for global registry
     const pauseVideo = useCallback(() => {
-      teardownVideo();
-    }, [teardownVideo]);
+      hardStop();
+    }, [hardStop]);
 
-    // Initialize video source only when active or warmup
-    const initializeVideo = useCallback(() => {
+    // Initialize video source with race-condition guard
+    const initializeAndPlay = useCallback(() => {
       const video = videoRef.current;
-      if (!video || isInitializedRef.current) return;
+      if (!video) return;
 
-      isInitializedRef.current = true;
+      // Get current play generation for race-condition guard
+      const myPlayGen = ++playGenRef.current;
 
       // Cancel any existing loads
       if (abortControllerRef.current) {
@@ -112,25 +123,26 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
         hlsRef.current = null;
       }
 
-      // Set basic video properties
+      // Set autoplay policy compliant attributes
+      video.setAttribute('playsinline', '');
+      video.setAttribute('muted', '');
       video.playsInline = true;
-      video.muted = true; // Always start muted for autoplay policy
+      video.muted = true;
       video.preload = "metadata";
       
+      // Attach source based on Safari/native vs HLS
       if (isSafari || !Hls.isSupported()) {
         video.src = hlsUrl;
       } else {
-        // Optimized HLS.js settings for instant start and better error handling
         const hls = new Hls({
           enableWorker: true,
           lowLatencyMode: true,
-          startLevel: 0, // Fastest first frame
+          startLevel: 0,
           capLevelToPlayerSize: true,
           maxBufferLength: 10,
           backBufferLength: 15,
-          fragLoadingTimeOut: 10000, // Increased timeout
-          manifestLoadingTimeOut: 10000, // Increased timeout
-          abrEwmaDefaultEstimate: 3e5,
+          fragLoadingTimeOut: 10000,
+          manifestLoadingTimeOut: 10000,
           fragLoadingMaxRetry: 3,
           manifestLoadingMaxRetry: 3,
           levelLoadingMaxRetry: 3
@@ -141,45 +153,48 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
         hls.attachMedia(video);
         
         hls.on(Hls.Events.ERROR, (event, data) => {
-          if (abortControllerRef.current?.signal.aborted) return;
+          if (abortControllerRef.current?.signal.aborted || playGenRef.current !== myPlayGen) return;
           
           if (data.fatal) {
-            console.warn('HLS Fatal Error, falling back to MP4:', data);
-            // Single fallback to MP4 - don't retry HLS
+            console.warn('HLS Fatal Error, falling back to MP4 once:', data);
             if (!video.src.includes('downloads')) {
               video.src = `https://videodelivery.net/${videoId}/downloads/default.mp4`;
             }
-          } else {
-            // Non-fatal errors - let HLS.js handle recovery
-            console.warn('HLS Non-fatal Error:', data.type, data.details);
           }
         });
       }
 
-      // Try to play once metadata is loaded
-      const onLoadedMetadata = () => {
-        if (isActive) {
-          video.muted = muted;
-          const playPromise = video.play();
-          if (playPromise) {
-            playPromise.catch((error) => {
-              console.log('Play failed on loadedmetadata, will retry on canplay:', error);
-              // Retry on canplay event
-              const onCanPlay = () => {
-                video.removeEventListener('canplay', onCanPlay);
-                video.play().catch(() => {
-                  console.log('Second play attempt failed');
-                });
-              };
-              video.addEventListener('canplay', onCanPlay, { once: true });
-            });
-          }
+      // Play attempt with race-condition guard
+      const tryPlay = () => {
+        if (playGenRef.current !== myPlayGen) return; // Stale play attempt
+        
+        video.muted = muted;
+        const playPromise = video.play();
+        if (playPromise) {
+          playPromise.catch(() => {
+            if (playGenRef.current !== myPlayGen) return;
+            // Retry on canplay
+            const onCanPlay = () => {
+              video.removeEventListener('canplay', onCanPlay);
+              if (playGenRef.current !== myPlayGen) return;
+              video.play().catch(() => {});
+            };
+            video.addEventListener('canplay', onCanPlay, { once: true });
+          });
         }
-        onLoadedMetadata?.();
+      };
+
+      // Try play on loadedmetadata
+      const onLoadedMetadata = () => {
+        if (playGenRef.current === myPlayGen) {
+          tryPlay();
+          onLoadedMetadata?.();
+        }
       };
 
       video.addEventListener('loadedmetadata', onLoadedMetadata, { once: true });
-    }, [videoId, isActive, muted, onLoadedMetadata]);
+      isInitializedRef.current = true;
+    }, [videoId, muted, onLoadedMetadata]);
 
     // Setup cleanup and registry
     useEffect(() => {
@@ -193,70 +208,75 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
           clearTimeout(retryTimeoutRef.current);
         }
         globalPlayerRegistry.delete(pauseVideo);
-        teardownVideo();
+        hardStop();
       };
-    }, [pauseVideo, teardownVideo]);
+    }, [pauseVideo, hardStop]);
 
-    // Playback bus listener for global coordination
+    // Enhanced playback bus listener for instant coordination
     useEffect(() => {
       const unsubscribe = playbackBus.subscribe((activeReelId) => {
         if (activeReelId !== reelIdRef.current) {
-          teardownVideo();
+          hardStop(); // Instant hard stop for others
         }
       });
 
       return unsubscribe;
-    }, [teardownVideo]);
+    }, [hardStop]);
 
-    // Handle active state changes with complete teardown/restart
+    // Handle active state changes with complete teardown/restart and instant coordination
     useEffect(() => {
       const video = videoRef.current;
       if (!video) return;
 
       if (isActive) {
-        // Signal this reel is becoming active
+        // Force stop others instantly, then signal this reel is becoming active
+        playbackBus.forceStopOthers(reelIdRef.current);
         playbackBus.setActive(reelIdRef.current);
 
-        // Initialize video if not already done
-        if (!isInitializedRef.current) {
-          initializeVideo();
-        } else {
-          // Video already initialized, just play
-          video.muted = muted;
-          const playPromise = video.play();
-          if (playPromise) {
-            playPromise.then(() => {
-              onPlay?.();
-            }).catch((error) => {
-              console.log('Autoplay failed, will retry on user gesture:', error);
-            });
-          }
-        }
+        // Always reinitialize for clean start - no partial state
+        initializeAndPlay();
+        onPlay?.();
       } else {
-        // Complete teardown when not active
-        teardownVideo();
+        // Hard stop when not active - complete teardown
+        hardStop();
       }
 
       onActiveChange?.(isActive);
-    }, [isActive, muted, onPlay, initializeVideo, teardownVideo, onActiveChange]);
+    }, [isActive, initializeAndPlay, hardStop, onActiveChange, onPlay]);
 
-    // Visibility change handling
+    // Visibility change handling with play generation guard
     useEffect(() => {
       const handleVisibilityChange = () => {
         const video = videoRef.current;
         if (!video) return;
 
         if (document.hidden) {
-          video.pause();
+          // Hard stop non-active, pause active
+          if (isActive) {
+            video.pause();
+          } else {
+            hardStop();
+          }
         } else if (isActive && !document.hidden) {
+          // Only current active item attempts play with generation guard
+          const currentGen = playGenRef.current;
           video.muted = true;
-          video.play().catch(() => {});
+          video.play().catch(() => {
+            if (playGenRef.current === currentGen) {
+              // Retry once if same generation
+              setTimeout(() => {
+                if (playGenRef.current === currentGen) {
+                  video.play().catch(() => {});
+                }
+              }, 100);
+            }
+          });
         }
       };
 
       document.addEventListener('visibilitychange', handleVisibilityChange);
       return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-    }, [isActive]);
+    }, [isActive, hardStop]);
 
     // Sync video muted state with prop
     useEffect(() => {
@@ -265,19 +285,19 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
         video.muted = muted;
       }
     }, [muted]);
-    // Warmup effect - only initialize metadata, don't start loading
+    // True lazy-load: warmup effect - only preload metadata, don't start HLS loading
     useEffect(() => {
       if (!warmupLoad || isWarmupLoadedRef.current || isActive) return;
 
       isWarmupLoadedRef.current = true;
       
-      // For warmup, just initialize the video but don't start heavy loading
-      setTimeout(() => {
-        if (!isActive && !isInitializedRef.current) {
-          initializeVideo();
-        }
-      }, 100);
-    }, [warmupLoad, isActive, initializeVideo]);
+      // For warmup: set preload="metadata" only, don't attach full source
+      const video = videoRef.current;
+      if (video && !isInitializedRef.current) {
+        video.preload = "metadata";
+        // Don't initialize full HLS yet - just prepare metadata
+      }
+    }, [warmupLoad, isActive]);
 
     // Handle tap gestures - single tap mute/unmute, double tap callback
     const handleVideoTap = useCallback((e: React.TouchEvent | React.MouseEvent) => {

@@ -55,11 +55,11 @@ const ReelsPage = () => {
   const isNavigatingRef = useRef(false);
 
 
-  // Video observer for autoplay control - single active only
+  // Single IntersectionObserver for activeIndex control - no per-item observers
   const { observe, disconnect } = useVideoObserver({
     root: containerRef.current,
-    rootMargin: "300px 0px",
-    threshold: 0.65, // Slightly higher threshold for cleaner switching
+    rootMargin: "0px 0px -30% 0px", // Avoid two items being active at once
+    threshold: 0.8, // High threshold for cleaner single-active behavior
     onActiveChange: (index, isActive) => {
       if (isActive) {
         setActiveIndex(index);
@@ -276,9 +276,9 @@ const ReelsPage = () => {
               >
                 {formattedReels.map((reel, index) => (
                   <ReelVideo
-                    key={reel.id}
+                    key={reel.id} // Stable React key for no orphaned playing nodes
                     reel={reel}
-                    isActive={index === activeIndex}
+                    isActive={index === activeIndex} // Single activeIndex control
                     height={window.innerHeight}
                     onLike={handleLike}
                     isLiked={likedReels.has(reel.id)}

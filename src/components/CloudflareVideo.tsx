@@ -30,21 +30,59 @@ const CloudflareVideo = forwardRef<HTMLVideoElement, CloudflareVideoProps>(
       const hlsSrc = `https://videodelivery.net/${uid}/manifest/video.m3u8`;
       let hlsInstance: Hls | null = null;
 
+      // Hard stop function for complete teardown
+      const hardStop = () => {
+        try {
+          video.pause();
+          video.muted = true;
+          video.currentTime = 0;
+          
+          if (hlsInstance) {
+            hlsInstance.stopLoad?.();
+            hlsInstance.detachMedia?.();
+            hlsInstance.destroy?.();
+            hlsInstance = null;
+          }
+          
+          // Fully detach audio pipeline
+          video.removeAttribute('src');
+          video.load(); // Keeps poster, guarantees no ghost audio
+        } catch (error) {
+          console.warn('Error in CloudflareVideo hardStop:', error);
+        }
+      };
+
       // Native HLS (Safari)
       const hasNativeHls =
         typeof video.canPlayType === 'function' &&
         video.canPlayType('application/vnd.apple.mpegurl') !== '';
 
+      // Set autoplay policy compliant attributes
+      video.setAttribute('playsinline', '');
+      video.setAttribute('muted', '');
+      video.playsInline = true;
+      video.muted = true;
+
       if (hasNativeHls) {
         video.src = hlsSrc;
-        return () => {
-          video.removeAttribute('src');
-        };
-      }
-
-      // Other browsers → hls.js
-      if (Hls.isSupported()) {
-        hlsInstance = new Hls({ maxBufferLength: 30, backBufferLength: 30 });
+      } else if (Hls.isSupported()) {
+        // Other browsers → hls.js with error handling
+        hlsInstance = new Hls({ 
+          maxBufferLength: 30, 
+          backBufferLength: 30,
+          fragLoadingMaxRetry: 2,
+          manifestLoadingMaxRetry: 2
+        });
+        
+        hlsInstance.on(Hls.Events.ERROR, (event, data) => {
+          if (data.fatal) {
+            console.warn('CloudflareVideo HLS Fatal Error, falling back to MP4:', data);
+            if (!video.src.includes('downloads')) {
+              video.src = `https://videodelivery.net/${uid}/downloads/default.mp4`;
+            }
+          }
+        });
+        
         hlsInstance.loadSource(hlsSrc);
         hlsInstance.attachMedia(video);
       } else {
@@ -53,7 +91,7 @@ const CloudflareVideo = forwardRef<HTMLVideoElement, CloudflareVideoProps>(
       }
 
       return () => {
-        if (hlsInstance) hlsInstance.destroy();
+        hardStop(); // Complete teardown on unmount
       };
     }, [uid]);
 
