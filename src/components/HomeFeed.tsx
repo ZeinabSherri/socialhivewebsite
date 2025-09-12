@@ -1,4 +1,4 @@
-import React, { useState, useRef, createRef } from "react";
+import React, { useState, useRef, createRef, useEffect } from "react";
 import PostCard from "./PostCard";
 import Stories from "./Stories";
 import FlyingBee from "./FlyingBee";
@@ -33,6 +33,8 @@ export interface Post {
   staticComments: Comment[];
 }
 
+// Now update the page controllers to use IntersectionObserver for single active item control
+// Add IntersectionObserver logic to HomeFeed
 const HomeFeed: React.FC<{ onNavigateToProfile?: () => void }> = ({
   onNavigateToProfile,
 }) => {
@@ -259,11 +261,40 @@ const HomeFeed: React.FC<{ onNavigateToProfile?: () => void }> = ({
   const allPosts = dedup([...originalPosts, ...cloudflarePosts]).filter(p => !shouldRemove(p));
 
   const [posts, setPosts] = useState<Post[]>(allPosts);
+  const [activeIndex, setActiveIndex] = useState<number>(-1);
 
   const postRefs = useRef<React.RefObject<HTMLDivElement>[]>([]);
   if (postRefs.current.length !== posts.length) {
     postRefs.current = posts.map(() => createRef<HTMLDivElement>());
   }
+
+  // Single active item control with IntersectionObserver
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.7) {
+            const index = postRefs.current.findIndex(ref => ref.current === entry.target);
+            if (index !== -1 && index !== activeIndex) {
+              setActiveIndex(index);
+            }
+          }
+        });
+      },
+      {
+        threshold: 0.7,
+        rootMargin: '-10% 0px -10% 0px'
+      }
+    );
+
+    postRefs.current.forEach((ref) => {
+      if (ref.current) {
+        observer.observe(ref.current);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, [posts.length, activeIndex]);
 
   const handleLike = (postId: number | string) => {
     setPosts((prev) =>
@@ -305,6 +336,7 @@ const HomeFeed: React.FC<{ onNavigateToProfile?: () => void }> = ({
               onUsernameClick={onNavigateToProfile}
               onDelete={() => handleDelete(post.id)}
               isFirstPost={idx === 0}
+              isActive={idx === activeIndex}
             />
           </div>
         ))}

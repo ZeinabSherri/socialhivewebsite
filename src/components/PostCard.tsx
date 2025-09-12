@@ -50,6 +50,7 @@ interface PostCardProps {
   onUsernameClick?: () => void
   onDelete?: () => void
   isFirstPost?: boolean
+  isActive?: boolean
 }
 
 const responsive = {
@@ -87,7 +88,8 @@ const PostCard: React.FC<PostCardProps> = ({
   onLike,
   onUsernameClick,
   onDelete,
-  isFirstPost
+  isFirstPost,
+  isActive = false
 }) => {
   const [showFullCaption, setShowFullCaption] = useState(false)
   const [showLoveIcon, setShowLoveIcon] = useState(false)
@@ -97,53 +99,20 @@ const PostCard: React.FC<PostCardProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // IntersectionObserver for video autoplay
-  useEffect(() => {
-    if (post.type !== 'video' || !containerRef.current) return;
+  // Remove manual video control logic since CloudflareStreamPlayer handles it
+  // const [isVideoActive, setIsVideoActive] = useState(false)
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const isIntersecting = entry.isIntersecting && entry.intersectionRatio > 0.6;
-          setIsVideoActive(isIntersecting);
-          
-          if (isIntersecting) {
-            // Pause all other videos
-            document.querySelectorAll('video').forEach((video) => {
-              if (video !== videoRef.current) {
-                video.pause();
-              }
-            });
-          }
-        });
-      },
-      {
-        threshold: 0.6,
-        rootMargin: '300px 0px' // Pre-warm
-      }
-    );
+  // Remove individual IntersectionObserver since HomeFeed handles it globally
+  // useEffect(() => {
+  //   if (post.type !== 'video' || !containerRef.current) return;
+  //   ...
+  // }, [post.type]);
 
-    observer.observe(containerRef.current);
-    return () => observer.disconnect();
-  }, [post.type]);
-
-  // Handle video play/pause based on active state
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || post.type !== 'video') return;
-
-    if (isVideoActive) {
-      video.muted = false;
-      setVideoMuted(false);
-      video.play().catch((error) => {
-        console.log('Autoplay failed:', error);
-      });
-    } else {
-      video.muted = true;
-      setVideoMuted(true);
-      video.pause();
-    }
-  }, [isVideoActive, post.type]);
+  // Remove manual video control since player handles it
+  // useEffect(() => {
+  //   const video = videoRef.current;
+  //   ...
+  // }, [isVideoActive, post.type]);
 
   // ====== BURGER LOGIC (unchanged) =========================================
   const isBurgerPost = post.id === 9
@@ -195,8 +164,8 @@ const PostCard: React.FC<PostCardProps> = ({
           <CloudflareStreamPlayer
             ref={videoRef}
             videoId={post.cloudflareId!}
-            isActive={isVideoActive}
-            muted={!isVideoActive}
+            isActive={isActive}
+            muted={!isActive}
             loop={true}
             controls={false}
             className="w-full h-full rounded-lg overflow-hidden"
@@ -206,7 +175,7 @@ const PostCard: React.FC<PostCardProps> = ({
               setShowLoveIcon(true);
               setTimeout(() => setShowLoveIcon(false), 1000);
             }}
-            warmupLoad={!isVideoActive}
+            warmupLoad={!isActive}
           />
 
           {showLoveIcon && (

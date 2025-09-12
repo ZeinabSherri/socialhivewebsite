@@ -12,6 +12,7 @@ interface ProfilePageProps {
   onNavigateToContact?: () => void;
 }
 
+// Add IntersectionObserver to ProfilePage for proper video control
 const ProfilePage = ({
   onNavigateToContact
 }: ProfilePageProps) => {
@@ -24,7 +25,9 @@ const ProfilePage = ({
   const [showReelsViewer, setShowReelsViewer] = useState(false);
   const [hoveredPostId, setHoveredPostId] = useState<number | null>(null);
   const [showRecommendationsDropdown, setShowRecommendationsDropdown] = useState(false);
+  const [activeIndex, setActiveIndex] = useState<number>(-1);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   // Profile options: main agency + 6 category profiles
   const profileOptions = [
@@ -175,6 +178,36 @@ const ProfilePage = ({
     // Handle like functionality if needed
   };
 
+  // Single active item control for profile grid
+  useEffect(() => {
+    if (!gridRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.7) {
+            const gridItems = Array.from(gridRef.current?.children || []);
+            const index = gridItems.indexOf(entry.target);
+            if (index !== -1 && index !== activeIndex) {
+              setActiveIndex(index);
+            }
+          }
+        });
+      },
+      {
+        threshold: 0.7,
+        rootMargin: '-10% 0px -10% 0px'
+      }
+    );
+
+    const gridItems = Array.from(gridRef.current.children);
+    gridItems.forEach((item) => {
+      observer.observe(item);
+    });
+
+    return () => observer.disconnect();
+  }, [posts.length, activeIndex]);
+
   // Handle outside click for recommendations dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -301,7 +334,7 @@ const ProfilePage = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-1">
+      <div ref={gridRef} className="grid grid-cols-3 gap-1">
         {posts.map((post, index) => <div key={post.id} className="aspect-square bg-gray-900 relative cursor-pointer group" onClick={() => handlePostClick(post, index)} onMouseEnter={() => setHoveredPostId(post.id)} onMouseLeave={() => setHoveredPostId(null)}>
             <img src={post.image} alt={`Post ${post.id}`} className="w-full h-full object-cover transition-opacity duration-200 group-hover:opacity-80" />
             {post.type === 'video' && <div className="absolute top-2 right-2">
