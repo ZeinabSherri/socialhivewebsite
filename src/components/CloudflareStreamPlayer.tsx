@@ -185,14 +185,14 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
       };
 
       // Try play on loadedmetadata
-      const onLoadedMetadata = () => {
+      const handleLoadedMetadata = () => {
         if (playGenRef.current === myPlayGen) {
           tryPlay();
-          onLoadedMetadata?.();
+          onLoadedMetadata?.(); // Call the prop callback
         }
       };
 
-      video.addEventListener('loadedmetadata', onLoadedMetadata, { once: true });
+      video.addEventListener('loadedmetadata', handleLoadedMetadata, { once: true });
       isInitializedRef.current = true;
     }, [videoId, muted, onLoadedMetadata]);
 
