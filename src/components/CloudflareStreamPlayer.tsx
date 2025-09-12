@@ -278,11 +278,44 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
       return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }, [isActive, hardStop]);
 
-    // Sync video muted state with prop
+    // Smooth mute toggle that preserves playback position
+    const toggleMuteSmooth = useCallback(() => {
+      const video = videoRef.current;
+      if (!video) return;
+      
+      const currentTime = video.currentTime;
+      const wasPaused = video.paused;
+      
+      // Flip mute state only
+      video.muted = !video.muted;
+      
+      // iOS/Safari: reflect attribute for policy compliance
+      if (video.muted) {
+        video.setAttribute('muted', '');
+      } else {
+        video.removeAttribute('muted');
+      }
+      
+      // Preserve position and playing state
+      if (Math.abs(video.currentTime - currentTime) > 0.01) {
+        video.currentTime = currentTime;
+      }
+      if (!wasPaused) {
+        video.play().catch(() => {});
+      }
+    }, []);
+
+    // Sync video muted state with prop (initial only, no restart)
     useEffect(() => {
       const video = videoRef.current;
-      if (video && video.muted !== muted) {
+      if (video && isInitializedRef.current && video.muted !== muted) {
+        const currentTime = video.currentTime;
         video.muted = muted;
+        
+        // Preserve position
+        if (Math.abs(video.currentTime - currentTime) > 0.01) {
+          video.currentTime = currentTime;
+        }
       }
     }, [muted]);
     // True lazy-load: warmup effect - only preload metadata, don't start HLS loading
@@ -312,13 +345,16 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
 
       tapTimeoutRef.current = window.setTimeout(() => {
         if (tapCountRef.current === 1) {
-          // Single tap - call external onTap callback for mute toggle
+          // Single tap - smooth mute toggle without restart
           const video = videoRef.current;
           if (video && video.paused && isActive) {
             // If paused due to policy, try to play
             video.play().catch(() => {});
+          } else {
+            // Use smooth mute toggle instead of external callback
+            toggleMuteSmooth();
           }
-          onTap?.();
+          onTap?.(); // Still call external callback for UI updates
         } else if (tapCountRef.current === 2) {
           // Double tap - like animation
           onDoubleTap?.();
@@ -329,7 +365,7 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
         }
         tapCountRef.current = 0;
       }, 250);
-    }, [isActive, onTap, onDoubleTap]);
+    }, [isActive, onTap, onDoubleTap, toggleMuteSmooth]);
 
     return (
       <div className={className}>
