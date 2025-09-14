@@ -100,7 +100,7 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
       hardStop();
     }, [hardStop]);
 
-    // Initialize video source with race-condition guard
+    // Initialize video source with race-condition guard and iOS fix
     const initializeAndPlay = useCallback(() => {
       const video = videoRef.current;
       if (!video) return;
@@ -115,7 +115,10 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
       abortControllerRef.current = new AbortController();
 
       const hlsUrl = `https://videodelivery.net/${videoId}/manifest/video.m3u8`;
-      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      
+      // iOS detection - fixes black screen on mobile
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
       
       // Clean up existing HLS
       if (hlsRef.current) {
@@ -123,17 +126,21 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
         hlsRef.current = null;
       }
 
-      // Set autoplay policy compliant attributes
+      // Set autoplay policy compliant attributes - critical for mobile
       video.setAttribute('playsinline', '');
+      video.setAttribute('webkit-playsinline', ''); // iOS specific fix
       video.setAttribute('muted', '');
+      video.setAttribute('x-webkit-airplay', 'allow'); // iOS AirPlay support
       video.playsInline = true;
       video.muted = true;
       video.preload = "metadata";
       
-      // Attach source based on Safari/native vs HLS
-      if (isSafari || !Hls.isSupported()) {
+      // Platform-specific HLS handling - prevents audio-only on mobile
+      if (isIOS && video.canPlayType('application/vnd.apple.mpegurl')) {
+        // iOS Safari: use native HLS - never mix with hls.js
         video.src = hlsUrl;
-      } else {
+      } else if (hlsUrl.endsWith('.m3u8') && Hls.isSupported()) {
+        // Android/other browsers: use hls.js
         const hls = new Hls({
           enableWorker: true,
           lowLatencyMode: true,
@@ -145,7 +152,8 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
           manifestLoadingTimeOut: 10000,
           fragLoadingMaxRetry: 3,
           manifestLoadingMaxRetry: 3,
-          levelLoadingMaxRetry: 3
+          levelLoadingMaxRetry: 3,
+          autoStartLoad: true // Ensures loading starts immediately
         });
         
         hlsRef.current = hls;
@@ -156,35 +164,44 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
           if (abortControllerRef.current?.signal.aborted || playGenRef.current !== myPlayGen) return;
           
           if (data.fatal) {
-            console.warn('HLS Fatal Error, falling back to MP4 once:', data);
+            console.warn('HLS Fatal Error, falling back to MP4:', data);
             if (!video.src.includes('downloads')) {
               video.src = `https://videodelivery.net/${videoId}/downloads/default.mp4`;
             }
           }
         });
+      } else {
+        // Fallback to MP4 for unsupported browsers
+        video.src = `https://videodelivery.net/${videoId}/downloads/default.mp4`;
       }
 
-      // Play attempt with race-condition guard
+      // Mobile-optimized play attempt with requestAnimationFrame
       const tryPlay = () => {
         if (playGenRef.current !== myPlayGen) return; // Stale play attempt
         
         video.muted = muted;
-        const playPromise = video.play();
-        if (playPromise) {
-          playPromise.catch(() => {
-            if (playGenRef.current !== myPlayGen) return;
-            // Retry on canplay
-            const onCanPlay = () => {
-              video.removeEventListener('canplay', onCanPlay);
+        
+        // Use requestAnimationFrame for better mobile compatibility
+        requestAnimationFrame(() => {
+          if (playGenRef.current !== myPlayGen) return;
+          
+          const playPromise = video.play();
+          if (playPromise) {
+            playPromise.catch(() => {
               if (playGenRef.current !== myPlayGen) return;
-              video.play().catch(() => {});
-            };
-            video.addEventListener('canplay', onCanPlay, { once: true });
-          });
-        }
+              // Retry on canplay for mobile autoplay policy
+              const onCanPlay = () => {
+                video.removeEventListener('canplay', onCanPlay);
+                if (playGenRef.current !== myPlayGen) return;
+                video.play().catch(() => {});
+              };
+              video.addEventListener('canplay', onCanPlay, { once: true });
+            });
+          }
+        });
       };
 
-      // Try play on loadedmetadata
+      // Try play on loadedmetadata with mobile considerations
       const handleLoadedMetadata = () => {
         if (playGenRef.current === myPlayGen) {
           tryPlay();

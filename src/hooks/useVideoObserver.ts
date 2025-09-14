@@ -11,6 +11,7 @@ export type VideoObserverOptions = {
 /**
  * Custom hook for managing video autoplay with IntersectionObserver
  * Handles both active playback and nearby warmup loading
+ * Enhanced with mobile autoplay support
  */
 export const useVideoObserver = (options: VideoObserverOptions) => {
   const activeObserverRef = useRef<IntersectionObserver | null>(null);
@@ -25,6 +26,31 @@ export const useVideoObserver = (options: VideoObserverOptions) => {
     onNearby
   } = options;
 
+  // Mobile autoplay helpers - handles video play/pause on visibility
+  const onEnter = useCallback(async (element: Element) => {
+    // Find video element within the observed element
+    const video = element.querySelector('video') as HTMLVideoElement;
+    if (video) {
+      try {
+        // Ensure video is muted for autoplay policy compliance
+        video.muted = true;
+        video.setAttribute('muted', '');
+        await video.play();
+      } catch (error) {
+        // Autoplay failed - expected on some platforms
+        console.debug('Autoplay failed, will retry on user interaction');
+      }
+    }
+  }, []);
+
+  const onLeave = useCallback((element: Element) => {
+    // Find video element and pause it
+    const video = element.querySelector('video') as HTMLVideoElement;
+    if (video) {
+      video.pause();
+    }
+  }, []);
+
   // Initialize observers
   useEffect(() => {
     // Primary observer for active playback
@@ -34,6 +60,14 @@ export const useVideoObserver = (options: VideoObserverOptions) => {
           const index = elementsRef.current.get(entry.target);
           if (index !== undefined) {
             const isActive = entry.isIntersecting && entry.intersectionRatio >= threshold;
+            
+            // Enhanced mobile autoplay handling
+            if (isActive) {
+              onEnter(entry.target);
+            } else {
+              onLeave(entry.target);
+            }
+            
             onActiveChange?.(index, isActive);
           }
         });
@@ -68,7 +102,7 @@ export const useVideoObserver = (options: VideoObserverOptions) => {
       activeObserverRef.current?.disconnect();
       nearbyObserverRef.current?.disconnect();
     };
-  }, [root, rootMargin, threshold, onActiveChange, onNearby]);
+  }, [root, rootMargin, threshold, onActiveChange, onNearby, onEnter, onLeave]);
 
   // Function to register an element for observation
   const observe = useCallback((element: Element, index: number) => {
