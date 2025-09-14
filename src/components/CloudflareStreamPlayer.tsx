@@ -100,7 +100,7 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
       hardStop();
     }, [hardStop]);
 
-    // Initialize video source with race-condition guard
+    // Initialize video source with race-condition guard and iOS fix
     const initializeAndPlay = useCallback(() => {
       const video = videoRef.current;
       if (!video) return;
@@ -115,20 +115,23 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
       abortControllerRef.current = new AbortController();
 
       const hlsUrl = `https://videodelivery.net/${videoId}/manifest/video.m3u8`;
-      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
       
-      // Clean up existing HLS
-      if (hlsRef.current) {
-        hlsRef.current.destroy();
-        hlsRef.current = null;
-      }
+      // iOS detection - fixes black screen on mobile
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      
+  // Clean up existing HLS
+  if (hlsRef.current) {
+    hlsRef.current.destroy();
+    hlsRef.current = null;
+  }
 
-      // Set autoplay policy compliant attributes
+  // Set autoplay policy compliant attributes - critical for mobile
+  // Ensure inline playback on iOS and allow AirPlay without fullscreen.
   video.setAttribute('playsinline', '');
-  // iOS requires these to avoid forcing fullscreen playback which can render black on some devices
   video.setAttribute('webkit-playsinline', 'true');
   video.setAttribute('x-webkit-airplay', 'allow');
-      video.playsInline = true;
+  video.playsInline = true;
       video.preload = "auto";
       
       // Set initial mute state but prepare for unmuting
@@ -136,10 +139,12 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
       video.defaultMuted = false; // Allow unmuting
       video.volume = 1.0; // Ensure volume is up for unmuting
       
-      // Attach source based on Safari/native vs HLS
-      if (isSafari || !Hls.isSupported()) {
+      // Platform-specific HLS handling - prevents audio-only on mobile
+      if (isIOS && video.canPlayType('application/vnd.apple.mpegurl')) {
+        // iOS Safari: use native HLS - never mix with hls.js
         video.src = hlsUrl;
-      } else {
+      } else if (hlsUrl.endsWith('.m3u8') && Hls.isSupported()) {
+        // Android/other browsers: use hls.js
         const hls = new Hls({
           enableWorker: true,
           lowLatencyMode: true,
@@ -151,7 +156,8 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
           manifestLoadingTimeOut: 10000,
           fragLoadingMaxRetry: 3,
           manifestLoadingMaxRetry: 3,
-          levelLoadingMaxRetry: 3
+          levelLoadingMaxRetry: 3,
+          autoStartLoad: true // Ensures loading starts immediately
         });
         
         hlsRef.current = hls;
@@ -162,60 +168,44 @@ const CloudflareStreamPlayer = forwardRef<HTMLVideoElement, CloudflareStreamPlay
           if (abortControllerRef.current?.signal.aborted || playGenRef.current !== myPlayGen) return;
           
           if (data.fatal) {
-            console.warn('HLS Fatal Error, falling back to MP4 once:', data);
+            console.warn('HLS Fatal Error, falling back to MP4:', data);
             if (!video.src.includes('downloads')) {
               video.src = `https://videodelivery.net/${videoId}/downloads/default.mp4`;
             }
           }
         });
+      } else {
+        // Fallback to MP4 for unsupported browsers
+        video.src = `https://videodelivery.net/${videoId}/downloads/default.mp4`;
       }
 
-      // Play attempt with race-condition guard and unmute handling
+      // Mobile-optimized play attempt with requestAnimationFrame
       const tryPlay = () => {
         if (playGenRef.current !== myPlayGen) return; // Stale play attempt
 
-        // Start muted to ensure playback begins
-        video.muted = true;
-        const playPromise = video.play();
-        if (playPromise) {
-          playPromise.then(() => {
-            if (playGenRef.current !== myPlayGen) return;
-            // Successfully started playback, now try unmuting if needed
-            if (!muted) {
-              // Small delay to let browser realize user interaction happened
-              setTimeout(() => {
-                if (playGenRef.current !== myPlayGen) return;
-                video.muted = false;
-                video.defaultMuted = false;
-                video.removeAttribute('muted');
-                if (video.volume === 0) video.volume = 1.0;
-              }, 100);
-            }
-          }).catch(() => {
-            if (playGenRef.current !== myPlayGen) return;
-            // Retry on canplay
-            const onCanPlay = () => {
-              video.removeEventListener('canplay', onCanPlay);
+        video.muted = muted;
+
+        // Use requestAnimationFrame for better mobile compatibility
+        requestAnimationFrame(() => {
+          if (playGenRef.current !== myPlayGen) return;
+
+          const playPromise = video.play();
+          if (playPromise) {
+            playPromise.catch(() => {
               if (playGenRef.current !== myPlayGen) return;
-              video.play().then(() => {
-                // Try unmuting again after retry success
-                if (!muted) {
-                  setTimeout(() => {
-                    if (playGenRef.current !== myPlayGen) return;
-                    video.muted = false;
-                    video.defaultMuted = false;
-                    video.removeAttribute('muted');
-                    if (video.volume === 0) video.volume = 1.0;
-                  }, 100);
-                }
-              }).catch(() => {});
-            };
-            video.addEventListener('canplay', onCanPlay, { once: true });
-          });
-        }
+              // Retry on canplay for mobile autoplay policy
+              const onCanPlay = () => {
+                video.removeEventListener('canplay', onCanPlay);
+                if (playGenRef.current !== myPlayGen) return;
+                video.play().catch(() => {});
+              };
+              video.addEventListener('canplay', onCanPlay, { once: true });
+            });
+          }
+        });
       };
 
-      // Try play on loadedmetadata with unmuting
+      // Try play on loadedmetadata with mobile considerations
       const handleLoadedMetadata = () => {
         if (playGenRef.current === myPlayGen) {
           // Try playing unmuted first if that's what's requested

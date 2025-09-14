@@ -11,6 +11,7 @@ export type VideoObserverOptions = {
 /**
  * Custom hook for managing video autoplay with IntersectionObserver
  * Handles both active playback and nearby warmup loading
+ * Enhanced with mobile autoplay support
  */
 export const useVideoObserver = (options: VideoObserverOptions) => {
   const activeObserverRef = useRef<IntersectionObserver | null>(null);
@@ -19,61 +20,59 @@ export const useVideoObserver = (options: VideoObserverOptions) => {
 
   const {
     root = null,
-    rootMargin = "200px 0px",
+    rootMargin = '200px 0px',
     threshold = 0.5,
     onActiveChange,
     onNearby
   } = options;
 
-  // Initialize observers
+  const onEnter = useCallback(async (element: Element) => {
+    const video = (element as HTMLElement).querySelector('video') as HTMLVideoElement | null;
+    if (!video) return;
+    try {
+      video.muted = true;
+      video.setAttribute('muted', '');
+      await video.play();
+    } catch {
+      // ignore autoplay failures
+    }
+  }, []);
+
+  const onLeave = useCallback((element: Element) => {
+    const video = (element as HTMLElement).querySelector('video') as HTMLVideoElement | null;
+    if (video) video.pause();
+  }, []);
+
   useEffect(() => {
-    // Primary observer for active playback
     activeObserverRef.current = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          const index = elementsRef.current.get(entry.target);
-          if (index === undefined) return;
-
+          const idx = elementsRef.current.get(entry.target);
+          if (idx === undefined) return;
           const isActive = entry.isIntersecting && entry.intersectionRatio >= threshold;
-          // Inform the caller (component) about active state
-          onActiveChange?.(index, isActive);
+          onActiveChange?.(idx, isActive);
 
-          // Imperatively play/pause the element to ensure video frames render (avoids audio-only)
           try {
-            const el = entry.target as HTMLVideoElement | HTMLMediaElement;
-            if (isActive) {
-              el.play?.().catch(() => { /* autoplay may be blocked if unmuted; caller handles unmute */ });
-            } else {
-              el.pause?.();
-            }
+            if (isActive) onEnter(entry.target);
+            else onLeave(entry.target);
           } catch {
-            // ignore if not a media element
+            // ignore non-HTMLElements
           }
         });
       },
-      {
-        root,
-        rootMargin,
-        threshold: [0, threshold]
-      }
+      { root, rootMargin, threshold: [0, threshold] }
     );
 
-    // Secondary observer for nearby warmup
     if (onNearby) {
       nearbyObserverRef.current = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
-            const index = elementsRef.current.get(entry.target);
-            if (index !== undefined) {
-              onNearby(index, entry.isIntersecting);
-            }
+            const idx = elementsRef.current.get(entry.target);
+            if (idx === undefined) return;
+            onNearby(idx, entry.isIntersecting);
           });
         },
-        {
-          root,
-          rootMargin: "800px 0px",
-          threshold: 0.01
-        }
+        { root, rootMargin: '800px 0px', threshold: 0.01 }
       );
     }
 
@@ -81,27 +80,22 @@ export const useVideoObserver = (options: VideoObserverOptions) => {
       activeObserverRef.current?.disconnect();
       nearbyObserverRef.current?.disconnect();
     };
-  }, [root, rootMargin, threshold, onActiveChange, onNearby]);
+  }, [root, rootMargin, threshold, onActiveChange, onNearby, onEnter, onLeave]);
 
-  // Function to register an element for observation
   const observe = useCallback((element: Element, index: number) => {
     if (!element) return;
-
     elementsRef.current.set(element, index);
     activeObserverRef.current?.observe(element);
     nearbyObserverRef.current?.observe(element);
   }, []);
 
-  // Function to unregister an element
   const unobserve = useCallback((element: Element) => {
     if (!element) return;
-
     elementsRef.current.delete(element);
     activeObserverRef.current?.unobserve(element);
     nearbyObserverRef.current?.unobserve(element);
   }, []);
 
-  // Cleanup function
   const disconnect = useCallback(() => {
     activeObserverRef.current?.disconnect();
     nearbyObserverRef.current?.disconnect();
