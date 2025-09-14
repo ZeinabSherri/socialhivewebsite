@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { useImperativeMuteToggle } from '../hooks/useImperativeMuteToggle';
 import { AnimatePresence } from 'framer-motion';
 import ReelPlayer from './ReelPlayer';
 import ReelActionRail from './ReelActionRail';
@@ -49,18 +50,111 @@ const ReelVideo = ({
   // Progress tracking - use the ref directly instead of DOM query
   useEffect(() => {
     if (!isActive || !videoRef.current) return;
-
     const video = videoRef.current;
-
     const updateProgress = () => {
       if (video.duration) {
         setProgress((video.currentTime / video.duration) * 100);
       }
     };
-
     const interval = setInterval(updateProgress, 100);
     return () => clearInterval(interval);
   }, [isActive]);
+
+  // Imperatively sync mute state (no restart)
+  const toggleMute = useImperativeMuteToggle(videoRef);
+  useEffect(() => {
+    toggleMute(globalMuted);
+  }, [globalMuted, toggleMute]);
+
+  // Ensure video is played on activation (autoplay fix)
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Always set inline playback attributes to avoid iOS forcing fullscreen/black screen.
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+    video.setAttribute('x-webkit-airplay', 'allow');
+    video.playsInline = true;
+
+    // Performance: preload metadata only and hint autoplay. Keep muted initially to satisfy
+    // autoplay policies — we will toggle mute imperatively elsewhere so avoid binding props here.
+    video.preload = 'metadata';
+    video.autoplay = true;
+    video.muted = true; // start muted imperatively
+
+    // Helper to attempt playback when the element is ready. This won't throw if blocked.
+    const tryPlay = () => video.play?.().catch(() => {});
+    video.addEventListener('loadedmetadata', tryPlay);
+    video.addEventListener('canplay', tryPlay);
+
+    // Only manage source attachment for non-Cloudflare reels. Cloudflare player manages its own
+    // HLS attachment and src; touching src there can cause reloads/black screens.
+    if (!reel.isCloudflare) {
+      (async () => {
+        try {
+          const srcCandidate = reel.videoUrl || '';
+          if (!srcCandidate) return;
+
+          const src = /^https?:\/\//i.test(srcCandidate)
+            ? srcCandidate
+            : srcCandidate.endsWith('.m3u8')
+              ? srcCandidate
+              : srcCandidate + '';
+
+          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+            (navigator.platform === 'MacIntel' && (navigator as unknown as { maxTouchPoints?: number }).maxTouchPoints > 1);
+          const canPlayHlsNatively = typeof video.canPlayType === 'function' && video.canPlayType('application/vnd.apple.mpegurl') !== '';
+
+          if (src.endsWith('.m3u8')) {
+            if (isIOS && canPlayHlsNatively) {
+              if (video.src !== src) video.src = src; // native HLS on iOS
+            } else {
+              // Non-iOS: use hls.js when supported
+              try {
+                // Dynamic import and usage of hls.js — allow explicit any in this small block
+                /* eslint-disable @typescript-eslint/no-explicit-any */
+                const HlsMod = await import('hls.js');
+                const Hls = ((HlsMod as unknown) as { default?: any }).default ?? (HlsMod as unknown as any);
+                if (Hls && Hls.isSupported && Hls.isSupported()) {
+                  const hls = new Hls({ autoStartLoad: true });
+                  hls.loadSource(src);
+                  hls.attachMedia(video);
+                  // cleanup on unload
+                  const cleanup = () => hls.destroy();
+                  video.addEventListener('emptied', cleanup, { once: true });
+                } else if (canPlayHlsNatively) {
+                  if (video.src !== src) video.src = src;
+                }
+                /* eslint-enable @typescript-eslint/no-explicit-any */
+              } catch {
+                if (canPlayHlsNatively) {
+                  if (video.src !== src) video.src = src;
+                }
+              }
+            }
+          } else {
+            // mp4 or progressive
+            if (video.src !== src) video.src = src;
+          }
+        } catch {
+          // ignore
+        }
+      })();
+    }
+
+    // Pause when not active to avoid background playback
+    if (isActive) {
+      tryPlay();
+    } else {
+      video.pause();
+    }
+
+    return () => {
+      video.removeEventListener('loadedmetadata', tryPlay);
+      video.removeEventListener('canplay', tryPlay);
+    };
+  }, [isActive, globalMuted, reel.videoUrl, reel.isCloudflare]);
 
   const handleLikeClick = useCallback(() => {
     onLike(reel.id);
@@ -88,7 +182,6 @@ const ReelVideo = ({
             ref={videoRef}
             videoId={reel.videoUrl}
             isActive={isActive}
-            muted={globalMuted}
             loop={true}
             controls={false}
             className="w-full h-full"
@@ -97,16 +190,16 @@ const ReelVideo = ({
             warmupLoad={!isActive}
           />
         ) : (
-            <ReelPlayer
-              videoUrl={reel.videoUrl}
-              poster={reel.poster}
-              isActive={isActive}
-              globalMuted={globalMuted}
-              onMuteToggle={onMuteToggle}
-              onLike={handleLikeClick}
-              height={0} // Height controlled by parent
-            />
-          )}
+          <ReelPlayer
+            videoUrl={reel.videoUrl}
+            poster={reel.poster}
+            isActive={isActive}
+            globalMuted={globalMuted}
+            onMuteToggle={onMuteToggle}
+            onLike={handleLikeClick}
+            height={0} // Height controlled by parent
+          />
+        )}
 
           {/* Progress bar */}
           {isActive && (
@@ -204,30 +297,29 @@ const ReelVideo = ({
       data-reel-id={reel.id}
     >
       {/* Video Player with interactions */}
-      {reel.isCloudflare ? (
-        <CloudflareStreamPlayer
-          ref={videoRef}
-          videoId={reel.videoUrl}
-          isActive={isActive}
-          muted={globalMuted}
-          loop={true}
-          controls={false}
-          className="absolute inset-0 w-full h-full"
-          onTap={handleMuteToggle}
-          onDoubleTap={handleDoubleTap}
-          warmupLoad={!isActive}
-        />
-      ) : (
-        <ReelPlayer
-          videoUrl={reel.videoUrl}
-          poster={reel.poster}
-          isActive={isActive}
-          globalMuted={globalMuted}
-          onMuteToggle={onMuteToggle}
-          onLike={handleLikeClick}
-          height={height}
-        />
-      )}
+        {reel.isCloudflare ? (
+          <CloudflareStreamPlayer
+            ref={videoRef}
+            videoId={reel.videoUrl}
+            isActive={isActive}
+            loop={true}
+            controls={false}
+            className="absolute inset-0 w-full h-full"
+            onTap={handleMuteToggle}
+            onDoubleTap={handleDoubleTap}
+            warmupLoad={!isActive}
+          />
+        ) : (
+          <ReelPlayer
+            videoUrl={reel.videoUrl}
+            poster={reel.poster}
+            isActive={isActive}
+            globalMuted={globalMuted}
+            onMuteToggle={onMuteToggle}
+            onLike={handleLikeClick}
+            height={height}
+          />
+        )}
 
       {/* Progress bar */}
       {isActive && (

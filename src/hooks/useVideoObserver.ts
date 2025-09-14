@@ -19,8 +19,8 @@ export const useVideoObserver = (options: VideoObserverOptions) => {
 
   const {
     root = null,
-    rootMargin = "300px 0px",
-    threshold = 0.6,
+    rootMargin = "200px 0px",
+    threshold = 0.5,
     onActiveChange,
     onNearby
   } = options;
@@ -32,9 +32,22 @@ export const useVideoObserver = (options: VideoObserverOptions) => {
       (entries) => {
         entries.forEach((entry) => {
           const index = elementsRef.current.get(entry.target);
-          if (index !== undefined) {
-            const isActive = entry.isIntersecting && entry.intersectionRatio >= threshold;
-            onActiveChange?.(index, isActive);
+          if (index === undefined) return;
+
+          const isActive = entry.isIntersecting && entry.intersectionRatio >= threshold;
+          // Inform the caller (component) about active state
+          onActiveChange?.(index, isActive);
+
+          // Imperatively play/pause the element to ensure video frames render (avoids audio-only)
+          try {
+            const el = entry.target as HTMLVideoElement | HTMLMediaElement;
+            if (isActive) {
+              el.play?.().catch(() => { /* autoplay may be blocked if unmuted; caller handles unmute */ });
+            } else {
+              el.pause?.();
+            }
+          } catch {
+            // ignore if not a media element
           }
         });
       },

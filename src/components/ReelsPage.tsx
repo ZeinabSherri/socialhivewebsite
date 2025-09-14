@@ -49,21 +49,39 @@ const ReelsPage = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [activeIndex, setActiveIndex] = useState(0); // Single active reel
   const [likedReels, setLikedReels] = useState<Set<number>>(new Set());
-  const [globalMuted, setGlobalMuted] = useState(true);
+  const [globalMuted, setGlobalMuted] = useState(false); // Start unmuted
   const [, setNearbyReels] = useState<Set<number>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
   const isNavigatingRef = useRef(false);
+  const lastPlayTimeRef = useRef<number>(0);
 
 
   // Single IntersectionObserver for activeIndex control - no per-item observers
   const { observe, disconnect } = useVideoObserver({
     root: containerRef.current,
-    rootMargin: "0px 0px -30% 0px", // Avoid two items being active at once
-    threshold: 0.7, // Adjusted threshold for cleaner single-active behavior
+    rootMargin: "-25% 0px -25% 0px", // More generous margins for earlier activation
+    threshold: 0.15, // Lower threshold for faster activation and smoother transitions
     onActiveChange: (index, isActive) => {
       if (isActive) {
-        setActiveIndex(index);
-        setCurrentIndex(index);
+        // Ensure clean state transition and preload adjacent videos
+        setActiveIndex(prevIndex => {
+          if (prevIndex !== index) {
+            setCurrentIndex(index);
+            lastPlayTimeRef.current = Date.now();
+            
+            // Preload next and previous videos
+            const preloadIndices = [index - 1, index + 1].filter(i => i >= 0 && i < formattedReels.length);
+            preloadIndices.forEach(i => {
+              requestAnimationFrame(() => {
+                const video = new Image();
+                video.src = formattedReels[i].poster || '';
+              });
+            });
+            
+            return index;
+          }
+          return prevIndex;
+        });
       }
     },
     onNearby: (index, isNearby) => {
@@ -138,8 +156,13 @@ const ReelsPage = () => {
   }, []);
 
   const handleMuteToggle = useCallback(() => {
-    setGlobalMuted(!globalMuted);
-  }, [globalMuted]);
+    const now = Date.now();
+    // Prevent rapid toggling
+    if (now - lastPlayTimeRef.current < 300) return;
+    lastPlayTimeRef.current = now;
+    
+    setGlobalMuted(prev => !prev);
+  }, []);
 
   // Handle touch/swipe navigation
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -208,16 +231,60 @@ const ReelsPage = () => {
     const container = containerRef.current;
     if (!container || window.innerWidth >= 1024) return; // Only for mobile
 
-    // Register video elements with observer
+    // Register video elements with observer and apply smooth scrolling
     const reelElements = container.querySelectorAll('section[data-reel-id]');
     reelElements.forEach((element, index) => {
+      // Type assertion for HTMLElement to access style
+      const el = element as HTMLElement;
+      el.style.cssText = `
+        scroll-snap-align: center;
+        scroll-snap-stop: always;
+      `;
       observe(element, index);
     });
 
+    // Apply container styles
+    container.style.cssText = `
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    `;
+
+    // Debounced scroll handler for precise snapping and video activation
+    let scrollTimeout: ReturnType<typeof setTimeout>;
+    const handleScrollEnd = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        const containerHeight = container.clientHeight;
+        const scrollTop = container.scrollTop;
+        const targetIndex = Math.round(scrollTop / containerHeight);
+        
+        if (targetIndex !== currentIndex && targetIndex >= 0 && targetIndex < formattedReels.length) {
+          setCurrentIndex(targetIndex);
+          setActiveIndex(targetIndex);
+          
+          // Ensure proper snap position
+          const targetOffset = targetIndex * containerHeight;
+          if (Math.abs(scrollTop - targetOffset) > 5) {
+            requestAnimationFrame(() => {
+              container.scrollTo({
+                top: targetOffset,
+                behavior: 'smooth'
+              });
+            });
+          }
+        }
+      }, 50); // Reduced timeout for more responsive feeling
+    };
+
+    container.addEventListener('scroll', handleScrollEnd, { passive: true });
+
     return () => {
+      container.removeEventListener('scroll', handleScrollEnd);
+      clearTimeout(scrollTimeout);
       disconnect();
     };
-  }, [formattedReels.length, observe, disconnect]);
+  }, [formattedReels.length, observe, disconnect, currentIndex]);
 
 
   return (
@@ -274,19 +341,40 @@ const ReelsPage = () => {
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
               >
-                {formattedReels.map((reel, index) => (
-                  <ReelVideo
-                    key={reel.id} // Stable React key for no orphaned playing nodes
-                    reel={reel}
-                    isActive={index === activeIndex} // Single activeIndex control
-                    height={window.innerHeight}
-                    onLike={handleLike}
-                    isLiked={likedReels.has(reel.id)}
-                    globalMuted={globalMuted}
-                    onMuteToggle={handleMuteToggle}
-                    layout="mobile"
-                  />
-                ))}
+                {formattedReels.map((reel, index) => {
+                  const isActive = index === activeIndex;
+                  // Only render videos that are active or adjacent to improve performance
+                  if (Math.abs(index - activeIndex) > 1) {
+                    return (
+                      <section
+                        key={reel.id}
+                        className="relative bg-black w-full snap-start snap-always"
+                        style={{ height: `${window.innerHeight}px` }}
+                        data-reel-id={reel.id}
+                      >
+                        <img
+                          src={reel.poster}
+                          alt={reel.description}
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                      </section>
+                    );
+                  }
+                  
+                  return (
+                    <ReelVideo
+                      key={reel.id}
+                      reel={reel}
+                      isActive={isActive}
+                      height={window.innerHeight}
+                      onLike={handleLike}
+                      isLiked={likedReels.has(reel.id)}
+                      globalMuted={globalMuted}
+                      onMuteToggle={handleMuteToggle}
+                      layout="mobile"
+                    />
+                  );
+                })}
               </div>
             </div>
           </motion.div>

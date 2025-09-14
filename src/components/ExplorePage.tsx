@@ -48,8 +48,8 @@ const ExplorePage = () => {
     }));
   }, [activeFilter]);
 
-  // Handle reel click
-  const handleReelClick = (reel: ExploreReel, index: number) => {
+  // Handle reel click with immediate activation
+  const handleReelClick = useCallback((reel: ExploreReel, index: number) => {
     setSelectedReelIndex(index);
     setShowReelsViewer(true);
     
@@ -58,7 +58,16 @@ const ExplorePage = () => {
     params.set('category', activeFilter);
     params.set('reel', reel.id.toString());
     window.history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);
-  };
+    
+    // Pre-warm the next video
+    if (index < allReels.length - 1) {
+      requestAnimationFrame(() => {
+        const nextReel = allReels[index + 1];
+        const video = new Image();
+        video.src = nextReel.thumbnail;
+      });
+    }
+  }, [activeFilter, allReels]);
 
   // Handle category change
   const handleCategoryChange = (newCategory: CategoryKey) => {

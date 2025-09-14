@@ -69,9 +69,10 @@ const CloudflareVideo = forwardRef<HTMLVideoElement, CloudflareVideoProps>(
       // Set autoplay policy compliant attributes before attachment
       video.setAttribute('playsinline', '');
       video.setAttribute('muted', '');
+      video.setAttribute('webkit-playsinline', 'true');
       video.playsInline = true;
       video.muted = true;
-      video.preload = 'metadata';
+      video.preload = isActive ? 'auto' : 'metadata';
 
       // Single attach path - prevents audio-only issues
       const hasNativeHls =
@@ -88,14 +89,19 @@ const CloudflareVideo = forwardRef<HTMLVideoElement, CloudflareVideoProps>(
       } else if (Hls.isSupported()) {
         // Other browsers → hls.js with single instance
         if (hlsRef.current) {
+          hlsRef.current.stopLoad?.();
+          hlsRef.current.detachMedia?.();
           hlsRef.current.destroy?.();
         }
         
         hlsRef.current = new Hls({ 
           maxBufferLength: 30, 
           backBufferLength: 30,
+          enableWorker: true,
+          lowLatencyMode: true,
           fragLoadingMaxRetry: 2,
-          manifestLoadingMaxRetry: 2
+          manifestLoadingMaxRetry: 2,
+          startLevel: -1 // Auto quality
         });
         
         hlsRef.current.on(Hls.Events.ERROR, (event, data) => {

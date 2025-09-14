@@ -94,13 +94,10 @@ const PostCard: React.FC<PostCardProps> = ({
   const [showFullCaption, setShowFullCaption] = useState(false)
   const [showLoveIcon, setShowLoveIcon] = useState(false)
   const [lastTap, setLastTap] = useState(0)
-  const [videoMuted, setVideoMuted] = useState(true)
-  const [isVideoActive, setIsVideoActive] = useState(false)
+  const [lastPlayTime, setLastPlayTime] = useState(0)
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-
-  // Remove manual video control logic since CloudflareStreamPlayer handles it
-  // const [isVideoActive, setIsVideoActive] = useState(false)
+  const [isLocallyActive, setIsLocallyActive] = useState(false)
 
   // Remove individual IntersectionObserver since HomeFeed handles it globally
   // useEffect(() => {
@@ -165,9 +162,10 @@ const PostCard: React.FC<PostCardProps> = ({
             ref={videoRef}
             videoId={post.cloudflareId!}
             isActive={isActive}
-            muted={!isActive}
+            muted={false}
             loop={true}
             controls={false}
+            autoPlay={true}
             className="w-full h-full rounded-lg overflow-hidden"
             onDoubleTap={() => {
               // Double tap like
@@ -176,6 +174,49 @@ const PostCard: React.FC<PostCardProps> = ({
               setTimeout(() => setShowLoveIcon(false), 1000);
             }}
             warmupLoad={!isActive}
+            onActiveChange={(active) => {
+              if (active) {
+                setLastPlayTime(Date.now());
+                const video = videoRef.current;
+                if (video) {
+                  // Try to start unmuted immediately
+                  video.muted = false;
+                  video.defaultMuted = false;
+                  video.removeAttribute('muted');
+                  video.volume = 1.0;
+                  
+                  // Set playsinline for iOS
+                  video.playsInline = true;
+                  video.setAttribute('playsinline', 'true');
+                  video.setAttribute('webkit-playsinline', 'true');
+                  
+                  // Try unmuted play first, fall back to muted if needed
+                  const tryPlay = () => {
+                    video.play().then(() => {
+                      // Successfully started unmuted
+                      video.muted = false;
+                      video.removeAttribute('muted');
+                    }).catch(() => {
+                      // If unmuted fails, try muted then quickly unmute
+                      video.muted = true;
+                      video.play().then(() => {
+                        setTimeout(() => {
+                          video.muted = false;
+                          video.removeAttribute('muted');
+                          video.volume = 1.0;
+                        }, 50);
+                      }).catch(() => {});
+                    });
+                  };
+                  
+                  if (video.readyState >= 2) {
+                    tryPlay();
+                  } else {
+                    video.addEventListener('canplay', tryPlay, { once: true });
+                  }
+                }
+              }
+            }}
           />
 
           {showLoveIcon && (
@@ -209,11 +250,13 @@ const PostCard: React.FC<PostCardProps> = ({
                   <video
                     autoPlay
                     loop
-                    muted={!isVideoActive}
+                    muted={!isLocallyActive}
                     playsInline
                     webkit-playsinline="true"
                     preload="auto"
                     className="w-full h-full object-cover rounded-lg"
+                    onPlay={() => setIsLocallyActive(true)}
+                    onPause={() => setIsLocallyActive(false)}
                   >
                     <source src={m.url} type="video/mp4" />
                   </video>

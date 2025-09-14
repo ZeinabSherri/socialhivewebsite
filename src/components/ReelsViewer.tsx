@@ -138,7 +138,7 @@ const ReelsViewer = ({ reels, initialIndex, category, onClose }: ReelsViewerProp
     return () => window.removeEventListener('wheel', onWheel);
   }, [navigate]);
 
-  // Handle scroll-based navigation
+  // Handle scroll-based navigation with improved video activation
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -149,10 +149,35 @@ const ReelsViewer = ({ reels, initialIndex, category, onClose }: ReelsViewerProp
       const newIndex = Math.round(container.scrollTop / window.innerHeight);
       if (newIndex !== currentIndex && newIndex >= 0 && newIndex < formattedReels.length) {
         setCurrentIndex(newIndex);
+        
+        // Pre-warm the next video if available
+        if (newIndex < formattedReels.length - 1) {
+          const nextReel = formattedReels[newIndex + 1];
+          const img = new Image();
+          img.src = nextReel.poster || '';
+        }
+      }
+    };
+
+    // Initial setup for autoplay
+    const setupInitialVideo = () => {
+      const video = container.querySelector('video');
+      if (video && video.paused) {
+        video.play().catch(() => {
+          // If autoplay fails, try with muted
+          video.muted = true;
+          video.play().catch(() => {});
+        });
       }
     };
 
     container.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // Setup initial video with a slight delay to ensure DOM is ready
+    requestAnimationFrame(() => {
+      setupInitialVideo();
+    });
+
     return () => container.removeEventListener('scroll', handleScroll);
   }, [currentIndex, formattedReels.length]);
 

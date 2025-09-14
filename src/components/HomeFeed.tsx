@@ -268,33 +268,45 @@ const HomeFeed: React.FC<{ onNavigateToProfile?: () => void }> = ({
     postRefs.current = posts.map(() => createRef<HTMLDivElement>());
   }
 
-  // Single active item control with IntersectionObserver
+  // Single active item control with IntersectionObserver for video autoplay/unmute
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.7) {
-            const index = postRefs.current.findIndex(ref => ref.current === entry.target);
-            if (index !== -1 && index !== activeIndex) {
+          const index = postRefs.current.findIndex(ref => ref.current === entry.target);
+          if (index === -1) return;
+          const post = posts[index];
+          // Only handle video posts
+          if (post.type === 'video' && post.cloudflareId && postRefs.current[index]?.current) {
+            const video = postRefs.current[index].current.querySelector('video');
+            if (!video) return;
+            // Set required attributes always
+            video.setAttribute('playsinline', '');
+            video.setAttribute('webkit-playsinline', '');
+            video.playsInline = true;
+            video.preload = 'metadata';
+            video.autoplay = true;
+            if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+              // Play and try to unmute (homepage requirement)
+              video.muted = false;
+              import('../lib/tryUnmute').then(({ tryUnmute }) => tryUnmute(video));
               setActiveIndex(index);
+            } else {
+              video.pause();
             }
           }
         });
       },
       {
-        threshold: 0.7,
+        threshold: 0.5,
         rootMargin: '-10% 0px -10% 0px'
       }
     );
-
     postRefs.current.forEach((ref) => {
-      if (ref.current) {
-        observer.observe(ref.current);
-      }
+      if (ref.current) observer.observe(ref.current);
     });
-
     return () => observer.disconnect();
-  }, [posts.length, activeIndex]);
+  }, [posts, postRefs]);
 
   const handleLike = (postId: number | string) => {
     setPosts((prev) =>
