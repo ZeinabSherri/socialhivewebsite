@@ -8,6 +8,14 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    headers: {
+      // Add CSP headers for Cloudflare Stream in development
+      'Content-Security-Policy': 
+        "media-src 'self' https://*.cloudflarestream.com https://videodelivery.net blob: data:; " +
+        "img-src 'self' https://*.cloudflarestream.com https://videodelivery.net data: blob:; " +
+        "frame-src 'self' https://iframe.videodelivery.net https://*.cloudflarestream.com; " +
+        "connect-src 'self' https://*.cloudflarestream.com https://videodelivery.net;"
+    }
   },
   plugins: [
     react(),
@@ -19,4 +27,14 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // Ensure proper chunking for video components
+        manualChunks: {
+          'video-player': ['./src/components/CloudflareStreamPlayer.tsx'],
+        }
+      }
+    }
+  }
 }));

@@ -6,6 +6,8 @@ import PostHoverStats from './PostHoverStats';
 import WhatsAppIcon from './WhatsAppIcon';
 import ReelsViewer from './ReelsViewer';
 import { useCounterAnimation } from '../hooks/useCounterAnimation';
+import { useSingleActiveVideo } from '../hooks/useSingleActiveVideo';
+import { useReelPager } from '../hooks/useReelPager';
 import { generateCategoryPosts, CATEGORY_KEYS, type CategoryKey } from '../data/categoryVideos';
 
 interface ProfilePageProps {
@@ -28,6 +30,15 @@ const ProfilePage = ({
   const [activeIndex, setActiveIndex] = useState<number>(-1);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+
+  // Single active video hook for profile grid
+  useSingleActiveVideo('.profile-grid video');
+
+  // Enable scroll navigation on grid items
+  useReelPager({
+    container: gridRef,
+    itemSelector: '.aspect-square'
+  });
 
   // Profile options: main agency + 6 category profiles
   const profileOptions = [
@@ -101,7 +112,15 @@ const ProfilePage = ({
     // For category profiles, use category videos
     const videoPosts = generateCategoryPosts(profileName as CategoryKey);
     
-    return videoPosts.map((post: any, index: number) => ({
+    return videoPosts.map((post: {
+      id: string;
+      cloudflareId: string;
+      user: { handle: string; avatarUrl: string };
+      caption: string;
+      likesCount: number;
+      commentsCount: number;
+      comments: Array<{ user: string; text: string }>;
+    }, index: number) => ({
       id: index + 1,
       username: post.user.handle,
       userAvatar: post.user.avatarUrl,
@@ -111,7 +130,7 @@ const ProfilePage = ({
       likes: post.likesCount,
       comments: post.commentsCount,
       isLiked: false,
-      staticComments: post.comments.slice(0, 2).map((c: any, i: number) => ({
+      staticComments: post.comments.slice(0, 2).map((c: { user: string; text: string }, i: number) => ({
         id: i + 1,
         username: c.user,
         text: c.text
@@ -148,7 +167,12 @@ const ProfilePage = ({
       onNavigateToContact();
     }
   };
-  const handlePostClick = (post: any, index: number) => {
+  const handlePostClick = (post: {
+    id: number;
+    type: 'video' | 'image';
+    cloudflareId?: string;
+    image: string;
+  }, index: number) => {
     if (post.type === 'video') {
       setSelectedReelIndex(index);
       setShowReelsViewer(true);

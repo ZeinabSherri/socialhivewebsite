@@ -1,0 +1,7 @@
+/* PostCard specific video styling - scoped to post cards only */
+.post-card :global(.post-video-el) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

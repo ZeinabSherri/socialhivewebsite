@@ -164,10 +164,11 @@ const CloudflareVideo = forwardRef<HTMLVideoElement, CloudflareVideoProps>(
 
       if (isActive) {
         // Signal to playback bus
-        playbackBus.setActive(reelIdRef.current);
+        playbackBus.activate(reelIdRef.current);
       } else {
         // Pause when not active
         video.pause();
+        playbackBus.deactivate(reelIdRef.current);
       }
 
       onActiveChange?.(isActive);
@@ -175,7 +176,7 @@ const CloudflareVideo = forwardRef<HTMLVideoElement, CloudflareVideoProps>(
 
     // Subscribe to playback bus for global coordination
     useEffect(() => {
-      const unsubscribe = playbackBus.subscribe((activeReelId) => {
+      const unsubscribe = playbackBus.subscribe(reelIdRef.current, (activeReelId) => {
         if (activeReelId !== reelIdRef.current) {
           const video = videoRef.current;
           if (video) {

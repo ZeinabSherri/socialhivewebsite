@@ -1,30 +1,61 @@
-// Enhanced playback bus for instant coordination and race-condition prevention
-type PlaybackListener = (activeReelId: string | null) => void;
+type PlaybackListener = (activeId: string | null, prevId: string | null) => void;
 
 class PlaybackBus {
-  private listeners: Set<PlaybackListener> = new Set();
+  private listeners: Map<string, PlaybackListener> = new Map();
   private currentActiveId: string | null = null;
+  private hasUserInteracted = false;
 
-  subscribe(listener: PlaybackListener): () => void {
-    this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
+  subscribe(playerId: string, listener: PlaybackListener): () => void {
+    this.listeners.set(playerId, listener);
+    return () => {
+      this.listeners.delete(playerId);
+      if (this.currentActiveId === playerId) {
+        this.currentActiveId = null;
+      }
+    };
   }
 
-  setActive(reelId: string | null) {
-    if (this.currentActiveId !== reelId) {
-      this.currentActiveId = reelId;
-      // Emit to all listeners instantly for hard stop coordination
-      this.listeners.forEach(listener => listener(reelId));
+  activate(playerId: string, force = false) {
+    if (this.currentActiveId === playerId && !force) return;
+    
+    const prevId = this.currentActiveId;
+    this.currentActiveId = playerId;
+
+    // Notify previous active player first to ensure clean pause
+    if (prevId && this.listeners.has(prevId)) {
+      this.listeners.get(prevId)!(null, prevId);
+    }
+
+    // Notify new active player
+    if (this.listeners.has(playerId)) {
+      this.listeners.get(playerId)!(playerId, prevId);
+    }
+
+    // Notify others to ensure cleanup
+    this.listeners.forEach((listener, id) => {
+      if (id !== playerId && id !== prevId) {
+        listener(playerId, prevId);
+      }
+    });
+  }
+
+  deactivate(playerId: string) {
+    if (this.currentActiveId === playerId) {
+      this.currentActiveId = null;
+      this.listeners.forEach(listener => listener(null, playerId));
     }
   }
 
-  getCurrentActive(): string | null {
-    return this.currentActiveId;
+  markUserInteraction() {
+    this.hasUserInteracted = true;
   }
 
-  // Instant coordination - force stop all others
-  forceStopOthers(excludeReelId: string) {
-    this.listeners.forEach(listener => listener(excludeReelId));
+  canUnmute(): boolean {
+    return this.hasUserInteracted;
+  }
+
+  getActiveId(): string | null {
+    return this.currentActiveId;
   }
 }
 

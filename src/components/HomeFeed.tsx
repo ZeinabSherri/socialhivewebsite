@@ -4,6 +4,7 @@ import Stories from "./Stories";
 import FlyingBee from "./FlyingBee";
 import DrippingHoney from "./DrippingHoney";
 import { CLOUDFLARE_POSTS } from "../data/cloudflareVideoPosts";
+import { useSingleActiveVideo } from "../hooks/useSingleActiveVideo";
 
 interface Comment {
   id: number;
@@ -262,6 +263,9 @@ const HomeFeed: React.FC<{ onNavigateToProfile?: () => void }> = ({
 
   const [posts, setPosts] = useState<Post[]>(allPosts);
   const [activeIndex, setActiveIndex] = useState<number>(-1);
+
+  // Single active video hook for better video control
+  useSingleActiveVideo('.post-card video');
 
   const postRefs = useRef<React.RefObject<HTMLDivElement>[]>([]);
   if (postRefs.current.length !== posts.length) {

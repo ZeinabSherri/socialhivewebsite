@@ -1,0 +1,6 @@
+# Headers for Cloudflare Stream compatibility
+/*
+  Content-Security-Policy: default-src 'self' 'unsafe-inline' 'unsafe-eval'; media-src 'self' https://*.cloudflarestream.com https://videodelivery.net blob: data:; img-src 'self' https://*.cloudflarestream.com https://videodelivery.net data: blob:; connect-src 'self' https://*.cloudflarestream.com https://videodelivery.net; frame-src 'self' https://iframe.videodelivery.net https://*.cloudflarestream.com;
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

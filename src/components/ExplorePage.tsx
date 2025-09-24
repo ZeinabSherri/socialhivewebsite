@@ -4,6 +4,7 @@ import { Play } from 'lucide-react';
 import { formatCount } from '../lib/format';
 import ReelsViewer from './ReelsViewer';
 import ExploreCategoryChips from './ExploreCategoryChips';
+import { useReelPager } from '../hooks/useReelPager';
 import { CATEGORY_KEYS, CATEGORY_VIDEOS, generateCategoryPosts, type CategoryKey } from '../data/categoryVideos';
 
 type ExploreReel = {
@@ -29,6 +30,9 @@ const ExplorePage = () => {
   const [showReelsViewer, setShowReelsViewer] = useState(false);
   const [selectedReelIndex, setSelectedReelIndex] = useState(0);
 
+  // Container ref for scroll navigation
+  const containerRef = useRef<HTMLDivElement>(null);
+
   // Generate reels from category videos
   const allReels: ExploreReel[] = useMemo(() => {
     const categoryPosts = generateCategoryPosts(activeFilter);
@@ -47,6 +51,12 @@ const ExplorePage = () => {
       isCloudflare: true
     }));
   }, [activeFilter]);
+
+  // Enable scroll navigation on grid items
+  useReelPager({
+    container: containerRef,
+    itemSelector: '.aspect-square'
+  });
 
   // Handle reel click with immediate activation
   const handleReelClick = useCallback((reel: ExploreReel, index: number) => {
@@ -151,6 +161,7 @@ const ExplorePage = () => {
 
       {/* Reels grid */}
       <div 
+        ref={containerRef}
         className="flex-1 overflow-y-auto reels-safe-bottom" 
         style={{ height: 'calc(100vh - 140px - env(safe-area-inset-bottom))' }}
       >

@@ -13,8 +13,13 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar'
 import VerificationBadge from './VerificationBadge'
 import DrippingHoney from './DrippingHoney'
-import CloudflareStreamPlayer from './CloudflareStreamPlayer'
+import CloudflareStreamPlayer from './CloudflareStreamPlayerSSR'
+import CFStreamIframe from './CFStreamIframe';
+import VideoErrorBoundary from './VideoErrorBoundary';
+import { useMuteController } from '../hooks/useMuteController';
+import PostVideoLegacy from './PostVideoLegacy';
 import { formatCount } from '../lib/format'
+import styles from './PostCard.module.css'
 
 interface Comment {
   id: number
@@ -95,9 +100,12 @@ const PostCard: React.FC<PostCardProps> = ({
   const [showLoveIcon, setShowLoveIcon] = useState(false)
   const [lastTap, setLastTap] = useState(0)
   const [lastPlayTime, setLastPlayTime] = useState(0)
+  const [videoMuted, setVideoMuted] = useState(true) // Legacy mute state for post videos
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
   const [isLocallyActive, setIsLocallyActive] = useState(false)
+  const { toggleMute } = useMuteController(iframeRef);
 
   // Remove individual IntersectionObserver since HomeFeed handles it globally
   // useEffect(() => {
@@ -158,66 +166,48 @@ const PostCard: React.FC<PostCardProps> = ({
           onClick={handleDoubleTap}
           onTouchEnd={handleDoubleTap}
         >
-          <CloudflareStreamPlayer
-            ref={videoRef}
-            videoId={post.cloudflareId!}
-            isActive={isActive}
-            muted={false}
-            loop={true}
-            controls={false}
-            autoPlay={true}
-            className="w-full h-full rounded-lg overflow-hidden"
-            onDoubleTap={() => {
-              // Double tap like
-              if (!post.isLiked) onLike();
-              setShowLoveIcon(true);
-              setTimeout(() => setShowLoveIcon(false), 1000);
-            }}
-            warmupLoad={!isActive}
-            onActiveChange={(active) => {
-              if (active) {
-                setLastPlayTime(Date.now());
-                const video = videoRef.current;
-                if (video) {
-                  // Try to start unmuted immediately
-                  video.muted = false;
-                  video.defaultMuted = false;
-                  video.removeAttribute('muted');
-                  video.volume = 1.0;
-                  
-                  // Set playsinline for iOS
-                  video.playsInline = true;
-                  video.setAttribute('playsinline', 'true');
-                  video.setAttribute('webkit-playsinline', 'true');
-                  
-                  // Try unmuted play first, fall back to muted if needed
-                  const tryPlay = () => {
-                    video.play().then(() => {
-                      // Successfully started unmuted
-                      video.muted = false;
-                      video.removeAttribute('muted');
-                    }).catch(() => {
-                      // If unmuted fails, try muted then quickly unmute
-                      video.muted = true;
-                      video.play().then(() => {
-                        setTimeout(() => {
-                          video.muted = false;
-                          video.removeAttribute('muted');
-                          video.volume = 1.0;
-                        }, 50);
-                      }).catch(() => {});
-                    });
-                  };
-                  
-                  if (video.readyState >= 2) {
-                    tryPlay();
-                  } else {
-                    video.addEventListener('canplay', tryPlay, { once: true });
-                  }
+          <VideoErrorBoundary>
+            <div 
+              className="w-full h-full rounded-lg overflow-hidden post-card"
+              onDoubleClick={() => {
+                // Double tap like
+                if (!post.isLiked) onLike();
+                setShowLoveIcon(true);
+                setTimeout(() => setShowLoveIcon(false), 1000);
+              }}
+              onClick={(e) => {
+                // Single tap to toggle mute for legacy video
+                if (e.detail === 1) {
+                  setTimeout(() => {
+                    if (e.detail === 1) {
+                      setVideoMuted(m => !m);
+                    }
+                  }, 200);
                 }
-              }
-            }}
-          />
+              }}
+            >
+              <PostVideoLegacy
+                id={post.cloudflareId!}
+                className="w-full h-full post-video-el"
+                muted={videoMuted}
+                autoPlay={isActive}
+              />
+            </div>
+          </VideoErrorBoundary>
+
+          {/* Mute indicator */}
+          <div className="absolute top-2 right-2 z-30">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setVideoMuted(m => !m);
+              }}
+              className="bg-black/50 rounded-full p-1 text-white hover:bg-black/70 transition-colors"
+              aria-label={videoMuted ? "Unmute" : "Mute"}
+            >
+              {videoMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+            </button>
+          </div>
 
           {showLoveIcon && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
@@ -340,7 +330,7 @@ const PostCard: React.FC<PostCardProps> = ({
   )
 
   return (
-    <div className="bg-black border-b border-gray-800 max-w-md mx-auto rounded-lg overflow-visible">
+    <div className={`bg-black border-b border-gray-800 max-w-md mx-auto rounded-lg overflow-visible ${styles['post-card']}`}>
       {/* header */}
       <div className="flex items-center justify-between p-3">
         <div className="flex items-center space-x-3">

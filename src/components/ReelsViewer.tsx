@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft } from 'lucide-react';
 import ReelVideo from './ReelVideo';
 import ReelActionRail from './ReelActionRail';
+import { useReelPager } from '../hooks/useReelPager';
 
 export interface Reel {
   id: number;
@@ -33,6 +34,12 @@ const ReelsViewer = ({ reels, initialIndex, category, onClose }: ReelsViewerProp
   const [globalMuted, setGlobalMuted] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const isNavigatingRef = useRef(false);
+
+  // Add reel scroll hook for smooth navigation
+  useReelPager({ 
+    container: containerRef, 
+    itemSelector: '.snap-start' // Target elements with snap-start class
+  });
 
   // Convert reels to proper format
   const formattedReels = reels.map(reel => ({

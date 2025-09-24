@@ -5,6 +5,7 @@ import { generateExploreAllPosts, EXPLORE_ALL_UNIQUE_VIDEO_IDS } from '../data/c
 import ReelVideo from './ReelVideo';
 import ReelActionRail from './ReelActionRail';
 import { useVideoObserver } from '../hooks/useVideoObserver';
+import { useReelPager } from '../hooks/useReelPager';
 
 /** Types */
 type Reel = {
@@ -54,6 +55,12 @@ const ReelsPage = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isNavigatingRef = useRef(false);
   const lastPlayTimeRef = useRef<number>(0);
+
+  // Add reel scroll hook for smooth navigation
+  useReelPager({ 
+    container: containerRef, 
+    itemSelector: 'section[data-reel-id]' // Target reel sections
+  });
 
 
   // Single IntersectionObserver for activeIndex control - no per-item observers

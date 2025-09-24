@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import HeartBurst from './HeartBurst';
 import VolumeToast from './VolumeToast';
-import CloudflareStreamPlayer from './CloudflareStreamPlayer';
+import CFStreamIframe from './CFStreamIframe';
+import { useMuteController } from '../hooks/useMuteController';
 
 interface ReelPlayerProps {
   videoUrl: string;
@@ -25,28 +26,39 @@ const ReelPlayer = ({
 }: ReelPlayerProps) => {
   const [showHeartBurst, setShowHeartBurst] = useState(false);
   const [showVolumeToast, setShowVolumeToast] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const { toggleMute } = useMuteController(iframeRef);
+
+  const handleTap = useCallback(() => {
+    toggleMute();
+    onMuteToggle();
+    setShowVolumeToast(true);
+    setTimeout(() => setShowVolumeToast(false), 1000);
+  }, [toggleMute, onMuteToggle]);
+
+  const handleDoubleTap = useCallback(() => {
+    onLike();
+    setShowHeartBurst(true);
+  }, [onLike]);
 
   return (
     <>
       {/* Unified Cloudflare Stream Player */}
-      <CloudflareStreamPlayer
-        videoId={videoUrl}
-        isActive={isActive}
-        muted={globalMuted}
-        loop={true}
-        controls={false}
-        poster={poster}
+      <div 
         className="absolute inset-0 w-full h-full"
-        onTap={() => {
-          onMuteToggle();
-          setShowVolumeToast(true);
-          setTimeout(() => setShowVolumeToast(false), 1000);
-        }}
-        onDoubleTap={() => {
-          onLike();
-          setShowHeartBurst(true);
-        }}
-      />
+        onClick={handleTap}
+        onDoubleClick={handleDoubleTap}
+      >
+        <CFStreamIframe
+          ref={iframeRef}
+          id={videoUrl}
+          className="w-full h-full"
+          autoPlay={isActive}
+          muted={globalMuted}
+          controls={false}
+          title={`Reel video ${videoUrl}`}
+        />
+      </div>
 
       {/* Volume toast */}
       <VolumeToast isMuted={globalMuted} isVisible={showVolumeToast} />

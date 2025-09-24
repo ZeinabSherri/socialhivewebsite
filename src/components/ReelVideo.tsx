@@ -4,9 +4,13 @@ import { AnimatePresence } from 'framer-motion';
 import ReelPlayer from './ReelPlayer';
 import ReelActionRail from './ReelActionRail';
 import ReelMeta from './ReelMeta';
-import CloudflareStreamPlayer from './CloudflareStreamPlayer';
+import CloudflareStreamPlayer from './CloudflareStreamPlayerSSR';
+import CFStreamIframe from './CFStreamIframe';
+import ControllableReelVideo from './ControllableReelVideo';
+import { useMuteController } from '../hooks/useMuteController';
 import VolumeToast from './VolumeToast';
 import HeartBurst from './HeartBurst';
+import VideoErrorBoundary from './VideoErrorBoundary';
 
 interface ReelVideoProps {
   reel: {
@@ -43,9 +47,11 @@ const ReelVideo = ({
   layout = 'mobile'
 }: ReelVideoProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [progress, setProgress] = useState(0);
   const [showVolumeToast, setShowVolumeToast] = useState(false);
   const [showHeartBurst, setShowHeartBurst] = useState(false);
+  const { toggleMute: toggleIframeMute } = useMuteController(iframeRef);
 
   // Progress tracking - use the ref directly instead of DOM query
   useEffect(() => {
@@ -161,10 +167,14 @@ const ReelVideo = ({
   }, [onLike, reel.id]);
 
   const handleMuteToggle = useCallback(() => {
+    // Use iframe mute for Cloudflare videos
+    if (reel.isCloudflare) {
+      toggleIframeMute();
+    }
     onMuteToggle();
     setShowVolumeToast(true);
     setTimeout(() => setShowVolumeToast(false), 1000);
-  }, [onMuteToggle]);
+  }, [onMuteToggle, reel.isCloudflare, toggleIframeMute]);
 
   const handleDoubleTap = useCallback(() => {
     onLike(reel.id);
@@ -178,17 +188,21 @@ const ReelVideo = ({
         <div className="relative flex-1 min-h-0 w-full h-full">
           {/* Video Player */}
         {reel.isCloudflare ? (
-          <CloudflareStreamPlayer
-            ref={videoRef}
-            videoId={reel.videoUrl}
-            isActive={isActive}
-            loop={true}
-            controls={false}
-            className="w-full h-full"
-            onTap={handleMuteToggle}
-            onDoubleTap={handleDoubleTap}
-            warmupLoad={!isActive}
-          />
+          <VideoErrorBoundary>
+            <div 
+              className="w-full h-full"
+              onClick={handleMuteToggle}
+              onDoubleClick={handleDoubleTap}
+            >
+              <ControllableReelVideo
+                id={reel.videoUrl}
+                className="w-full h-full"
+                muted={globalMuted}
+                autoPlay={isActive}
+                loop={true}
+              />
+            </div>
+          </VideoErrorBoundary>
         ) : (
           <ReelPlayer
             videoUrl={reel.videoUrl}
@@ -231,18 +245,21 @@ const ReelVideo = ({
       <div className="relative bg-transparent w-full h-full">
         {/* Video Player with interactions - fills the stage */}
         {reel.isCloudflare ? (
-          <CloudflareStreamPlayer
-            ref={videoRef}
-            videoId={reel.videoUrl}
-            isActive={isActive}
-            muted={globalMuted}
-            loop={true}
-            controls={false}
-            className="w-full h-full"
-            onTap={handleMuteToggle}
-            onDoubleTap={handleDoubleTap}
-            warmupLoad={!isActive}
-          />
+          <VideoErrorBoundary>
+            <div 
+              className="w-full h-full"
+              onClick={handleMuteToggle}
+              onDoubleClick={handleDoubleTap}
+            >
+              <ControllableReelVideo
+                id={reel.videoUrl}
+                className="w-full h-full"
+                muted={globalMuted}
+                autoPlay={isActive}
+                loop={true}
+              />
+            </div>
+          </VideoErrorBoundary>
         ) : (
           <ReelPlayer
             videoUrl={reel.videoUrl}
@@ -298,17 +315,21 @@ const ReelVideo = ({
     >
       {/* Video Player with interactions */}
         {reel.isCloudflare ? (
-          <CloudflareStreamPlayer
-            ref={videoRef}
-            videoId={reel.videoUrl}
-            isActive={isActive}
-            loop={true}
-            controls={false}
-            className="absolute inset-0 w-full h-full"
-            onTap={handleMuteToggle}
-            onDoubleTap={handleDoubleTap}
-            warmupLoad={!isActive}
-          />
+          <VideoErrorBoundary>
+            <div 
+              className="absolute inset-0 w-full h-full"
+              onClick={handleMuteToggle}
+              onDoubleClick={handleDoubleTap}
+            >
+              <ControllableReelVideo
+                id={reel.videoUrl}
+                className="w-full h-full"
+                muted={globalMuted}
+                autoPlay={isActive}
+                loop={true}
+              />
+            </div>
+          </VideoErrorBoundary>
         ) : (
           <ReelPlayer
             videoUrl={reel.videoUrl}
