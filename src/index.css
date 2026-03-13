@@ -1,0 +1,203 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes instagram-heart {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  15% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  30% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+.carousel-container {
+  position: relative;
+  max-width: 600px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.carousel-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+/* Carousel arrows */
+.react-multi-carousel-arrow {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  width: 40px !important;
+  height: 40px !important;
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 10;
+  transition: background 0.3s ease;
+  cursor: pointer;
+}
+
+.react-multi-carousel-arrow:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.react-multi-carousel-arrow--left {
+  left: 10px !important;
+}
+
+.react-multi-carousel-arrow--right {
+  right: 10px !important;
+}
+
+/* Carousel dots */
+.react-multi-carousel-dot-list {
+  bottom: 12px !important;
+}
+
+.react-multi-carousel-dot button {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  border: none;
+  margin: 0 4px;
+  transition: background 0.3s ease;
+  cursor: pointer;
+}
+
+.react-multi-carousel-dot--active button {
+  background: white;
+}
+
+/* Comments styling */
+.text-left p {
+  word-break: break-word;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.hover\:underline:hover {
+  text-decoration: underline;
+}
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Reels mobile safe area gutters */
+    --reels-gutter: 14px;
+
+    /* Brand color for selected states */
+    --brand: 45 93% 58%; /* Yellow brand color */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Hide scrollbars for Instagram-style reels */
+.scrollbar-hidden {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Opera */
+}
+
+.scrollbar-none {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Opera */
+}
+
+/* Mobile safe area utilities */
+.reels-safe-padding {
+  padding-left: max(var(--reels-gutter), env(safe-area-inset-left));
+  padding-right: max(var(--reels-gutter), env(safe-area-inset-right));
+}
+
+.reels-safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.reels-safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Smooth category indicator animation */
+.category-indicator {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Grid item view counter */
+.view-counter {
+  background: linear-gradient(45deg, rgba(0,0,0,0.8), rgba(0,0,0,0.6));
+  backdrop-filter: blur(4px);
+}

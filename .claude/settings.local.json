@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed -i 's|/lovable-uploads/28534233-055a-4890-b414-1429c0288a35.png|/Uploads/28534233-055a-4890-b414-1429c0288a35.png|g' src/components/ProfilePage.tsx src/components/ReelsPage.tsx src/components/ReelsViewer.tsx src/components/ExplorePage.tsx src/components/PostCard.tsx src/components/DesktopReelsStage.tsx)",
+      "Bash(sed -i 's|/lovable-uploads/social-hive-logo.png|/images/socialhive.png|g' src/components/HomeFeed.tsx src/components/Stories.tsx)",
+      "Bash(npm install:*)"
+    ]
+  }
+}
